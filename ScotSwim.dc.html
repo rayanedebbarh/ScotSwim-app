@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<script src="./image-slot.js"></script>
+<style>
+body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
+a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
+*{box-sizing:border-box}
+::-webkit-scrollbar{display:none}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+input::placeholder{color:rgba(245,233,220,.5)}
+</style>
+</helmet>
+<div style="display:flex;justify-content:center;min-height:100vh;align-items:flex-start;background:#2A1218">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isLogin }}" hint-size="440px,920px">
+<div style="height:100%;display:flex;flex-direction:column;background:#F2EDE5;color:#2A1218;font-family:'Barlow',sans-serif;position:relative;overflow:hidden">
+
+<sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
+  <div style="position:absolute;inset:0;background-image:url('photos/login-hero.png');background-size:cover;background-position:center center;background-repeat:no-repeat;background-color:#2A1218"></div>
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end">
+    <div style="position:absolute;left:0;right:0;bottom:0;height:56%;background:linear-gradient(180deg,rgba(42,18,24,0),rgba(42,18,24,.55) 34%,rgba(42,18,24,.88) 62%,rgba(42,18,24,.95))"></div>
+    <div style="position:relative;flex:none;padding:10px 24px 82px;display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;line-height:1.05;color:#F5E9DC;margin-top:4px">Welcome to ScotSwim</div>
+      </div>
+      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="username / email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.28);background:rgba(245,233,220,.07);color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+      <input value="{{ pass }}" onChange="{{ onP }}" type="password" placeholder="password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.28);background:rgba(245,233,220,.07);color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+      <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">LOG IN</button>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onClick="{{ quickA }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: swimmer</button>
+        <button onClick="{{ quickC }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: coach</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow-y:auto;display:flex;flex-direction:column" data-screen-label="app-content">
+
+  <!-- app bar -->
+  <div style="background:#FFFFFF;padding:54px 16px 12px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(42,18,24,.07);position:sticky;top:0;z-index:10">
+    <button onClick="{{ openMenu }}" style="border:none;background:none;width:30px;height:30px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0;flex:none">
+      <div style="width:20px;height:2px;border-radius:1px;background:#2A1218"></div>
+      <div style="width:20px;height:2px;border-radius:1px;background:#2A1218"></div>
+      <div style="width:14px;height:2px;border-radius:1px;background:#2A1218"></div>
+    </button>
+    <div style="flex:1;font-family:'Barlow Condensed';font-weight:800;font-size:19px;letter-spacing:2.5px;color:#2A1218">{{ barTitle }}</div>
+    <sc-if value="{{ vHome }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ logout }}" style="border:1px solid rgba(42,18,24,.18);background:none;color:rgba(42,18,24,.65);padding:6px 12px;border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer">Sign out</button>
+    </sc-if>
+    <sc-if value="{{ vSwims }}" hint-placeholder-val="{{ false }}">
+      <button onClick="{{ goHome }}" style="border:1px solid rgba(42,18,24,.18);background:none;color:rgba(42,18,24,.65);padding:6px 12px;border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer">‹ Home</button>
+    </sc-if>
+  </div>
+
+  <!-- ============ ATHLETE HOME ============ -->
+  <sc-if value="{{ vAHome }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
+      <div style="position:relative;border-radius:10px;overflow:hidden">
+        <div style="position:absolute;inset:0;background-image:url('uploads/ss1.png');background-size:cover;background-position:center 30%"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.55),rgba(42,18,24,.88))"></div>
+        <div style="position:relative;padding:26px 20px 22px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd">2026–2027 SEASON</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px">Welcome, {{ heroName }}</div>
+          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px">Alma Scots · Swimming &amp; Diving</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">NEXT MEET IN</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#6B1F33;margin-top:6px">{{ cdDays }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">days · {{ nextShortName }}</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">YOUR GOALS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ selfCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set by you</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">PERSONAL BESTS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ pbCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set last season</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">COACH GOALS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ goalCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">targets active</div>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">UPCOMING MEETS</div>
+          <button onClick="{{ goMeets }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">View all ›</button>
+        </div>
+        <sc-for list="{{ upcoming }}" as="m" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="min-width:44px;text-align:center">
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:14.5px;line-height:1.25">{{ m.n }}</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
+            </div>
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">RECENT SWIMS</div>
+          <button onClick="{{ goSwims }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">All swims ›</button>
+        </div>
+        <sc-for list="{{ myRecent }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="font-size:13px;color:rgba(42,18,24,.7)">{{ r.meet }}</div>
+            <div style="display:flex;gap:10px;align-items:baseline">
+              <span style="font-weight:700;font-variant-numeric:tabular-nums;font-size:15px">{{ r.time }}</span>
+              <span style="font-size:11.5px;font-weight:700;color:{{ r.col }};min-width:44px;text-align:right">{{ r.delta }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#2A1218;border-radius:8px;padding:16px 18px;color:#F5E9DC">
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">LANE RIVALRY</div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <select value="{{ rivalEv }}" onChange="{{ rivalEvSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
+            <sc-for list="{{ rivalEvOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+          </select>
+          <select value="{{ rivalId }}" onChange="{{ rivalSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
+            <sc-for list="{{ rivalOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+          <div style="flex:1;text-align:center">
+            <div style="width:48px;height:48px;border-radius:50%;background:#6B1F33;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
+              <image-slot id="rival-a" src="{{ chal.aPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.aIni }}"></image-slot>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.aName }}</div>
+            <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.aTime }}</div>
+          </div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:20px;color:rgba(245,233,220,.5)">VS</div>
+          <div style="flex:1;text-align:center">
+            <div style="width:48px;height:48px;border-radius:50%;background:#1B7A78;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
+              <image-slot id="rival-b" src="{{ chal.bPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.bIni }}"></image-slot>
+            </div>
+            <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.bName }}</div>
+            <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.bTime }}</div>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:12px;color:rgba(245,233,220,.7);margin-top:10px">{{ chal.note }}</div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">YOUR GOALS</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <select value="{{ addEvtVal }}" onChange="{{ addSel }}" style="background:#fff;color:#1B7A78;border:1.5px solid #1B7A78;border-radius:999px;padding:6px 8px;font-size:11.5px;font-weight:700;font-family:'Barlow';outline:none;max-width:130px">
+              <option value="">＋ Add event</option>
+              <sc-for list="{{ addOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+            </select>
+            <button onClick="{{ allSelfBtn }}" style="border:none;background:none;color:#1B7A78;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;padding:0">{{ allSelfLabel }}</button>
+          </div>
+        </div>
+        <sc-if value="{{ selfEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No goals yet — pick an event with ＋ Add event and set your own target for the season.</div>
+        </sc-if>
+        <sc-for list="{{ selfList }}" as="g" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div>
+              <div style="font-size:13.5px;font-weight:600">{{ g.ev }}</div>
+              <div style="font-size:11px;color:rgba(42,18,24,.5);white-space:nowrap">PB <span style="font-variant-numeric:tabular-nums;font-weight:700">{{ g.pb }}</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:7px">
+              <button onClick="{{ g.dec }}" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:15px;font-weight:800;cursor:pointer;line-height:1">−</button>
+              <div style="min-width:66px;text-align:center;font-variant-numeric:tabular-nums;font-weight:800;font-size:15px;color:#1B7A78">{{ g.goal }}</div>
+              <button onClick="{{ g.inc }}" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:15px;font-weight:800;cursor:pointer;line-height:1">+</button>
+              <button onClick="{{ g.clear }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">COACH'S GOALS FOR YOU</div>
+          <button onClick="{{ allCoachBtn }}" style="border:none;background:none;color:#1B7A78;font-size:12px;font-weight:700;cursor:pointer;padding:0">{{ allCoachLabel }}</button>
+        </div>
+        <sc-for list="{{ myGoals }}" as="g" hint-placeholder-count="2">
+          <div style="margin-top:12px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600">
+              <span>{{ g.ev }}</span>
+              <span style="font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;margin-left:10px"><span style="color:rgba(42,18,24,.5)">PB {{ g.pb }}</span> → <span style="color:#1B7A78;font-weight:700">{{ g.goal }}</span></span>
+            </div>
+            <div style="margin-top:6px;height:6px;border-radius:3px;background:rgba(42,18,24,.08);overflow:hidden">
+              <div style="height:100%;width:{{ g.pct }}%;border-radius:3px;background:linear-gradient(90deg,#1B7A78,#6B1F33)"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TRAINING — {{ todayName }}</div>
+          <button onClick="{{ goTrain }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Full week ›</button>
+        </div>
+        <sc-for list="{{ todaySessions }}" as="s" hint-placeholder-count="2">
+          <div style="display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:#6B1F33;min-width:64px">{{ s.t }}</div>
+            <div style="flex:1;font-size:13.5px">{{ s.n }}</div>
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#1B7A78;border:1px solid #1B7A78;border-radius:3px;padding:3px 8px">{{ s.tag }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ANNOUNCEMENTS</div>
+        <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
+          <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="width:7px;height:7px;border-radius:50%;background:#1B7A78;margin-top:5px;flex:none"></div>
+            <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ a.d }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ COACH HOME ============ -->
+  <sc-if value="{{ vCHome }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
+      <div style="position:relative;border-radius:10px;overflow:hidden">
+        <div style="position:absolute;inset:0;background-image:url('uploads/ss1.png');background-size:cover;background-position:center 30%"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.6),rgba(42,18,24,.9))"></div>
+        <div style="position:relative;padding:26px 20px 22px">
+          <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd">2026–2027 SEASON</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px">Coach Hamstra</div>
+          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px">Alma Scots · Swimming &amp; Diving · Head Coach</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">TOTAL ATHLETES</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ nAll }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ nMen }} Men · {{ nWomen }} Women</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DAYS TO OPENER</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#6B1F33;margin-top:6px">{{ cdDays }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ nextShortName }}</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">93%</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">last 30 days</div>
+         </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DIVERS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ nDivers }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">1M &amp; 3M boards</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button onClick="{{ goSim }}" style="flex:1;border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer">RUN MEET SIM</button>
+        <button onClick="{{ goGoals }}" style="flex:1;border:1.5px solid #6B1F33;background:none;color:#6B1F33;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer">SET GOALS</button>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">UPCOMING MEETS</div>
+          <button onClick="{{ goMeets }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">View all ›</button>
+        </div>
+        <sc-for list="{{ upcoming }}" as="m" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="min-width:44px;text-align:center">
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:14.5px;line-height:1.25">{{ m.n }}</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
+            </div>
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TOP IMPROVERS</div>
+        <sc-for list="{{ improvers }}" as="p" hint-placeholder-count="3">
+          <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+            <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:{{ p.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ p.slotId }}" src="{{ p.photo }}" minimal="true" shape="circle" placeholder="{{ p.ini }}"></image-slot></div>
+            <div style="flex:1">
+              <div style="font-weight:600;font-size:14px">{{ p.name }}</div>
+              <div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ p.ev }} · {{ p.pb }}</div>
+            </div>
+            <div style="font-weight:800;color:#1B7A78;font-variant-numeric:tabular-nums">{{ p.imp }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM ANNOUNCEMENTS</div>
+        <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
+          <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
+            <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">Posted {{ a.d }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ MEETS ============ -->
+  <sc-if value="{{ vMeets }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:16px 18px;display:flex;align-items:center;gap:14px">
+        <div style="text-align:center">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6)">DAYS</div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">SEASON OPENER</div>
+          <div style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;line-height:1.15">{{ nextMeet.n }}</div>
+          <div style="font-size:12px;color:rgba(245,233,220,.7)">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 18px">
+        <sc-for list="{{ sched }}" as="m" hint-placeholder-count="8">
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="min-width:48px;text-align:center">
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:14px;line-height:1.25">{{ m.n }}</div>
+              <div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
+            </div>
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LAST SEASON — RESULTS</div>
+        <sc-for list="{{ results }}" as="r" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="width:30px;height:30px;border-radius:6px;background:{{ r.bg }};color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:14px;flex:none">{{ r.tag }}</div>
+            <div style="flex:1;font-size:13.5px;font-weight:600">{{ r.n }}<div style="font-size:11px;font-weight:400;color:rgba(42,18,24,.5)">{{ r.d }}</div></div>
+            <div style="font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums;color:rgba(42,18,24,.7)">{{ r.score }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ TRAIN ============ -->
+  <sc-if value="{{ vTrain }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:13px;font-weight:600">Practice streak</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">14 in a row</div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
+        <sc-for list="{{ workoutLib }}" as="w" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="width:38px;height:34px;border-radius:6px;background:{{ w.c }};color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.5px;flex:none">{{ w.ab }}</div>
+            <div style="flex:1"><div style="font-weight:700;font-size:13.5px">{{ w.n }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.5)">{{ w.d }}</div></div>
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);border:1px dashed rgba(42,18,24,.3);border-radius:3px;padding:4px 8px;flex:none">EMPTY</div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
+        <div style="background:#fff;border:{{ d.bd }};border-radius:8px;padding:13px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#6B1F33">{{ d.day }}</div>
+            <sc-if value="{{ d.today }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:#F5E9DC;background:#1B7A78;border-radius:3px;padding:3px 9px">TODAY</div></sc-if>
+          </div>
+          <sc-for list="{{ d.s }}" as="s" hint-placeholder-count="2">
+            <div style="display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,18,24,.06)">
+              <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;color:#6B1F33;min-width:62px">{{ s.t }}</div>
+              <div style="flex:1;font-size:13px">{{ s.n }}</div>
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#1B7A78;border:1px solid #1B7A78;border-radius:3px;padding:2px 7px">{{ s.tag }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <!-- ============ TEAM ============ -->
+  <sc-if value="{{ vTeam }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+        <sc-for list="{{ segs }}" as="s" hint-placeholder-count="3">
+          <button onClick="{{ s.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ s.bg }};color:{{ s.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">{{ s.n }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showSwimList }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:flex-end">
+          <select value="{{ teamSort }}" onChange="{{ teamSortSel }}" style="background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
+            <option value="rand">Roster order</option>
+            <option value="pts">Sort by points</option>
+          </select>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:4px 16px">
+          <sc-for list="{{ rosterList }}" as="p" hint-placeholder-count="10">
+            <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+              <div style="min-width:20px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:rgba(42,18,24,.4);flex:none">{{ p.rank }}</div>
+              <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:{{ p.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ p.slotId }}" src="{{ p.photo }}" minimal="true" shape="circle" placeholder="{{ p.ini }}"></image-slot></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:14.5px">{{ p.name }}</div>
+                <div style="font-size:11.5px;color:rgba(42,18,24,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.cls }} · {{ p.pos }}</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;color:#6B1F33">{{ p.best }}</div>
+                <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ p.bestEv }}</div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showStaff }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#6B1F33">COACHING STAFF</div>
+          <sc-for list="{{ coaches }}" as="c" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+              <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:#2A1218;color:#F5E9DC;flex:none"><image-slot id="{{ c.slotId }}" src="{{ c.photo }}" minimal="true" shape="circle" placeholder="{{ c.ini }}"></image-slot></div>
+              <div style="flex:1"><div style="font-weight:600;font-size:14.5px">{{ c.name }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ c.role }}</div></div>
+            </div>
+          </sc-for>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#6B1F33;margin-top:14px">SUPPORT STAFF</div>
+          <sc-for list="{{ staff }}" as="c" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+              <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:#1B7A78;color:#F5E9DC;flex:none"><image-slot id="{{ c.slotId }}" src="{{ c.photo }}" minimal="true" shape="circle" placeholder="{{ c.ini }}"></image-slot></div>
+              <div style="flex:1"><div style="font-weight:600;font-size:14.5px">{{ c.name }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ c.role }}</div></div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- ============ ME (athlete) ============ -->
+  <sc-if value="{{ vMe }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#6B1F33;color:#F5E9DC;border-radius:10px;padding:18px;display:flex;align-items:center;gap:14px">
+        <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none"><image-slot id="{{ det.slotId }}" src="{{ det.photo }}" minimal="true" shape="circle" placeholder="{{ det.ini }}"></image-slot></div>
+        <div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1">{{ det.name }}</div>
+          <div style="font-size:12.5px;color:rgba(245,233,220,.8);margin-top:3px">{{ det.cls }} · {{ det.pos }}</div>
+          <div style="font-size:11.5px;color:rgba(245,233,220,.6)">{{ det.home }}</div>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PROGRESSION</div>
+          <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }} this season</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;overflow-x:auto">
+          <sc-for list="{{ det.evChips }}" as="c" hint-placeholder-count="3">
+            <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
+          </sc-for>
+        </div>
+        <svg width="100%" viewBox="0 0 320 150" style="margin-top:8px">
+          <line x1="18" x2="302" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
+          <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
+          <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
+            <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
+          </sc-for>
+        </svg>
+        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:600;color:rgba(42,18,24,.45);padding:0 6px">
+          <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6"><span>{{ l.n }}</span></sc-for>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;font-weight:600">
+          <span style="color:rgba(42,18,24,.6)">Season best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ det.chart.pb }}</span></span>
+          <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ det.chart.goal }}</span></span>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PERSONAL BESTS</div>
+        <sc-for list="{{ det.pbs }}" as="b" hint-placeholder-count="3">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="font-size:13.5px;font-weight:600">{{ b.ev }}</div>
+            <div style="display:flex;gap:12px;align-items:baseline">
+              <span style="font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:#6B1F33">{{ b.t }}</span>
+              <span style="font-size:11px;font-weight:700;color:#1B7A78;min-width:56px;text-align:right">{{ b.where }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BADGES</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <sc-for list="{{ det.badges }}" as="b" hint-placeholder-count="4">
+            <div style="border:1px solid rgba(107,31,51,.22);border-radius:8px;padding:12px;background:#FDFBF7">
+              <div style="width:28px;height:28px;border-radius:50%;background:{{ b.c }};display:flex;align-items:center;justify-content:center;color:#F5E9DC;font-size:13px">★</div>
+              <div style="font-weight:700;font-size:13px;margin-top:8px">{{ b.n }}</div>
+              <div style="font-size:11px;color:rgba(42,18,24,.55);margin-top:2px;line-height:1.35">{{ b.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ ALL SWIMS ============ -->
+  <sc-if value="{{ vSwims }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px">
+        <select value="{{ swimEv }}" onChange="{{ swimEvSel }}" style="flex:1;background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:10px 10px;font-size:13px;font-weight:600;font-family:'Barlow';outline:none">
+          <option value="ALL">All events</option>
+          <sc-for list="{{ swimEvOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+        </select>
+        <select value="{{ swimSort }}" onChange="{{ swimSortSel }}" style="flex:1;background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:10px 10px;font-size:13px;font-weight:600;font-family:'Barlow';outline:none">
+          <option value="date">Newest first</option>
+          <option value="time">Fastest first</option>
+        </select>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 18px">
+        <sc-for list="{{ swimRows }}" as="r" hint-placeholder-count="12">
+          <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:13.5px">{{ r.ev }}</div>
+              <div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ r.meet }} · {{ r.season }}</div>
+            </div>
+            <sc-if value="{{ r.isPB }}" hint-placeholder-val="{{ false }}"><div style="font-size:9px;font-weight:800;letter-spacing:1px;color:#F5E9DC;background:#1B7A78;border-radius:3px;padding:3px 6px;flex:none">PB</div></sc-if>
+            <div style="font-variant-numeric:tabular-nums;font-weight:800;font-size:15px;color:#6B1F33;min-width:70px;text-align:right">{{ r.time }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:11px;color:rgba(42,18,24,.45);line-height:1.4">Career history syncs from SwimCloud once linked — this shows your 2025–26 season for now.</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ DIVING WELL ============ -->
+  <sc-if value="{{ vDive }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#1B7A78;color:#F5E9DC;border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:14px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;min-width:44px">FRI</div>
+        <div style="flex:1"><div style="font-weight:600;font-size:13.5px">Boards + dryland — 4:00 PM</div><div style="font-size:11.5px;color:rgba(245,233,220,.75)">Dive sheets due 48h before each meet</div></div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#6B1F33">MEN'S DIVING</div>
+        <sc-for list="{{ diversM }}" as="p" hint-placeholder-count="1">
+          <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+            <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:{{ p.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ p.slotId }}" src="{{ p.photo }}" minimal="true" shape="circle" placeholder="{{ p.ini }}"></image-slot></div>
+            <div style="flex:1"><div style="font-weight:600;font-size:14.5px">{{ p.name }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ p.cls }} · {{ p.home }}</div></div>
+            <div style="text-align:right;font-variant-numeric:tabular-nums">
+              <div style="font-size:12.5px;font-weight:700;color:#6B1F33">1M · {{ p.dv1 }}</div>
+              <div style="font-size:12.5px;font-weight:700;color:#1B7A78">3M · {{ p.dv3 }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#6B1F33">WOMEN'S DIVING</div>
+        <sc-for list="{{ diversW }}" as="p" hint-placeholder-count="2">
+          <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+            <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:{{ p.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ p.slotId }}" src="{{ p.photo }}" minimal="true" shape="circle" placeholder="{{ p.ini }}"></image-slot></div>
+            <div style="flex:1"><div style="font-weight:600;font-size:14.5px">{{ p.name }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ p.cls }} · {{ p.home }}</div></div>
+            <div style="text-align:right;font-variant-numeric:tabular-nums">
+              <div style="font-size:12.5px;font-weight:700;color:#6B1F33">1M · {{ p.dv1 }}</div>
+              <div style="font-size:12.5px;font-weight:700;color:#1B7A78">3M · {{ p.dv3 }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px;font-size:12.5px;line-height:1.5;color:rgba(42,18,24,.7)">Dual meets score 1M and 3M like swim events — six dives per board. Tap a diver to see score progression and board goals.</div>
+    </div>
+  </sc-if>
+
+  <!-- ============ SIMULATOR (coach) ============ -->
+  <sc-if value="{{ vSim }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px">
+        <sc-for list="{{ simGenders }}" as="g" hint-placeholder-count="2">
+          <button onClick="{{ g.onTap }}" style="flex:1;border:1.5px solid #6B1F33;background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:9px 0;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">{{ g.n }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px">
+        <sc-for list="{{ oppGroups }}" as="g" hint-placeholder-count="2">
+          <button onClick="{{ g.onTap }}" style="flex:1;border:1px solid rgba(42,18,24,.25);background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:8px 0;font-size:11px;font-weight:800;letter-spacing:1.5px;cursor:pointer">{{ g.n }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+        <sc-for list="{{ simOpps }}" as="o" hint-placeholder-count="6">
+          <button onClick="{{ o.onTap }}" style="border:1px solid rgba(42,18,24,.25);background:{{ o.bg }};color:{{ o.fg }};border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none">{{ o.n }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+        <sc-for list="{{ simModes }}" as="m" hint-placeholder-count="3">
+          <button onClick="{{ m.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ m.bg }};color:{{ m.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:14.5px;letter-spacing:1px;cursor:pointer">{{ m.n }}</button>
+        </sc-for>
+      </div>
+      <div style="font-size:11px;color:rgba(42,18,24,.5);line-height:1.4">Opponent times are calibrated to each program's real D3 strength from SwimCloud rankings. Pick events &amp; participants in Build Lineup.</div>
+      <sc-if value="{{ simShowScore }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:18px;text-align:center">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">PROJECTED SCORE · {{ simGLabel }}</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-top:8px">
+            <div style="flex:1;text-align:right">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:42px;line-height:1;color:{{ simACol }}">{{ simScoreA }}</div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(245,233,220,.7)">ALMA</div>
+            </div>
+            <div style="font-family:'Barlow Condensed';font-size:20px;color:rgba(245,233,220,.4)">—</div>
+            <div style="flex:1;text-align:left">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:42px;line-height:1;color:{{ simOCol }}">{{ simScoreO }}</div>
+              <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(245,233,220,.7)">{{ simOppUp }}</div>
+            </div>
+          </div>
+          <div style="margin-top:10px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:2px;color:{{ simVerdictCol }}">{{ simVerdict }}</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ simShowEvents }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 16px">
+          <sc-for list="{{ simRows }}" as="e" hint-placeholder-count="10">
+            <div style="padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-weight:700;font-size:13.5px">{{ e.n }}</div>
+                <div style="display:flex;gap:10px;align-items:center">
+                  <span style="font-size:12px;font-weight:800;color:#6B1F33;font-variant-numeric:tabular-nums">{{ e.aPts }}</span>
+                  <span style="font-size:11px;color:rgba(42,18,24,.4)">–</span>
+                  <span style="font-size:12px;font-weight:800;color:rgba(42,18,24,.55);font-variant-numeric:tabular-nums">{{ e.oPts }}</span>
+                  <sc-if value="{{ e.editable }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ e.onEdit }}" style="border:1px solid #1B7A78;background:none;color:#1B7A78;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;cursor:pointer">EDIT</button>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="font-size:12px;color:rgba(42,18,24,.6);margin-top:3px">{{ e.detail }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ simShowCompare }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 16px">
+          <div style="display:flex;font-size:10px;font-weight:800;letter-spacing:1px;color:rgba(42,18,24,.5);padding:10px 0 4px">
+            <div style="flex:1.2">EVENT</div><div style="flex:1.4">ALMA BEST</div><div style="flex:1;text-align:right">{{ simOppUp }}</div><div style="width:58px;text-align:right">EDGE</div>
+          </div>
+          <sc-for list="{{ cmpRows }}" as="c" hint-placeholder-count="12">
+            <div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);font-size:12.5px">
+              <div style="flex:1.2;font-weight:700">{{ c.ev }}</div>
+              <div style="flex:1.4"><span style="font-variant-numeric:tabular-nums;font-weight:700;color:#6B1F33">{{ c.aT }}</span><div style="font-size:10.5px;color:rgba(42,18,24,.5)">{{ c.aN }}</div></div>
+              <div style="flex:1;text-align:right;font-variant-numeric:tabular-nums;color:rgba(42,18,24,.7)">{{ c.oT }}</div>
+              <div style="width:58px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums;color:{{ c.col }}">{{ c.diff }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <!-- ============ GOALS (coach) ============ -->
+  <sc-if value="{{ vGoals }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:8px">
+        <sc-for list="{{ goalSegs }}" as="g" hint-placeholder-count="2">
+          <button onClick="{{ g.onTap }}" style="flex:1;border:1.5px solid #6B1F33;background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:9px 0;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">{{ g.n }}</button>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+        <sc-for list="{{ goalChips }}" as="p" hint-placeholder-count="8">
+          <button onClick="{{ p.onTap }}" style="border:1px solid rgba(42,18,24,.25);background:{{ p.bg }};color:{{ p.fg }};border-radius:999px;padding:8px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none">{{ p.n }}</button>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:44px;height:44px;border-radius:50%;overflow:hidden;background:#6B1F33;color:#F5E9DC;flex:none"><image-slot id="{{ goalDet.slotId }}" src="{{ goalDet.photo }}" minimal="true" shape="circle" placeholder="{{ goalDet.ini }}"></image-slot></div>
+          <div style="flex:1"><div style="font-weight:700;font-size:15px">{{ goalDet.name }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ goalDet.cls }} · {{ goalDet.pos }}</div></div>
+          <button onClick="{{ goalDet.onView }}" style="border:1px solid #1B7A78;background:none;color:#1B7A78;border-radius:999px;padding:5px 12px;font-size:11px;font-weight:800;cursor:pointer">PROFILE</button>
+        </div>
+        <sc-for list="{{ goalRows }}" as="r" hint-placeholder-count="3">
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(42,18,24,.08)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div>
+                <div style="font-weight:700;font-size:13.5px">{{ r.ev }}</div>
+                <div style="font-size:11.5px;color:rgba(42,18,24,.55);white-space:nowrap">Season best <span style="font-variant-numeric:tabular-nums;font-weight:700">{{ r.pb }}</span></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <button onClick="{{ r.dec }}" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:16px;font-weight:800;cursor:pointer;line-height:1">−</button>
+                <div style="min-width:74px;text-align:center;font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:#1B7A78">{{ r.goal }}</div>
+                <button onClick="{{ r.inc }}" style="width:30px;height:30px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:16px;font-weight:800;cursor:pointer;line-height:1">+</button>
+              </div>
+            </div>
+            <div style="margin-top:8px;height:6px;border-radius:3px;background:rgba(42,18,24,.08);overflow:hidden"><div style="height:100%;width:{{ r.pct }}%;background:linear-gradient(90deg,#1B7A78,#6B1F33)"></div></div>
+            <div style="font-size:11px;color:rgba(42,18,24,.5);margin-top:5px">{{ r.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+<!-- bottom nav -->
+<div style="flex:none;display:flex;background:#FFFFFF;border-top:1px solid rgba(42,18,24,.08);padding:8px 8px 24px">
+  <sc-for list="{{ navItems }}" as="t" hint-placeholder-count="5">
+    <button onClick="{{ t.onTap }}" style="flex:1;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px">
+      <div style="width:34px;height:3px;border-radius:2px;background:{{ t.bar }}"></div>
+      <div style="font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1.5px;color:{{ t.fg }}">{{ t.n }}</div>
+    </button>
+  </sc-for>
+</div>
+</sc-if>
+
+<!-- menu drawer -->
+<sc-if value="{{ hasMenu }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;z-index:60;display:flex">
+    <div style="width:78%;max-width:320px;background:#2A1218;color:#F5E9DC;height:100%;display:flex;flex-direction:column;box-shadow:8px 0 30px rgba(0,0,0,.4)">
+      <div style="padding:60px 20px 18px;border-bottom:1px solid rgba(245,233,220,.1)">
+        <div style="font-size:10px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:30px;line-height:1.1">ScotSwim</div>
+        <div style="font-size:12px;color:rgba(245,233,220,.55);letter-spacing:.5px">Swimming &amp; Diving</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px 10px">
+        <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="6">
+          <button onClick="{{ m.onTap }}" style="width:100%;display:flex;align-items:center;gap:12px;border:none;background:{{ m.bg }};border-radius:8px;padding:13px 12px;cursor:pointer;text-align:left">
+            <div style="width:8px;height:8px;border-radius:2px;background:{{ m.dot }};flex:none"></div>
+            <div style="flex:1;font-size:14.5px;font-weight:600;color:{{ m.fg }};font-family:'Barlow'">{{ m.n }}</div>
+            <div style="width:3px;height:16px;border-radius:2px;background:{{ m.bar }};flex:none"></div>
+          </button>
+        </sc-for>
+        <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:rgba(245,233,220,.4);padding:16px 12px 4px">PROFILES</div>
+        <sc-for list="{{ menuProfiles }}" as="p" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:12px;padding:9px 12px">
+            <div style="width:8px;height:8px;border-radius:50%;border:2px solid #1B7A78;flex:none"></div>
+            <div><div style="font-size:13.5px;font-weight:600;color:rgba(245,233,220,.9)">{{ p.n }}</div><div style="font-size:11px;color:rgba(245,233,220,.45)">{{ p.d }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="padding:12px 14px 28px;border-top:1px solid rgba(245,233,220,.1);display:flex;flex-direction:column;gap:10px">
+        <div style="background:rgba(245,233,220,.06);border-radius:8px;padding:10px 14px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.5)">SEASON</div>
+          <div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">2026–2027</div>
+        </div>
+        <button onClick="{{ menuSignOut }}" style="width:100%;border:1px solid rgba(245,233,220,.35);background:none;color:rgba(245,233,220,.85);border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">SIGN OUT</button>
+      </div>
+    </div>
+    <div onClick="{{ closeMenu }}" style="flex:1;background:rgba(42,18,24,.55)"></div>
+  </div>
+</sc-if>
+
+<!-- swimmer detail overlay -->
+<sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:30">
+    <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
+      <div style="background:#6B1F33;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:14px;position:sticky;top:0">
+        <div style="width:50px;height:50px;border-radius:50%;border:2px solid #F5E9DC;overflow:hidden;flex:none;background:#2A1218"><image-slot id="{{ selDet.slotId }}" src="{{ selDet.photo }}" shape="circle" minimal="true" placeholder="{{ selDet.ini }}"></image-slot></div>
+        <div style="flex:1">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:24px;line-height:1">{{ selDet.name }}</div>
+          <div style="font-size:12px;color:rgba(245,233,220,.8);margin-top:2px">{{ selDet.cls }} · {{ selDet.pos }} · {{ selDet.home }}</div>
+        </div>
+        <button onClick="{{ closeSel }}" style="border:none;background:rgba(245,233,220,.15);color:#F5E9DC;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer">✕</button>
+      </div>
+      <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:12px">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION — {{ selDet.chart.ev }}</div>
+            <div style="font-size:11.5px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ selDet.imp }}</div>
+          </div>
+          <svg width="100%" viewBox="0 0 320 140">
+            <line x1="18" x2="302" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
+            <polyline points="{{ selDet.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
+            <sc-for list="{{ selDet.chart.dots }}" as="p" hint-placeholder-count="6">
+              <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
+            </sc-for>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:4px">
+            <span style="color:rgba(42,18,24,.6)">Best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.pb }}</span></span>
+            <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.goal }}</span></span>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:8px 16px">
+          <sc-for list="{{ selDet.pbs }}" as="b" hint-placeholder-count="3">
+            <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);font-size:13px">
+              <span style="font-weight:600">{{ b.ev }}</span>
+              <span style="font-variant-numeric:tabular-nums;font-weight:800;color:#6B1F33">{{ b.t }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <sc-for list="{{ selDet.badges }}" as="b" hint-placeholder-count="3">
+            <div style="border:1px solid rgba(107,31,51,.3);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;color:#6B1F33;background:#fff">★ {{ b.n }}</div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ selGoalBtn }}" style="border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:14px;font-family:'Barlow Condensed';font-weight:700;font-size:17px;letter-spacing:1.5px;cursor:pointer">SET GOALS FOR {{ selDet.first }}</button>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- lineup event picker overlay -->
+<sc-if value="{{ hasPicker }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:40">
+    <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:78%;overflow-y:auto;animation:fadeUp .25s ease">
+      <div style="background:#2A1218;color:#F5E9DC;padding:15px 20px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0">
+        <div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px">{{ pickerEv }}</div>
+          <div style="font-size:11.5px;color:rgba(245,233,220,.7)">Tap to assign — up to 3 entries · {{ pickerCount }}/3 picked</div>
+        </div>
+        <button onClick="{{ closePicker }}" style="border:none;background:#1B7A78;color:#F5E9DC;border-radius:999px;padding:8px 16px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">DONE</button>
+      </div>
+      <div style="padding:8px 16px 22px">
+        <sc-for list="{{ pickerList }}" as="p" hint-placeholder-count="8">
+          <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;margin-top:6px;border-radius:10px;background:{{ p.bg }};border:{{ p.bd }};cursor:pointer">
+            <div style="width:38px;height:38px;border-radius:50%;background:{{ p.avc }};color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:14px;flex:none">{{ p.ini }}</div>
+            <div style="flex:1"><div style="font-weight:600;font-size:14px;color:{{ p.fg }}">{{ p.name }}</div><div style="font-size:11px;color:{{ p.sub }}">{{ p.cls }} · {{ p.evCount }} events assigned</div></div>
+            <div style="font-variant-numeric:tabular-nums;font-weight:800;font-size:15px;color:{{ p.tc }}">{{ p.t }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- toast -->
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;bottom:96px;left:24px;right:24px;background:#2A1218;color:#F5E9DC;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.3)">{{ toast }}</div>
+</sc-if>
+
+</div>
+</x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:480,&quot;height&quot;:960},&quot;startRole&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;login&quot;,&quot;athlete&quot;,&quot;coach&quot;],&quot;default&quot;:&quot;login&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo&quot;}}">
+class Component extends DCLogic {
+  constructor(p){
+    super(p);
+    this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',sel:null,
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false};
+    this.EV=[
+      {id:'50FR',n:'50 Free',g:'FR',b:{M:22.6,W:25.6}},
+      {id:'100FR',n:'100 Free',g:'FR',b:{M:50.9,W:56.4}},
+      {id:'200FR',n:'200 Free',g:'FR',b:{M:112.5,W:124.0}},
+      {id:'500FR',n:'500 Free',g:'FR',b:{M:312.0,W:337.0}},
+      {id:'1000FR',n:'1000 Free',g:'FR',b:{M:648.0,W:704.0}},
+      {id:'1650FR',n:'1650 Free',g:'FR',b:{M:1092.0,W:1180.0}},
+      {id:'100BK',n:'100 Back',g:'BK',b:{M:58.0,W:64.5}},
+      {id:'200BK',n:'200 Back',g:'BK',b:{M:127.0,W:140.0}},
+      {id:'100BR',n:'100 Breast',g:'BR',b:{M:64.5,W:72.0}},
+      {id:'200BR',n:'200 Breast',g:'BR',b:{M:142.0,W:157.0}},
+      {id:'100FL',n:'100 Fly',g:'FL',b:{M:56.8,W:63.5}},
+      {id:'200FL',n:'200 Fly',g:'FL',b:{M:129.0,W:143.0}},
+      {id:'200IM',n:'200 IM',g:'IM',b:{M:128.0,W:143.0}},
+      {id:'400IM',n:'400 IM',g:'IM',b:{M:277.0,W:307.0}},
+      {id:'DV1',n:'1M Diving',g:'DV',dive:1,b:{M:230,W:215}},
+      {id:'DV3',n:'3M Diving',g:'DV',dive:1,b:{M:222,W:208}}
+    ];
+    this.evMap={};this.EV.forEach(e=>this.evMap[e.id]=e);
+    const MEN=[
+      ['Andrew Barrett','Sr.','Sprint Freestyle/Butterfly','Hartland, Mich.'],
+      ['Cody Benkovsky','So.','Breaststroke','Eaton Rapids, Mich.'],
+      ['Cooper Couch','So.','Diving','Alma, Mich.'],
+      ['Sam Couch','Sr.','Freestyle','Alma, Mich.'],
+      ['Rayane Debbarh','Sr.','Freestyle','Rabat, Morocco'],
+      ['Ryan Fowler','Jr.','Freestyle','Massillon, Ohio'],
+      ['Brett Gaff','So.','Freestyle/Butterfly','Houghton, Mich.'],
+      ['Nolan Kaiser','So.','Freestyle/Butterfly','Royal Oak, Mich.'],
+      ['Anthony Kulka','So.','Butterfly/Freestyle','Jackson, Mich.'],
+      ['Colin Moran','So.','Freestyle','Jackson, Mich.'],
+      ['Noah Newman','So.','Freestyle/Butterfly','Merrillville, Ind.'],
+      ['Max Nielsen','Sr.','Freestyle/Fly','Clinton Twp., Mich.'],
+      ['Colton Ralko','So.','Butterfly','Howell, Mich.'],
+      ['Morrison Wood','So.','Backstroke/Freestyle','Macomb, Mich.']
+    ];
+    const WOMEN=[
+      ['Zoe Barringer','Fr.','Freestyle','Flat Rock, Mich.'],
+      ['Anya Drewnicki','Sr.','Freestyle','Warren, Mich.'],
+      ['Abby Dumond','Fr.','Diving','Middleville, Mich.'],
+      ['Marie Halligan','Fr.','Breaststroke','Grand Blanc, Mich.'],
+      ['Aubrey Hawks','Fr.','Backstroke/Freestyle','Wayland, Mich.'],
+      ['Emma Hoy','Fr.','Freestyle','Port Sanilac, Mich.'],
+      ['Katelyn Lamphere','Fr.','Freestyle/Backstroke','Ionia, Mich.'],
+      ['Isabel Lyshol','So.','Sprint Freestyle','Seattle, Wash.'],
+      ['Maddie McGuire','Fr.','Diving','Dexter, Mich.'],
+      ['Sarah Rabbideau','Fr.','Breaststroke','Lachine, Mich.'],
+      ['Heidi Ragainis','Fr.','Freestyle','Kalamazoo, Mich.'],
+      ['Sierra Scott','Fr.','Freestyle/Butterfly','Iron Mountain, Mich.'],
+      ['Abi Spitzley','Fr.','Freestyle/Butterfly','DeWitt, Mich.'],
+      ['Hannah Sullivan','Fr.','Freestyle/Butterfly','Canton, Mich.'],
+      ['Valerie Vinci','Fr.','Freestyle','Lake Orion, Mich.'],
+      ['Petronella Wilson','So.','Freestyle','Traverse City, Mich.'],
+      ['Delilah Zingelewicz','Fr.','Freestyle/Breaststroke','Holt, Mich.']
+    ];
+    const hs=s=>{let h=0;for(let i=0;i<s.length;i++)h=((h*31+s.charCodeAt(i))>>>0)%100000;return h};
+    const rnd=seed=>{const x=Math.sin(seed+1)*10000;return x-Math.floor(x)};
+    this.hs=hs;this.rnd=rnd;
+    const HM=[['Scots Relays','Oct'],['Olivet','Nov'],['Albion','Nov'],['Calvin Inv','Nov'],['Winter Inv','Jan'],['MIAA','Feb']];
+    this.HM=HM;
+    const BADGES=[
+      ['PB Machine','Dropped time in 3+ events this season','#6B1F33'],
+      ['Taper Titan','Season best at MIAA Championships','#1B7A78'],
+      ['Iron Attendance','20 consecutive practices','#2A1218'],
+      ['First Splash','First collegiate race completed','#1B7A78'],
+      ['Podium','Top-3 finish in a dual meet','#6B1F33'],
+      ['Early Bird','10 morning practices this block','#2A1218']
+    ];
+    const mkHist=(pbs,primary,seed)=>{
+      const hist={};
+      primary.forEach(ev=>{
+        const F=[1.055,1.043,1.034,1.021,1.011,1.0];
+        hist[ev]=HM.map((m,i)=>{
+          let f=F[i];
+          if(i<5)f+=(rnd(seed+hs(ev)+i)-0.5)*0.014;
+          const dive=this.evMap[ev].dive;
+          const t=dive?pbs[ev]*(2-f):pbs[ev]*f;
+          return Math.round(t*100)/100;
+        });
+      });
+      return hist;
+    };
+    const mkGoals=(pbs,primary)=>{
+      const goals={};
+      primary.forEach(ev=>{
+        const dive=this.evMap[ev].dive;
+        goals[ev]=dive?Math.round(pbs[ev]*1.05*10)/10:Math.round(pbs[ev]*(pbs[ev]<60?0.988:0.991)*100)/100;
+      });
+      return goals;
+    };
+    this.mkHist=mkHist;this.mkGoals=mkGoals;
+    const mk=(row,gender)=>{
+      const [name,cls,pos,home]=row;
+      const h=hs(name);
+      const sprint=/sprint/i.test(pos);
+      const strokes=[];
+      [['FR',/free/i],['BK',/back/i],['BR',/breast/i],['FL',/fly/i],['DV',/diving/i]].forEach(([k,re])=>{if(re.test(pos))strokes.push(k)});
+      const diver=strokes.includes('DV');
+      let primary=[];
+      if(diver){primary=['DV1','DV3'];}
+      else{
+        const cand=[];
+        strokes.forEach(st=>{
+          const r=rnd(h+st.charCodeAt(0));
+          if(st==='FR')cand.push(...(sprint?['50FR','100FR','200FR']:(r<0.35?['200FR','500FR','1000FR']:['100FR','200FR','500FR'])));
+          if(st==='BK')cand.push('100BK','200BK');
+          if(st==='BR')cand.push('100BR','200BR');
+          if(st==='FL')cand.push('100FL','200FL');
+        });
+        if(strokes.length>=2&&rnd(h+7)>0.5)cand.push('200IM');
+        primary=[...new Set(cand)].slice(0,4);
+        if(primary.length===0)primary=['100FR','200FR','50FR'];
+      }
+      const pbs={};
+      this.EV.forEach(e=>{
+        const r=rnd(h+hs(e.id));
+        if(e.dive){ if(diver)pbs[e.id]=Math.round((e.b[gender]*(0.92+0.22*r))*10)/10; return;}
+        if(diver)return;
+        const prim=primary.includes(e.id);
+        pbs[e.id]=Math.round(e.b[gender]*(prim?0.962+0.05*r:1.045+0.09*r)*100)/100;
+      });
+      const bIdx=h%BADGES.length,bN=2+h%3;
+      const badges=[];for(let i=0;i<bN;i++){const b=BADGES[(bIdx+i*2)%BADGES.length];if(!badges.includes(b))badges.push(b);}
+      return {id:name,name,cls,pos,home,gender,diver,sprint,primary,pbs,
+        hist:mkHist(pbs,primary,h),goals:mkGoals(pbs,primary),
+        badges:badges.map(b=>({n:b[0],d:b[1],c:b[2]})),
+        ini:name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
+        avc:['#6B1F33','#1B7A78','#2A1218','#8a3247'][h%4]};
+    };
+    this.men=MEN.map(r=>mk(r,'M'));
+    this.women=WOMEN.map(r=>mk(r,'W'));
+    this.all=[...this.men,...this.women];
+    this.byId={};this.all.forEach(s=>this.byId[s.id]=s);
+    // Rayane Debbarh — real lifetime bests from almascots.com bio (2025-26)
+    const ray=this.byId['Rayane Debbarh'];
+    ray.primary=['50FR','100FR','100BR','200BR'];
+    Object.assign(ray.pbs,{'50FR':27.48,'100FR':62.32,'100BR':75.12,'200BR':210.19,'100FL':86.81});
+    ray.hist=mkHist(ray.pbs,ray.primary,hs(ray.id));
+    ray.goals=mkGoals(ray.pbs,ray.primary);
+    ray.badges=[{n:'PB Machine',d:'Five lifetime bests in 2025-26',c:'#6B1F33'},{n:'Taper Titan',d:'Season bests at MIAA Championships',c:'#1B7A78'},{n:'Iron Attendance',d:'20 consecutive practices',c:'#2A1218'}];
+    this.photos={
+      'Rayane Debbarh':'https://almascots.com/images/2025/10/27/IMG_9865.JPG?width=300',
+      'Chris Hamstra':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2024/7/16/IMG_4124.JPG?width=300',
+      'Kodi Stone':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2025/7/11/IMG_0705.jpg?width=300'
+    };
+    this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Petronella Wilson','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Cooper Couch','Ryan Fowler','Brett Gaff','Nolan Kaiser','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
+    this.slotIdOf=n=>'photo-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    this.photoOf=n=>this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
+    this.coaches=[
+      {name:'Chris Hamstra',role:'Head Swimming & Diving Coach',ini:'CH'},
+      {name:'Kodi Stone',role:'Assistant Coach · Lead Diving Coach',ini:'KS'}
+    ];
+    this.staffList=[
+      {name:'Nick Nemeth',role:'Asst. AD — Communications & Sports Information',ini:'NN'},
+      {name:'Erik Hartwell',role:'Associate Athletic Trainer',ini:'EH'},
+      {name:'Fletcher Roberts',role:'Director of Sports Performance',ini:'FR'}
+    ];
+    this.sched=[
+      {d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Scots Relays (Intrasquad)',loc:'McClure Natatorium, Alma',home:true},
+      {d1:'OCT',d2:'31',d:'Sat, Oct 31, 2026',n:'Alma vs. Olivet',loc:'McClure Natatorium, Alma',home:true},
+      {d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma at Albion',loc:'Albion, MI'},
+      {d1:'NOV',d2:'14',d:'Sat, Nov 14, 2026',n:"Alma vs. Saint Mary's",loc:'McClure Natatorium, Alma',home:true},
+      {d1:'NOV',d2:'20–21',d:'Nov 20–21, 2026',n:'Calvin Invitational',loc:'Grand Rapids, MI',inv:true},
+      {d1:'DEC',d2:'5',d:'Sat, Dec 5, 2026',n:'Alma at Trine',loc:'Angola, IN'},
+      {d1:'JAN',d2:'9',d:'Sat, Jan 9, 2027',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
+      {d1:'JAN',d2:'16',d:'Sat, Jan 16, 2027',n:'Alma at Hope',loc:'Holland, MI'},
+      {d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Winter Invite',loc:'Grand Rapids, MI',inv:true},
+      {d1:'JAN',d2:'30',d:'Sat, Jan 30, 2027',n:'Alma vs. Kalamazoo',loc:'McClure Natatorium, Alma',home:true},
+      {d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Holland, MI',champ:true}
+    ];
+    this.results=[
+      {tag:'W',bg:'#1B7A78',n:'Alma vs. Manchester',d:'Jan 10, 2026 · North Manchester, IN',score:'156 – 104'},
+      {tag:'4',bg:'#2A1218',n:'MIAA Winter Invite',d:'Jan 24, 2026 · Grand Rapids, MI',score:'4th of 7'},
+      {tag:'L',bg:'#6B1F33',n:'Kalamazoo vs. Alma',d:'Jan 31, 2026 · Kalamazoo, MI',score:'112 – 148'},
+      {tag:'6',bg:'#2A1218',n:'MIAA Championships',d:'Feb 18–21, 2026 · Holland, MI',score:'6th of 8'}
+    ];
+    this.trainWeek=[
+      {day:'MONDAY',s:[{t:'6:00 AM',n:'Aerobic base — 5,200m',tag:'POOL'},{t:'4:00 PM',n:'Technique + kick sets',tag:'POOL'}]},
+      {day:'TUESDAY',s:[{t:'4:00 PM',n:'Threshold — main set 8×200',tag:'POOL'},{t:'6:00 PM',n:'Strength block A',tag:'LIFT'}]},
+      {day:'WEDNESDAY',s:[{t:'6:00 AM',n:'Recovery swim + drills',tag:'POOL'},{t:'4:00 PM',n:'IM work + starts',tag:'POOL'}]},
+      {day:'THURSDAY',s:[{t:'4:00 PM',n:'Race pace — 12×50 @ goal',tag:'POOL'},{t:'6:00 PM',n:'Strength block B',tag:'LIFT'}]},
+      {day:'FRIDAY',s:[{t:'6:00 AM',n:'Sprint work + relay exchanges',tag:'POOL'},{t:'4:00 PM',n:'Divers: boards + dryland',tag:'DIVE'}]},
+      {day:'SATURDAY',s:[{t:'8:00 AM',n:'Long course endurance',tag:'POOL'}]},
+      {day:'SUNDAY',s:[{t:'—',n:'Rest & mobility on your own',tag:'REST'}]}
+    ];
+    this.anns=[
+      {t:'Team photos before Saturday practice — bring both caps.',d:'Aug 2'},
+      {t:'Fall training block starts Sep 8. Full week is posted in Training.',d:'Aug 1'},
+      {t:'Goal-setting 1:1s with Coach Hamstra — sign up outside the pool office.',d:'Jul 29'}
+    ];
+    this.opps=[
+      {n:'Hope',f:0.985,grp:'MIAA'},{n:'Calvin',f:0.99,grp:'MIAA'},{n:'Kalamazoo',f:1.0,grp:'MIAA'},{n:'Trine',f:1.005,grp:'MIAA'},
+      {n:'Albion',f:1.02,grp:'MIAA'},{n:'Adrian',f:1.03,grp:'MIAA'},{n:"Saint Mary's",f:1.035,wOnly:true,grp:'MIAA'},{n:'Olivet',f:1.05,grp:'MIAA'},{n:'Manchester',f:1.06,grp:'MIAA'},
+      {n:'Denison',f:0.865,grp:'D3'},{n:'Emory',f:0.865,grp:'D3'},{n:'Kenyon',f:0.875,grp:'D3'},{n:'MIT',f:0.875,grp:'D3'},
+      {n:'NYU',f:0.88,grp:'D3'},{n:'Chicago',f:0.885,grp:'D3'},{n:'WashU St. Louis',f:0.89,grp:'D3'},{n:'Johns Hopkins',f:0.89,grp:'D3'},
+      {n:'Williams',f:0.90,grp:'D3'},{n:'Tufts',f:0.905,grp:'D3'},{n:'Pomona-Pitzer',f:0.91,grp:'D3'},{n:'Carnegie Mellon',f:0.91,grp:'D3'}
+    ];
+    this.DUAL=['MR','200FR','100BK','100BR','200FL','50FR','DV1','100FR','200BK','200BR','500FR','DV3','100FL','200IM','FRR'];
+  }
+  fmt(t){if(t>=60){const m=Math.floor(t/60);const s=t-m*60;return m+':'+s.toFixed(2).padStart(5,'0')}return t.toFixed(2)}
+  ptsOf(s){
+    // Real SwimCloud season points (2025-26)
+    const R={'Andrew Barrett':494.15,'Cody Benkovsky':496.25,'Sam Couch':465.96,'Rayane Debbarh':273.45,
+      'Ryan Fowler':452.55,'Brett Gaff':381.10,'Nolan Kaiser':523.35,'Anthony Kulka':415.95,'Colin Moran':552.20,
+      'Noah Newman':452.20,'Max Nielsen':469.00,'Colton Ralko':433.85,'Morrison Wood':474.20,
+      'Zoe Barringer':460.00,'Anya Drewnicki':371.35,'Sofia Floros':493.85,'Marie Halligan':320.85,
+      'Aubrey Hawks':373.60,'Emma Hoy':466.60,'Katelyn Lamphere':378.90,'Grace Ludema':558.20,'Isabel Lyshol':213.00,
+      'Maddie McGuire':180.65,'Sarah Rabbideau':478.25,'Heidi Ragainis':394.75,'Sierra Scott':483.45,
+      'Abi Spitzley':448.85,'Hannah Sullivan':492.85,'Valerie Vinci':441.15,'Delilah Zingelewicz':506.00};
+    return R[s.id]??null;
+  }
+  fmtEv(ev,t){return this.evMap[ev]&&this.evMap[ev].dive?t.toFixed(1)+' pts':this.fmt(t)}
+  goalOf(s,ev){const d=this.state.goalDelta[s.id+'|'+ev]||0;return Math.round((s.goals[ev]+d)*100)/100}
+  toastMsg(m){this.setState({toast:m});clearTimeout(this._tt);this._tt=setTimeout(()=>this.setState({toast:''}),2200)}
+  chartFor(s,ev){
+    const dive=this.evMap[ev].dive;
+    const hist=s.hist[ev]||[];
+    const goal=this.goalOf(s,ev);
+    const vals=[...hist,goal];
+    let mn=Math.min(...vals),mx=Math.max(...vals);
+    const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
+    const X=i=>18+i*(284/(hist.length-1||1));
+    const Y=t=>18+((dive?(mx-t):(t-mn))/(mx-mn))*104;
+    const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
+    const best=dive?Math.max(...hist):Math.min(...hist);
+    const dots=hist.map((t,i)=>({x:X(i).toFixed(1),y:Y(t).toFixed(1),f:t===best?'#1B7A78':'#6B1F33'}));
+    return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),labs:this.HM.map(m=>({n:m[0].split(' ')[0].slice(0,6)})),
+      pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
+  }
+  detailFor(s,evSel){
+    const ev=(evSel&&s.primary.includes(evSel))?evSel:s.primary[0];
+    const h=s.hist[s.primary[0]];
+    const dive=s.diver;
+    const imp=dive?'+'+(((h[5]-h[0])/h[0])*100).toFixed(1)+'%':'−'+(((h[0]-h[5])/h[0])*100).toFixed(1)+'%';
+    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
+      slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+      chart:this.chartFor(s,ev),
+      evChips:s.primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
+      pbs:s.primary.map(e=>({ev:this.evMap[e].n,t:this.fmtEv(e,s.diver?Math.max(...s.hist[e]):s.pbs[e]),where:'MIAA · Feb'})),
+      badges:s.badges};
+  }
+  oppTimes(oppN,f,ev,n){
+    const e=this.evMap[ev];const out=[];
+    for(let i=0;i<n;i++){const r=this.rnd(this.hs(oppN+ev)+i*13);
+      out.push(e.dive?Math.round(e.b.M*(0.9+0.18*r)/f*10)/10:Math.round(e.b[this.state.simGender]*f*(0.988+0.09*r)*100)/100);}
+    return out.sort((a,b)=>e.dive?b-a:a-b);
+  }
+  autoEntries(g,ev,n){
+    const e=this.evMap[ev];
+    const pool=(g==='M'?this.men:this.women).filter(s=>e.dive?s.diver:!s.diver);
+    return pool.map(s=>({s,t:s.pbs[ev]})).filter(x=>x.t).sort((a,b)=>e.dive?b.t-a.t:a.t-b.t).slice(0,n);
+  }
+  simCalc(){
+    const g=this.state.simGender;
+    const opp=this.opps.find(o=>o.n===this.state.simOpp)||this.opps[0];
+    const useLineup=this.state.simMode==='lineup';
+    let A=0,O=0;const rows=[];
+    this.DUAL.forEach(ev=>{
+      if(ev==='MR'||ev==='FRR'){
+        const rel=ev==='MR';
+        const bs=this.evMap['100BK'].b[g]+this.evMap['100BR'].b[g]+this.evMap['100FL'].b[g]+this.evMap['100FR'].b[g];
+        const top=this.autoEntries(g,'100FR',4);
+        const fac=top.length?top.reduce((a,x)=>a+x.t,0)/(4*this.evMap['100FR'].b[g]):1;
+        const aT=rel?bs/2*0.97*fac:4*this.evMap['100FR'].b[g]*0.985*fac;
+        const oT=rel?bs/2*0.97*opp.f:4*this.evMap['100FR'].b[g]*0.985*opp.f;
+        const aW=aT<oT;A+=aW?11:4;O+=aW?4:11;
+        rows.push({n:rel?'200 Medley Relay':'400 Free Relay',aPts:aW?'11':'4',oPts:aW?'4':'11',
+          detail:'Alma A '+this.fmt(aT)+'  ·  '+opp.n+' '+this.fmt(oT),editable:false});
+        return;
+      }
+      const e=this.evMap[ev];
+      let entries;
+      if(useLineup&&this.state.lineup[ev]){entries=this.state.lineup[ev].map(id=>({s:this.byId[id],t:this.byId[id].pbs[ev]||e.b[g]*1.15}));}
+      else entries=this.autoEntries(g,ev,3);
+      const oT=this.oppTimes(opp.n,opp.f,ev,3);
+      const merged=[...entries.map(x=>({t:x.t,alma:true,name:x.s.name})),...oT.map(t=>({t,alma:false}))]
+        .sort((a,b)=>e.dive?b.t-a.t:a.t-b.t);
+      const PTS=[9,4,3,2,1];let a=0,o=0;
+      merged.forEach((m,i)=>{if(i<5){if(m.alma)a+=PTS[i];else o+=PTS[i];}});
+      A+=a;O+=o;
+      const lead=entries[0];
+      rows.push({n:e.n,aPts:String(a),oPts:String(o),editable:useLineup,
+        detail:(lead?lead.s.name+' '+this.fmtEv(ev,lead.t):'No entry')+'  ·  '+opp.n+' best '+this.fmtEv(ev,oT[0]),
+        onEdit:()=>this.openPicker(ev)});
+    });
+    return {A:Math.round(A),O:Math.round(O),rows,opp};
+  }
+  openPicker(ev){
+    const lu={...this.state.lineup};
+    if(!lu[ev])lu[ev]=this.autoEntries(this.state.simGender,ev,3).map(x=>x.s.id);
+    this.setState({lineup:lu,pickerEv:ev});
+  }
+  togglePick(ev,id){
+    const lu={...this.state.lineup};const arr=[...(lu[ev]||[])];
+    const i=arr.indexOf(id);
+    if(i>=0)arr.splice(i,1);
+    else{
+      if(arr.length>=3)return this.toastMsg('Max 3 entries per event');
+      const cnt=Object.keys(lu).filter(k=>k!==ev&&(lu[k]||[]).includes(id)).length;
+      if(cnt>=3)return this.toastMsg('Swimmer already has 3 individual events');
+      arr.push(id);
+    }
+    lu[ev]=arr;this.setState({lineup:lu});
+  }
+  componentDidMount(){this._ct=setInterval(()=>this.forceUpdate(),60000)}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt)}
+  renderVals(){
+    const st=this.state;
+    const start=this.props.startRole??'login';
+    const screen=st.screen??(start==='login'?'login':'app');
+    const role=st.role??(start==='coach'?'coach':'athlete');
+    const isLogin=screen==='login';
+    const isApp=screen==='app';
+    const isCoach=role==='coach';
+    const tab=st.tab;
+    const user=this.byId[st.userId]||this.men[4];
+    const nextMeet=this.sched[0];
+    const cdDays=Math.max(0,Math.ceil((new Date('2026-10-17T13:00:00')-Date.now())/86400000));
+    const M='#6B1F33',C='#F5E9DC',T='#1B7A78',I='#2A1218';
+    const login=(r,uid)=>this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false});
+    const doLogin=()=>{
+      const u=st.uname.toLowerCase();
+      if(u.includes('hamstra')||u.includes('coach'))return login('coach','Rayane Debbarh');
+      const m=this.all.find(s=>u&&s.name.toLowerCase().includes(u.trim()));
+      login('athlete',m?m.id:'Rayane Debbarh');
+    };
+    const navDef=isCoach
+      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
+      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
+    const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
+    const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'ROSTER',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:'ALL MY SWIMS'};
+    const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
+      :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
+      :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
+      :{tag:'AWAY',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'};
+    const schedT=this.sched.map(m=>({...m,...tagOf(m)}));
+    // athlete home
+    const sig=user.primary[0];
+    const myRecent=(user.hist[sig]||[]).slice(-3).map((t,i,arr)=>{
+      const prev=i>0?arr[i-1]:(user.hist[sig]||[])[2];
+      const d=t-prev;const better=user.diver?d>0:d<0;
+      return {meet:this.HM[3+i][0]+' · '+this.HM[3+i][1],time:this.fmtEv(sig,t),
+        delta:(d<0?'−':'+')+Math.abs(d).toFixed(2),col:better?T:'#a04545'};
+    });
+    const pbOf=ev=>{
+      const e=this.evMap[ev];
+      if(user.pbs[ev])return user.diver&&e.dive?Math.max(...(user.hist[ev]||[user.pbs[ev]])):user.pbs[ev];
+      return Math.round(e.b[user.gender]*1.12*100)/100;
+    };
+    const myKeys=Object.keys(st.selfGoals).filter(k=>k.startsWith(user.id+'|'));
+    let selfList=myKeys.map(key=>{
+      const ev=key.split('|')[1];const e=this.evMap[ev];
+      const val=st.selfGoals[key];const pb=pbOf(ev);
+      const step=e.dive?2:(pb>120?0.5:0.2);
+      const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*100)/100;this.setState({selfGoals:sg});};
+      return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
+        close:Math.abs(pb-val)/pb,
+        inc:()=>setVal(val+(e.dive?-step:step)),
+        dec:()=>setVal(val+(e.dive?step:-step)),
+        clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});}};
+    }).sort((a,b)=>a.close-b.close);
+    const selfCount=String(selfList.length);
+    if(!st.showAllSelf)selfList=selfList.slice(0,3);
+    const evPool=user.diver?this.EV:this.EV.filter(e=>!e.dive);
+    const addOpts=evPool.filter(e=>st.selfGoals[user.id+'|'+e.id]==null).map(e=>({id:e.id,n:e.n}));
+    const addSel=e=>{
+      const ev=e.target.value;if(!ev)return;
+      const em=this.evMap[ev];const pb=pbOf(ev);
+      const sg={...this.state.selfGoals};
+      sg[user.id+'|'+ev]=Math.round((em.dive?pb*1.04:pb*0.99)*100)/100;
+      this.setState({selfGoals:sg});
+      this.toastMsg(em.n+' goal added — tune it with − / +');
+    };
+    const myGoals=(st.showAllCoach?user.primary:user.primary.slice(0,3)).map(ev=>{
+      const pb=user.diver?Math.max(...user.hist[ev]):user.pbs[ev];
+      const goal=this.goalOf(user,ev);
+      const start_=user.hist[ev]?user.hist[ev][0]:pb*1.05;
+      const pct=user.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
+      return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0)};
+    });
+    const rEv=(st.rivalEv&&user.pbs[st.rivalEv]!=null)?st.rivalEv:sig;
+    const isDiveEv=!!this.evMap[rEv].dive;
+    const rivals=this.all.filter(s=>s.gender===user.gender&&s.id!==user.id&&s.pbs[rEv]!=null);
+    rivals.sort((a,b)=>Math.abs(a.pbs[rEv]-user.pbs[rEv])-Math.abs(b.pbs[rEv]-user.pbs[rEv]));
+    const rvPick=st.rivalId&&this.byId[st.rivalId]&&st.rivalId!==user.id?this.byId[st.rivalId]:null;
+    const rv=(rvPick&&rvPick.pbs[rEv]!=null?rvPick:rivals[0])||user;
+    const rivalOpts=rivals.map(s=>({id:s.id,n:s.name}));
+    const rivalId=rv.id;
+    const rivalSel=e=>this.setState({rivalId:e.target.value});
+    const rivalEvOpts=evPool.filter(e=>user.pbs[e.id]!=null).map(e=>({id:e.id,n:e.n}));
+    const rivalEvSel=e=>this.setState({rivalEv:e.target.value,rivalId:null});
+    const lead=isDiveEv?(user.pbs[rEv]>rv.pbs[rEv]):(user.pbs[rEv]<rv.pbs[rEv]);
+    const gap=Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2);
+    const aP=this.photoOf(user.id),bP=this.photoOf(rv.id);
+    const chal={ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
+      bIni:rv.ini,bName:rv.name.split(' ')[0],bTime:this.fmtEv(rEv,rv.pbs[rEv]),
+      aPhoto:aP,aHasP:!!aP,aNoP:!aP,bPhoto:bP,bHasP:!!bP,bNoP:!bP,
+      note:lead?'You lead by '+gap+' — defend it at the Scots Relays':rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'};
+    const dayIdx=(new Date().getDay()+6)%7;
+    const week=this.trainWeek.map((d,i)=>({...d,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)'}));
+    // team
+    const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
+    const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
+    const rosterSrc=st.teamSeg==='W'?this.women:this.men;
+    let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
+    if(st.teamSort==='pts')rl=rl.slice().sort((a,b)=>(b.pts??-1)-(a.pts??-1));
+    else rl=rl.slice().sort((a,b)=>this.hs(a.s.id+'shuffle')-this.hs(b.s.id+'shuffle'));
+    const rosterList=rl.map((x,i)=>{
+      const s=x.s;
+      return {rank:String(i+1),name:s.name,cls:s.cls,pos:s.pos,ini:s.ini,avc:s.avc,
+        slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+        best:x.pts!=null?x.pts.toFixed(2):'—',bestEv:'SWIMCLOUD PTS',
+        onTap:()=>this.setState({sel:s.id,meEvent:null})};
+    });
+    const det=this.detailFor(user,st.meEvent);
+    const selS=st.sel?this.byId[st.sel]:null;
+    const selDet=selS?this.detailFor(selS,st.meEvent):det;
+    const improvers=this.all.filter(s=>!s.diver).map(s=>{
+      const h=s.hist[s.primary[0]];return {s,imp:(h[0]-h[5])/h[0]};
+    }).sort((a,b)=>b.imp-a.imp).slice(0,3).map(x=>({
+      name:x.s.name,ini:x.s.ini,avc:x.s.avc,ev:this.evMap[x.s.primary[0]].n,
+      slotId:this.slotIdOf(x.s.id),photo:this.photoOf(x.s.id),
+      pb:this.fmt(x.s.pbs[x.s.primary[0]]),imp:'−'+(x.imp*100).toFixed(1)+'%',
+      onTap:()=>this.setState({sel:x.s.id,meEvent:null})}));
+    const sim=this.simCalc();
+    const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
+    const oppGroups=[['MIAA','MIAA'],['D3','NATIONAL D3']].map(([id,n])=>({n,bg:st.oppGroup===id?'#2A1218':'#fff',fg:st.oppGroup===id?C:'rgba(42,18,24,.6)',
+      onTap:()=>{const first=this.opps.find(o=>o.grp===id&&(st.simGender==='W'||!o.wOnly));this.setState({oppGroup:id,simOpp:first.n,lineup:{}});}}));
+    const oppList=this.opps.filter(o=>o.grp===st.oppGroup&&(st.simGender==='W'||!o.wOnly));
+    const simOpps=oppList.map(o=>({n:o.n,bg:st.simOpp===o.n?I:'#fff',fg:st.simOpp===o.n?C:'rgba(42,18,24,.7)',onTap:()=>this.setState({simOpp:o.n,lineup:{}})}));
+    const simModes=[['auto','AUTO LINEUP'],['lineup','BUILD LINEUP'],['compare','COMPARE']].map(([id,n])=>({n,bg:st.simMode===id?'#6B1F33':'transparent',fg:st.simMode===id?C:'rgba(42,18,24,.55)',onTap:()=>this.setState({simMode:id,pickerEv:null})}));
+    const aWin=sim.A>sim.O;
+    const pk=st.pickerEv;
+    let pickerList=[],pickerEvName='',pickerCount=0;
+    if(pk){
+      const e=this.evMap[pk];
+      const picked=this.state.lineup[pk]||[];
+      pickerCount=picked.length;
+      pickerEvName=e.n;
+      const pool=(st.simGender==='M'?this.men:this.women).filter(s=>e.dive?s.diver:!s.diver);
+      pickerList=pool.map(s=>({s,t:s.pbs[pk]||0})).sort((a,b)=>e.dive?b.t-a.t:a.t-b.t).map(x=>{
+        const on=picked.includes(x.s.id);
+        const evCount=Object.keys(this.state.lineup).filter(k=>(this.state.lineup[k]||[]).includes(x.s.id)).length;
+        return {name:x.s.name,cls:x.s.cls,ini:x.s.ini,avc:x.s.avc,evCount:String(evCount),
+          t:x.t?this.fmtEv(pk,x.t):'—',bg:on?'#6B1F33':'#FFFFFF',bd:on?'1.5px solid #6B1F33':'1.5px solid rgba(42,18,24,.1)',
+          fg:on?'#F5E9DC':'#2A1218',sub:on?'rgba(245,233,220,.7)':'rgba(42,18,24,.5)',tc:on?'#7fd0cd':'#6B1F33',
+          onTap:()=>this.togglePick(pk,x.s.id)};
+      });
+    }
+    const opp=sim.opp;
+    const cmpRows=this.EV.filter(e=>!e.dive).map(e=>{
+      const a=this.autoEntries(st.simGender,e.id,1)[0];
+      const oT=this.oppTimes(opp.n,opp.f,e.id,1)[0];
+      if(!a)return null;
+      const d=oT-a.t;
+      return {ev:e.n,aT:this.fmt(a.t),aN:a.s.name,oT:this.fmt(oT),
+        diff:(d>=0?'+':'−')+Math.abs(d).toFixed(2),col:d>=0?T:'#a04545'};
+    }).filter(Boolean);
+    const goalSegs=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.goalSeg===id?M:'transparent',fg:st.goalSeg===id?C:M,onTap:()=>this.setState({goalSeg:id,goalSel:null})}));
+    const gPool=st.goalSeg==='M'?this.men:this.women;
+    const gSel=this.byId[st.goalSel]&&this.byId[st.goalSel].gender===st.goalSeg?this.byId[st.goalSel]:gPool[0];
+    const goalChips=gPool.map(s=>({n:s.name.split(' ')[0]+' '+s.name.split(' ')[1][0]+'.',bg:gSel.id===s.id?I:'#fff',fg:gSel.id===s.id?C:'rgba(42,18,24,.7)',onTap:()=>this.setState({goalSel:s.id})}));
+    const NOTES=['Hold your streamline off every wall.','Negative-split the back half.','Attack the third 25.','Clean entry — keep the rip.','Faster turns buy you a body length.'];
+    const goalRows=gSel.primary.map((ev,i)=>{
+      const e=this.evMap[ev];
+      const pb=gSel.diver?Math.max(...gSel.hist[ev]):gSel.pbs[ev];
+      const goal=this.goalOf(gSel,ev);
+      const start_=gSel.hist[ev]?gSel.hist[ev][0]:pb*1.05;
+      const pct=gSel.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
+      const step=e.dive?2:(pb>120?0.5:0.2);
+      const bump=d=>{const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;this.setState({goalDelta:gd});};
+      return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),
+        note:NOTES[(this.hs(gSel.id+ev)+i)%NOTES.length],
+        dec:()=>bump(e.dive?step:-step),inc:()=>bump(e.dive?-step:step)};
+    });
+    const goalDet={name:gSel.name,ini:gSel.ini,cls:gSel.cls,pos:gSel.pos,
+      slotId:this.slotIdOf(gSel.id),photo:this.photoOf(gSel.id),
+      onView:()=>this.setState({sel:gSel.id,meEvent:null})};
+    return {
+      isLogin,isApp,isCoach,
+      uname:st.uname,pass:st.pass,
+      onU:e=>this.setState({uname:e.target.value}),
+      onP:e=>this.setState({pass:e.target.value}),
+      doLogin,
+      quickA:()=>login('athlete','Rayane Debbarh'),
+      quickC:()=>login('coach','Rayane Debbarh'),
+      logout:()=>this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false}),
+      barTitle:TITLES[tab]||'HOME',
+      vHome:isApp&&tab==='home',
+      vAHome:isApp&&!isCoach&&tab==='home',
+      vCHome:isApp&&isCoach&&tab==='home',
+      vMeets:isApp&&tab==='meets',
+      vTrain:isApp&&tab==='train',
+      vTeam:isApp&&tab==='team',
+      vMe:isApp&&!isCoach&&tab==='me',
+      vSim:isApp&&tab==='sim',
+      vGoals:isApp&&isCoach&&tab==='goals',
+      vDive:isApp&&tab==='dive',
+      vSwims:isApp&&tab==='swims',
+      goSwims:()=>this.setState({tab:'swims'}),
+      goHome:()=>this.setState({tab:'home'}),
+      swimEv:st.swimEv,swimSort:st.swimSort,
+      swimEvSel:e=>this.setState({swimEv:e.target.value}),
+      swimSortSel:e=>this.setState({swimSort:e.target.value}),
+      swimEvOpts:user.primary.map(e=>({id:e,n:this.evMap[e].n})),
+      swimRows:(()=>{
+        let rows=[];
+        user.primary.forEach(ev=>{
+          const h=user.hist[ev]||[];
+          const best=user.diver?Math.max(...h):Math.min(...h);
+          h.forEach((t,i)=>rows.push({evId:ev,ev:this.evMap[ev].n,meet:this.HM[i][0]+' · '+this.HM[i][1],season:'2025–26',
+            time:this.fmtEv(ev,t),raw:t,idx:i,isPB:t===best}));
+        });
+        if(st.swimEv!=='ALL')rows=rows.filter(r=>r.evId===st.swimEv);
+        rows.sort(st.swimSort==='time'?(a,b)=>(user.diver?b.raw-a.raw:a.raw-b.raw):(a,b)=>b.idx-a.idx);
+        return rows;
+      })(),
+      hasMenu:isApp&&st.menuOpen,
+      openMenu:()=>this.setState({menuOpen:true}),
+      closeMenu:()=>this.setState({menuOpen:false}),
+      menuSignOut:()=>this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false}),
+      menuItems:(isCoach
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Roster'],['goals','Goal Setting'],['dive','Diving Well']]
+        :[['home','Home'],['meets','Meets'],['sim','Meet Simulator'],['train','Training'],['team','Roster'],['dive','Diving Well'],['me','My Profile']]
+      ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
+        fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
+        dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
+        bar:tab===id?'#1B7A78':'transparent',
+        onTap:()=>this.setState({tab:id,menuOpen:false,sel:null,pickerEv:null})})),
+      menuProfiles:[
+        {n:isCoach?'Chris Hamstra':user.name,d:isCoach?'Head Swimming & Diving Coach':user.cls+' · '+user.pos},
+        {n:'Alma College',d:'Scots · Swimming & Diving'},
+        {n:'NCAA Division III',d:'National association'},
+        {n:'MIAA',d:'Michigan Intercollegiate Athletic Assoc.'}
+      ],
+      diversM:this.men.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
+        slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+        dv1:s.pbs.DV1.toFixed(1),dv3:s.pbs.DV3.toFixed(1),onTap:()=>this.setState({sel:s.id,meEvent:null})})),
+      diversW:this.women.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
+        slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+        dv1:s.pbs.DV1.toFixed(1),dv3:s.pbs.DV3.toFixed(1),onTap:()=>this.setState({sel:s.id,meEvent:null})})),
+      navItems,
+      heroName:user.name.split(' ')[0],
+      nextMeet,cdDays:String(cdDays),nextShortName:'Scots Relays',
+      pbCount:user.id==='Rayane Debbarh'?'5':String(2+this.hs(user.id)%3),
+      miaaPlace:user.id==='Rayane Debbarh'?'17th':(8+this.hs(user.id)%16)+'th',
+      miaaEv:(user.id==='Rayane Debbarh'?'100 Breast':this.evMap[user.primary[0]].n)+' · MIAA 2026',
+      selfList,selfCount,selfEmpty:selfList.length===0,addOpts,addSel,addEvtVal:'',
+      allSelfBtn:()=>this.setState({showAllSelf:!st.showAllSelf}),
+      allSelfLabel:st.showAllSelf?'Top 3 ‹':'All goals ›',
+      allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
+      allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
+      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,
+      workoutLib:[
+        {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Coach will post sets here — none yet'},
+        {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Coach will post circuits here — none yet'},
+        {ab:'LIFT',c:'#2A1218',n:'Lift workouts',d:'Sherman S&C blocks land here — none yet'}
+      ],
+      oppGroups,
+      goalCount:String(Math.min(3,user.primary.length)),
+      goMeets:()=>this.setState({tab:'meets'}),
+      goMe:()=>this.setState({tab:'me'}),
+      goTrain:()=>this.setState({tab:'train'}),
+      goSim:()=>this.setState({tab:'sim'}),
+      goGoals:()=>this.setState({tab:'goals'}),
+      upcoming:schedT.slice(0,2),
+      myGoals,myRecent,sigEv:this.evMap[sig].n.toUpperCase(),chal,
+      todayName:this.trainWeek[dayIdx].day,todaySessions:this.trainWeek[dayIdx].s,
+      anns:this.anns,week,
+      nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
+      nDivers:String(this.all.filter(s=>s.diver).length),improvers,
+      segs,rosterList,showSwimList:st.teamSeg!=='S',showStaff:st.teamSeg==='S',
+      teamSort:st.teamSort,teamSortSel:e=>this.setState({teamSort:e.target.value}),
+      coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
+      staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
+      sched:schedT,results:this.results,
+      det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
+      selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
+      simGenders,simOpps,simModes,
+      simGLabel:st.simGender==='M'?"MEN'S DUAL":"WOMEN'S DUAL",
+      simOppUp:(sim.opp.n).toUpperCase(),
+      simScoreA:String(sim.A),simScoreO:String(sim.O),
+      simACol:aWin?'#7fd0cd':C,simOCol:aWin?C:'#7fd0cd',
+      simVerdict:aWin?'SCOTS TAKE IT · GO ALMA':sim.A===sim.O?'DEAD HEAT':'UPHILL SWIM — TIGHTEN THE LINEUP',
+      simVerdictCol:aWin?'#7fd0cd':'rgba(245,233,220,.75)',
+      simShowScore:st.simMode!=='compare',
+      simShowEvents:st.simMode!=='compare',
+      simShowCompare:st.simMode==='compare',
+      simRows:sim.rows,cmpRows,
+      hasPicker:!!pk,pickerEv:pickerEvName,pickerCount:String(pickerCount),pickerList,
+      closePicker:()=>this.setState({pickerEv:null}),
+      goalSegs,goalChips,goalDet,goalRows,
+      toast:st.toast,hasToast:!!st.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
