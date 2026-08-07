@@ -734,6 +734,13 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.5)">SEASON</div>
           <div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">2026–2027</div>
         </div>
+        <div style="background:rgba(245,233,220,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px">
+          <button onClick="{{ musicToggle }}" aria-label="{{ musicToggleLabel }}" title="{{ musicToggleLabel }}" style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">{{ musicIcon }}</button>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.5)">TEAM HYPE MUSIC</div>
+            <input type="range" min="0" max="1" step="0.05" value="{{ musicVolume }}" onChange="{{ musicVolumeChange }}" aria-label="Music volume" style="width:100%;margin-top:5px;accent-color:#1B7A78">
+          </div>
+        </div>
         <button onClick="{{ menuSignOut }}" style="width:100%;border:1px solid rgba(245,233,220,.35);background:none;color:rgba(245,233,220,.85);border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">SIGN OUT</button>
       </div>
     </div>
@@ -1028,6 +1035,78 @@ class Component extends DCLogic {
       {n:'Williams',f:0.90,grp:'D3'},{n:'Tufts',f:0.905,grp:'D3'},{n:'Pomona-Pitzer',f:0.91,grp:'D3'},{n:'Carnegie Mellon',f:0.91,grp:'D3'}
     ];
     this.DUAL=['MR','200FR','100BK','100BR','200FL','50FR','DV1','100FR','200BK','200BR','500FR','DV3','100FL','200IM','FRR'];
+    // Background music — drop MP3s into /music using these exact filenames
+    // and they play automatically; missing files just get skipped (see
+    // advanceTrack). Built in the constructor (not componentDidMount) so
+    // musicPrefs/playlist already exist for the very first render.
+    this.playlist=[
+      {id:'fight-song',title:'Fight Song',artist:'ScotSwim Hype',src:'music/01-fight-song.mp3'},
+      {id:'dive-in',title:'Dive In',artist:'ScotSwim Hype',src:'music/02-dive-in.mp3'},
+      {id:'maroon-wave',title:'Maroon Wave',artist:'ScotSwim Hype',src:'music/03-maroon-wave.mp3'},
+      {id:'lane-nine',title:'Lane Nine',artist:'ScotSwim Hype',src:'music/04-lane-nine.mp3'}
+    ];
+    this.musicKey='scotswim.music.prefs';
+    this.initMusic();
+  }
+  initMusic(){
+    let saved=null;
+    try{saved=JSON.parse(localStorage.getItem(this.musicKey)||'null')}catch(e){}
+    this.musicPrefs=Object.assign({playing:true,volume:0.55},saved||{});
+    this.musicPrefs.volume=Math.min(1,Math.max(0,Number(this.musicPrefs.volume)));
+    if(!Number.isFinite(this.musicPrefs.volume))this.musicPrefs.volume=0.55;
+    this._trackIdx=0;
+    this._trackFails=0;
+    this._audio=new Audio();
+    this._audio.preload='auto';
+    this._audio.volume=this.musicPrefs.volume;
+    this._audio.addEventListener('ended',()=>this.advanceTrack(true));
+    this._audio.addEventListener('error',()=>this.advanceTrack(false));
+    this._audio.src=this.playlist[0].src;
+  }
+  saveMusicPrefs(){
+    try{localStorage.setItem(this.musicKey,JSON.stringify(this.musicPrefs))}catch(e){}
+  }
+  loadTrack(i){
+    this._trackIdx=((i%this.playlist.length)+this.playlist.length)%this.playlist.length;
+    this._trackFails=0;
+    this._audio.src=this.playlist[this._trackIdx].src;
+  }
+  advanceTrack(playedThrough){
+    this._trackFails=playedThrough?0:this._trackFails+1;
+    // Every track in the playlist failed to load (e.g. no MP3s dropped in
+    // yet) — stop cycling instead of looping error events forever.
+    if(!playedThrough&&this._trackFails>=this.playlist.length)return;
+    this.loadTrack(this._trackIdx+1);
+    if(this.musicPrefs.playing)this.playAudio();
+    this.forceUpdate();
+  }
+  playAudio(){
+    const p=this._audio.play();
+    // play() rejects when it isn't tied to a user gesture, or when the
+    // (placeholder) source 404s — fail silently either way and let the UI
+    // just show "paused" rather than throwing an unhandled rejection.
+    if(p&&p.catch)p.catch(()=>this.forceUpdate());
+  }
+  // Call synchronously from the login button's click handler so play()
+  // inherits that click's user-activation instead of being blocked by the
+  // browser's autoplay policy.
+  armMusicOnLogin(){
+    if(this.musicPrefs.playing)this.playAudio();
+  }
+  pauseMusicForSignOut(){
+    if(this._audio)this._audio.pause();
+  }
+  toggleMusic(){
+    this.musicPrefs.playing=!this.musicPrefs.playing;
+    if(this.musicPrefs.playing)this.playAudio();else this._audio.pause();
+    this.saveMusicPrefs();
+    this.forceUpdate();
+  }
+  setMusicVolume(v){
+    this.musicPrefs.volume=Math.min(1,Math.max(0,Number(v)||0));
+    this._audio.volume=this.musicPrefs.volume;
+    this.saveMusicPrefs();
+    this.forceUpdate();
   }
   fmt(t){if(t>=60){const m=Math.floor(t/60);const s=t-m*60;return m+':'+s.toFixed(2).padStart(5,'0')}return t.toFixed(2)}
   ptsOf(s){
@@ -1135,7 +1214,7 @@ class Component extends DCLogic {
     lu[ev]=arr;this.setState({lineup:lu});
   }
   componentDidMount(){this._ct=setInterval(()=>this.forceUpdate(),60000)}
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt)}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}}
   renderVals(){
     const st=this.state;
     const start=this.props.startRole??'login';
@@ -1149,7 +1228,7 @@ class Component extends DCLogic {
     const nextMeet=this.sched[0];
     const cdDays=Math.max(0,Math.ceil((new Date('2026-10-17T13:00:00')-Date.now())/86400000));
     const M='#6B1F33',C='#F5E9DC',T='#1B7A78',I='#2A1218';
-    const login=(r,uid)=>this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false});
+    const login=(r,uid)=>{this.armMusicOnLogin();this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false});};
     const doLogin=()=>{
       const u=st.uname.toLowerCase();
       if(u.includes('hamstra')||u.includes('coach'))return login('coach','Rayane Debbarh');
@@ -1316,7 +1395,7 @@ class Component extends DCLogic {
       doLogin,
       quickA:()=>login('athlete','Rayane Debbarh'),
       quickC:()=>login('coach','Rayane Debbarh'),
-      logout:()=>this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false}),
+      logout:()=>{this.pauseMusicForSignOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       barTitle:TITLES[tab]||'HOME',
       vHome:isApp&&tab==='home',
       vAHome:isApp&&!isCoach&&tab==='home',
@@ -1350,7 +1429,13 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false}),
+      menuSignOut:()=>{this.pauseMusicForSignOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      musicPlaying:this.musicPrefs.playing,
+      musicIcon:this.musicPrefs.playing?'❚❚':'▶',
+      musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
+      musicToggle:()=>this.toggleMusic(),
+      musicVolume:String(this.musicPrefs.volume),
+      musicVolumeChange:e=>this.setMusicVolume(e.target.value),
       menuItems:(isCoach
         ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Roster'],['goals','Goal Setting'],['dive','Diving Well']]
         :[['home','Home'],['meets','Meets'],['sim','Meet Simulator'],['train','Training'],['team','Roster'],['dive','Diving Well'],['me','My Profile']]
