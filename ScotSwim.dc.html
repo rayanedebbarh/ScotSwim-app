@@ -404,6 +404,13 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ s.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ s.bg }};color:{{ s.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">{{ s.n }}</button>
         </sc-for>
       </div>
+      <sc-if value="{{ showTeamViewToggle }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+          <sc-for list="{{ viewSegs }}" as="v" hint-placeholder-count="3">
+            <button onClick="{{ v.onTap }}" style="flex:1;border:none;border-radius:999px;padding:8px 0;background:{{ v.bg }};color:{{ v.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:1px;cursor:pointer">{{ v.n }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ showSwimList }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;justify-content:flex-end">
           <select value="{{ teamSort }}" onChange="{{ teamSortSel }}" style="background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
@@ -427,10 +434,19 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </div>
           </sc-for>
         </div>
+      </sc-if>
+      <sc-if value="{{ showRecords }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM RECORDS · SWIMCLOUD</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Live records feed from SwimCloud, embedded directly.</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM RECORDS</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Fastest time ever recorded by an Alma swimmer, per event · via SwimCloud</div>
           <iframe src="{{ swimcloudRecordsUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showTimes }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TOP TIMES</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Best times this season across every event · via SwimCloud</div>
+          <iframe src="{{ swimcloudTimesUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
         </div>
       </sc-if>
       <sc-if value="{{ showStaff }}" hint-placeholder-val="{{ false }}">
@@ -859,7 +875,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 class Component extends DCLogic {
   constructor(p){
     super(p);
-    this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',sel:null,
+    this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false};
     this.EV=[
       {id:'50FR',n:'50 Free',g:'FR',b:{M:22.6,W:25.6}},
@@ -1371,6 +1387,8 @@ class Component extends DCLogic {
     // team
     const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
+    const viewSegList=[['roster','ROSTER'],['records','RECORDS'],['times','TOP TIMES']];
+    const viewSegs=viewSegList.map(([id,n])=>({n,bg:st.teamView===id?T:'transparent',fg:st.teamView===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamView:id})}));
     const rosterSrc=st.teamSeg==='W'?this.women:this.men;
     let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
     if(st.teamSort==='pts')rl=rl.slice().sort((a,b)=>(b.pts??-1)-(a.pts??-1));
@@ -1554,13 +1572,20 @@ class Component extends DCLogic {
       anns:this.anns,week,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
-      segs,rosterList,showSwimList:st.teamSeg!=='S',showStaff:st.teamSeg==='S',
+      segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
+      rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
+      showRecords:st.teamSeg!=='S'&&st.teamView==='records',
+      showTimes:st.teamSeg!=='S'&&st.teamView==='times',
+      showStaff:st.teamSeg==='S',
       teamSort:st.teamSort,teamSortSel:e=>this.setState({teamSort:e.target.value}),
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       sched:schedT,results:this.results,
       swimcloudResultsUrl:'https://www.swimcloud.com/results/iframe/?team=213',
-      swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'W':'M')+'&team=213',
+      // SwimCloud's gender param is F for women (not W) — this was wrong
+      // before and would have silently shown men's records under Women.
+      swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213',
+      swimcloudTimesUrl:'https://www.swimcloud.com/times/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213&hide_gender=1',
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,
