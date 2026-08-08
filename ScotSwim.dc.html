@@ -353,6 +353,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">FULL RESULTS · SWIMCLOUD</div>
+        <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Live results feed from SwimCloud, embedded directly.</div>
+        <iframe src="{{ swimcloudResultsUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
+      </div>
     </div>
   </sc-if>
 
@@ -421,6 +426,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
               </div>
             </div>
           </sc-for>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM RECORDS · SWIMCLOUD</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Live records feed from SwimCloud, embedded directly.</div>
+          <iframe src="{{ swimcloudRecordsUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
         </div>
       </sc-if>
       <sc-if value="{{ showStaff }}" hint-placeholder-val="{{ false }}">
@@ -1072,9 +1082,9 @@ class Component extends DCLogic {
     if(!Number.isFinite(this.musicPrefs.volume))this.musicPrefs.volume=0.55;
     this._trackIdx=0;
     this._trackFails=0;
-    // Last couple of tracks played, most recent last — pickRandomTrack
-    // avoids all of these, not just the current one, so hitting "next"
-    // twice can't bounce straight back to the song you just skipped past.
+    // Last 5 tracks played, most recent last — pickRandomTrack avoids all
+    // of these, not just the current one, so skipping repeatedly can't
+    // land back on anything heard recently.
     this._recentIdx=[];
     this._audio=new Audio();
     this._audio.preload='auto';
@@ -1090,14 +1100,14 @@ class Component extends DCLogic {
   saveMusicPrefs(){
     try{localStorage.setItem(this.musicKey,JSON.stringify(this.musicPrefs))}catch(e){}
   }
-  // Plain random pick, no fixed rotation/order — just avoids the last
-  // couple of tracks actually played (this._recentIdx, kept up to date by
-  // loadTrackAt) so back-to-back skips can't ping-pong between the same
-  // two songs, while everything else stays fully random.
+  // Plain random pick, no fixed rotation/order — just avoids the last 5
+  // tracks actually played (this._recentIdx, kept up to date by
+  // loadTrackAt) so skipping repeatedly can't land back on anything
+  // heard recently, while everything else stays fully random.
   pickRandomTrack(){
     const pool=this.playlist.map((_,i)=>i).filter(i=>!this._recentIdx.includes(i));
-    // Playlist too small to satisfy the exclusion (e.g. only 2 tracks) —
-    // fall back to just avoiding the current one.
+    // Playlist too small to satisfy the exclusion — fall back to just
+    // avoiding the current one.
     const choices=pool.length?pool:this.playlist.map((_,i)=>i).filter(i=>i!==this._trackIdx);
     if(!choices.length)return 0;
     return choices[Math.floor(Math.random()*choices.length)];
@@ -1105,7 +1115,7 @@ class Component extends DCLogic {
   loadTrackAt(i){
     this._trackIdx=i;
     this._trackFails=0;
-    this._recentIdx=[...this._recentIdx,i].slice(-2);
+    this._recentIdx=[...this._recentIdx,i].slice(-5);
     const track=this.playlist[i];
     this._audio.src=track.src;
     // Remembered across reloads/logins (see initMusic) so the next session
@@ -1549,6 +1559,8 @@ class Component extends DCLogic {
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       sched:schedT,results:this.results,
+      swimcloudResultsUrl:'https://www.swimcloud.com/results/iframe/?team=213',
+      swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'W':'M')+'&team=213',
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,
