@@ -1036,14 +1036,17 @@ class Component extends DCLogic {
     ];
     this.DUAL=['MR','200FR','100BK','100BR','200FL','50FR','DV1','100FR','200BK','200BR','500FR','DV3','100FL','200IM','FRR'];
     // Background music — drop MP3s into /music using these exact filenames
-    // and they play automatically; missing files just get skipped (see
-    // advanceTrack). Built in the constructor (not componentDidMount) so
-    // musicPrefs/playlist already exist for the very first render.
+    // (team-picked playlist, awaiting files) and they play automatically;
+    // missing files just get skipped (see advanceTrack). Built in the
+    // constructor (not componentDidMount) so musicPrefs/playlist already
+    // exist for the very first render.
     this.playlist=[
-      {id:'fight-song',title:'Fight Song',artist:'ScotSwim Hype',src:'music/01-fight-song.mp3'},
-      {id:'dive-in',title:'Dive In',artist:'ScotSwim Hype',src:'music/02-dive-in.mp3'},
-      {id:'maroon-wave',title:'Maroon Wave',artist:'ScotSwim Hype',src:'music/03-maroon-wave.mp3'},
-      {id:'lane-nine',title:'Lane Nine',artist:'ScotSwim Hype',src:'music/04-lane-nine.mp3'}
+      {id:'turn-down-for-what',title:'Turn Down for What',artist:'DJ Snake & Lil Jon',src:'music/01-turn-down-for-what.mp3'},
+      {id:'nuevayol',title:'Nuevayol',artist:'Bad Bunny',src:'music/02-nuevayol.mp3'},
+      {id:'squabble-up',title:'Squabble Up',artist:'Kendrick Lamar',src:'music/03-squabble-up.mp3'},
+      {id:'all-the-stars',title:'All the Stars',artist:'Kendrick Lamar & SZA',src:'music/04-all-the-stars.mp3'},
+      {id:'pepas',title:'Pepas',artist:'Farruko',src:'music/05-pepas.mp3'},
+      {id:'xo-tour-llif3',title:'XO Tour Llif3',artist:'Lil Uzi Vert',src:'music/06-xo-tour-llif3.mp3'}
     ];
     this.musicKey='scotswim.music.prefs';
     this.initMusic();
