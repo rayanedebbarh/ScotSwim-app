@@ -1267,7 +1267,7 @@ class Component extends DCLogic {
     };
     const navDef=isCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
-      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
+      :[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'ROSTER',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:'ALL MY SWIMS'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
@@ -1465,7 +1465,7 @@ class Component extends DCLogic {
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
       musicToggle:()=>this.toggleMusic(),
       musicNext:()=>this.nextTrack(),
-      musicTrackName:this.playlist[this._trackIdx].title,
+      musicTrackName:(()=>{const t=this.playlist[this._trackIdx];return t.artist?t.title+' — '+t.artist:t.title})(),
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
       menuItems:(isCoach
