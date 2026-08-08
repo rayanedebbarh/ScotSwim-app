@@ -1072,6 +1072,10 @@ class Component extends DCLogic {
     if(!Number.isFinite(this.musicPrefs.volume))this.musicPrefs.volume=0.55;
     this._trackIdx=0;
     this._trackFails=0;
+    // Last couple of tracks played, most recent last — pickRandomTrack
+    // avoids all of these, not just the current one, so hitting "next"
+    // twice can't bounce straight back to the song you just skipped past.
+    this._recentIdx=[];
     this._audio=new Audio();
     this._audio.preload='auto';
     this._audio.volume=this.musicPrefs.volume;
@@ -1080,24 +1084,28 @@ class Component extends DCLogic {
     // Open on something other than whatever was playing when the last
     // session ended, so back-to-back logins don't repeat.
     const lastIdx=this.playlist.findIndex(t=>t.id===this.musicPrefs.lastTrackId);
-    this.loadTrackAt(this.pickRandomTrack(lastIdx));
+    if(lastIdx>=0)this._recentIdx=[lastIdx];
+    this.loadTrackAt(this.pickRandomTrack());
   }
   saveMusicPrefs(){
     try{localStorage.setItem(this.musicKey,JSON.stringify(this.musicPrefs))}catch(e){}
   }
-  // Plain random pick, no fixed rotation/order — just avoids immediately
-  // repeating whichever index is passed in (when there's more than one
-  // track), so back-to-back picks don't sound broken even though they're
-  // otherwise fully random each time.
-  pickRandomTrack(excludeIdx){
-    if(this.playlist.length<=1)return 0;
-    let i;
-    do{i=Math.floor(Math.random()*this.playlist.length)}while(i===excludeIdx);
-    return i;
+  // Plain random pick, no fixed rotation/order — just avoids the last
+  // couple of tracks actually played (this._recentIdx, kept up to date by
+  // loadTrackAt) so back-to-back skips can't ping-pong between the same
+  // two songs, while everything else stays fully random.
+  pickRandomTrack(){
+    const pool=this.playlist.map((_,i)=>i).filter(i=>!this._recentIdx.includes(i));
+    // Playlist too small to satisfy the exclusion (e.g. only 2 tracks) —
+    // fall back to just avoiding the current one.
+    const choices=pool.length?pool:this.playlist.map((_,i)=>i).filter(i=>i!==this._trackIdx);
+    if(!choices.length)return 0;
+    return choices[Math.floor(Math.random()*choices.length)];
   }
   loadTrackAt(i){
     this._trackIdx=i;
     this._trackFails=0;
+    this._recentIdx=[...this._recentIdx,i].slice(-2);
     const track=this.playlist[i];
     this._audio.src=track.src;
     // Remembered across reloads/logins (see initMusic) so the next session
@@ -1110,14 +1118,14 @@ class Component extends DCLogic {
     // Every track in the playlist failed to load (e.g. no MP3s dropped in
     // yet) — stop cycling instead of looping error events forever.
     if(!playedThrough&&this._trackFails>=this.playlist.length)return;
-    this.loadTrackAt(this.pickRandomTrack(this._trackIdx));
+    this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
   }
   // Manual "skip" from the menu — jumps to a new random track, keeping
   // whatever play/pause state was already in effect.
   nextTrack(){
-    this.loadTrackAt(this.pickRandomTrack(this._trackIdx));
+    this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
   }
