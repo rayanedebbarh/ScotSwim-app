@@ -499,6 +499,29 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 16px">
+          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ det.height }}</div></div>
+          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">WEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ det.weight }}</div></div>
+          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ det.year }}</div></div>
+          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ det.home }}</div></div>
+          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div><div style="font-size:13.5px;margin-top:2px">{{ det.hs }}</div></div>
+        </div>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BIO</div>
+          <sc-if value="{{ det.canEditBio }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ det.toggleBio }}" style="border:none;background:none;color:#1B7A78;font-size:16px;cursor:pointer;padding:2px;line-height:1">{{ det.bioIcon }}</button>
+          </sc-if>
+        </div>
+        <sc-if value="{{ det.bioEditing }}" hint-placeholder-val="{{ false }}">
+          <textarea value="{{ det.bioValue }}" onChange="{{ det.onBioChange }}" placeholder="Write a bit about yourself…" style="width:100%;min-height:90px;margin-top:10px;padding:10px;border:1.5px solid rgba(42,18,24,.2);border-radius:8px;font-family:'Barlow';font-size:13.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+        </sc-if>
+        <sc-if value="{{ det.bioReadOnly }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:13.5px;line-height:1.55;color:rgba(42,18,24,.75);margin-top:10px">{{ det.bioText }}</div>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PROGRESSION</div>
           <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }} this season</div>
@@ -825,6 +848,29 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:12px">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">
+            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.height }}</div></div>
+            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">WEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.weight }}</div></div>
+            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.year }}</div></div>
+            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.home }}</div></div>
+            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.hs }}</div></div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">BIO</div>
+            <sc-if value="{{ selDet.canEditBio }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ selDet.toggleBio }}" style="border:none;background:none;color:#1B7A78;font-size:16px;cursor:pointer;padding:2px;line-height:1">{{ selDet.bioIcon }}</button>
+            </sc-if>
+          </div>
+          <sc-if value="{{ selDet.bioEditing }}" hint-placeholder-val="{{ false }}">
+            <textarea value="{{ selDet.bioValue }}" onChange="{{ selDet.onBioChange }}" placeholder="Write a bit about yourself…" style="width:100%;min-height:90px;margin-top:10px;padding:10px;border:1.5px solid rgba(42,18,24,.2);border-radius:8px;font-family:'Barlow';font-size:13.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+          </sc-if>
+          <sc-if value="{{ selDet.bioReadOnly }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:13.5px;line-height:1.55;color:rgba(42,18,24,.75);margin-top:10px">{{ selDet.bioText }}</div>
+          </sc-if>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION — {{ selDet.chart.ev }}</div>
             <div style="font-size:11.5px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ selDet.imp }}</div>
@@ -900,7 +946,13 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null};
+    // Restore any bios written in a previous session — self-authored text,
+    // same persistence pattern as goals/music (see saveBios).
+    try{
+      const savedBios=JSON.parse(localStorage.getItem('scotswim.bios')||'null');
+      if(savedBios)this.state.bios=savedBios;
+    }catch(e){}
     // Restore any goals set in a previous session (see saveGoalPrefs) —
     // done here, before the first render, so a coach's earlier adjustment
     // is already visible the moment an athlete logs in, not just within
@@ -1287,13 +1339,31 @@ class Component extends DCLogic {
     const h=s.hist[s.primary[0]];
     const dive=s.diver;
     const imp=dive?'+'+(((h[5]-h[0])/h[0])*100).toFixed(1)+'%':'−'+(((h[0]-h[5])/h[0])*100).toFixed(1)+'%';
+    const YEAR={'Fr.':'Freshman','So.':'Sophomore','Jr.':'Junior','Sr.':'Senior'};
+    // height/weight/high school aren't real data yet (see chat) — shown
+    // blank rather than invented, ready to fill in with real bios later.
+    const canEditBio=this.state.role==='athlete'&&this.state.userId===s.id;
+    const bioEditing=canEditBio&&this.state.bioEdit===s.id;
+    const bioVal=this.state.bios[s.id]||'';
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
+      year:YEAR[s.cls]||s.cls,height:s.height||'—',weight:s.weight?(s.weight+' lbs'):'—',hs:s.hs||'—',
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
       chart:this.chartFor(s,ev),
       evChips:s.primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
       pbs:s.primary.map(e=>({ev:this.evMap[e].n,t:this.fmtEv(e,s.diver?Math.max(...s.hist[e]):s.pbs[e]),where:'MIAA · Feb'})),
-      badges:s.badges};
+      badges:s.badges,
+      canEditBio,bioEditing,
+      bioIcon:bioEditing?'✓':'✎',
+      bioReadOnly:!bioEditing,
+      bioText:bioVal||(canEditBio?'No bio yet — tap ✎ to add one.':'No bio yet.'),
+      bioValue:bioVal,
+      toggleBio:()=>this.setState({bioEdit:bioEditing?null:s.id}),
+      onBioChange:e=>{
+        const bios={...this.state.bios};bios[s.id]=e.target.value;
+        this.setState({bios});this.saveBios(bios);
+      }};
   }
+  saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   oppTimes(oppN,f,ev,n){
     const e=this.evMap[ev];const out=[];
     for(let i=0;i<n;i++){const r=this.rnd(this.hs(oppN+ev)+i*13);
