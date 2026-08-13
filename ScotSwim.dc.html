@@ -10,6 +10,21 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- TEMPORARY: re-enabled to frame Sam Couch's new photo. Unlocks Edit/
+     Replace on every <image-slot> (roster/staff/hero, all already-
+     finalized ones included) — hover to see it, drag to pan, scroll or
+     corner-handles to scale. Once framed, run
+     copy(window.__imageSlotsState) in the console and send the result
+     back, then this whole <script> block gets removed again. -->
+<script>
+window.omelette = window.omelette || {};
+window.omelette.writeFile = function(path, content){
+  try{ localStorage.setItem('scotswim.imageSlots.'+path, content); }catch(e){}
+  window.__imageSlotsState = content;
+  console.log('[ScotSwim] photo framing updated — run copy(window.__imageSlotsState) in this console to grab the result.');
+  return Promise.resolve();
+};
+</script>
 <script src="./image-slot.js"></script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
@@ -677,6 +692,13 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-for>
         </div>
       </sc-if>
+      <sc-if value="{{ simShowRealTimes }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ simOppUp }} · REAL TIMES</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">No verified head-to-head estimate for this opponent yet, so here's their actual best times instead · via SwimCloud</div>
+          <iframe src="{{ simTimesUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
+        </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -1082,11 +1104,27 @@ class Component extends DCLogic {
     ];
     this.opps=[
       {n:'Hope',f:0.985,grp:'MIAA'},{n:'Calvin',f:0.99,grp:'MIAA'},{n:'Kalamazoo',f:1.0,grp:'MIAA'},
-      {n:'Albion',f:1.02,grp:'MIAA'},{n:'Olivet',f:1.05,grp:'MIAA'}
-      // 'D3 National' group intentionally left empty pending the real list
-      // of schools Alma actually schedules non-conference (see chat) —
-      // was previously a made-up set of elite programs Alma likely never
-      // plays, which isn't useful as a "who do we actually face" comparison.
+      {n:'Albion',f:1.02,grp:'MIAA'},{n:'Olivet',f:1.05,grp:'MIAA'},
+      // D3 National — schools Alma actually schedules regularly. No
+      // verified relative-speed factor for these (f left unset on purpose,
+      // see simCalc) — the sim shows their real SwimCloud times instead of
+      // a fabricated score. teamId is SwimCloud's team id for that school.
+      {n:'Manchester',teamId:'10006394',grp:'D3'},
+      {n:'Gannon',teamId:'248',grp:'D3'},
+      {n:'Oberlin',teamId:'404',grp:'D3'},
+      {n:'Wheeling',teamId:'304',grp:'D3'},
+      {n:'Penn State Altoona',teamId:'415',grp:'D3'},
+      {n:'Washington & Jefferson',teamId:'323',grp:'D3'},
+      {n:'Bethel (IN)',teamId:'8024',grp:'D3'},
+      {n:'Malone',teamId:'626',grp:'D3'},
+      {n:'Fairmont State',teamId:'205',grp:'D3'},
+      {n:'Hiram',teamId:'66',grp:'D3'},
+      {n:'Baldwin-Wallace',teamId:'1',grp:'D3'},
+      {n:'Chatham',teamId:'636',grp:'D3'},
+      {n:'Bluffton',teamId:'10027917',grp:'D3'},
+      {n:'Bethany',teamId:'226',grp:'D3'},
+      {n:'Aquinas',teamId:'10026352',grp:'D3'},
+      {n:'Saginaw Valley State',teamId:'10004316',grp:'D3'}
     ];
     this.DUAL=['MR','200FR','100BK','100BR','200FL','50FR','DV1','100FR','200BK','200BR','500FR','DV3','100FL','200IM','FRR'];
     // Background music — drop MP3s into /music using these exact filenames
@@ -1270,6 +1308,11 @@ class Component extends DCLogic {
   simCalc(){
     const g=this.state.simGender;
     const opp=this.opps.find(o=>o.n===this.state.simOpp)||this.opps[0];
+    // No verified relative-speed factor for this opponent (e.g. the D3
+    // National teams sourced from a real times list, not estimated) —
+    // don't fabricate a simulated score; the UI shows their real
+    // SwimCloud times embed instead (see simShowRealTimes).
+    if(opp.f==null)return{A:0,O:0,rows:[],opp};
     const useLineup=this.state.simMode==='lineup';
     let A=0,O=0;const rows=[];
     this.DUAL.forEach(ev=>{
@@ -1634,9 +1677,11 @@ class Component extends DCLogic {
       simACol:aWin?'#7fd0cd':C,simOCol:aWin?C:'#7fd0cd',
       simVerdict:aWin?'SCOTS TAKE IT · GO ALMA':sim.A===sim.O?'DEAD HEAT':'UPHILL SWIM — TIGHTEN THE LINEUP',
       simVerdictCol:aWin?'#7fd0cd':'rgba(245,233,220,.75)',
-      simShowScore:st.simMode!=='compare',
-      simShowEvents:st.simMode!=='compare',
-      simShowCompare:st.simMode==='compare',
+      simShowScore:st.simMode!=='compare'&&sim.opp.f!=null,
+      simShowEvents:st.simMode!=='compare'&&sim.opp.f!=null,
+      simShowCompare:st.simMode==='compare'&&sim.opp.f!=null,
+      simShowRealTimes:sim.opp.f==null,
+      simTimesUrl:sim.opp.teamId?'https://www.swimcloud.com/times/iframe/?gender='+(st.simGender==='W'?'F':'M')+'&team='+sim.opp.teamId:'',
       simRows:sim.rows,cmpRows,
       hasPicker:!!pk,pickerEv:pickerEvName,pickerCount:String(pickerCount),pickerList,
       closePicker:()=>this.setState({pickerEv:null}),
