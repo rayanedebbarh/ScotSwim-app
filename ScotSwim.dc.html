@@ -10,6 +10,22 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- TEMPORARY: re-enabled to frame the new home-hero photo (home-hero-athlete /
+     home-hero-coach slots). This turns on Edit/Replace controls for EVERY
+     <image-slot> on the page, including the already-finalized roster/staff
+     photos — hover shows Edit, drag to pan, scroll/corner-handles to scale.
+     Once the hero photo is framed, copy(window.__imageSlotsState) from the
+     console and send it back, then this whole <script> block gets removed
+     again so nothing is accidentally editable. -->
+<script>
+window.omelette = window.omelette || {};
+window.omelette.writeFile = function(path, content){
+  try{ localStorage.setItem('scotswim.imageSlots.'+path, content); }catch(e){}
+  window.__imageSlotsState = content;
+  console.log('[ScotSwim] photo framing updated — run copy(window.__imageSlotsState) in this console to grab the result.');
+  return Promise.resolve();
+};
+</script>
 <script src="./image-slot.js"></script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
@@ -68,8 +84,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <sc-if value="{{ vAHome }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden">
-        <div style="position:absolute;inset:0;background-image:url('uploads/home-hero.png');background-size:cover;background-position:center 30%"></div>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.2),rgba(42,18,24,.45))"></div>
+        <image-slot id="home-hero-athlete" shape="rect" fit="cover" src="uploads/home-hero.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.2),rgba(42,18,24,.45));pointer-events:none"></div>
         <div style="position:relative;padding:26px 20px 22px">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Welcome, {{ heroName }}</div>
@@ -236,8 +252,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <sc-if value="{{ vCHome }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden">
-        <div style="position:absolute;inset:0;background-image:url('uploads/home-hero.png');background-size:cover;background-position:center 30%"></div>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5))"></div>
+        <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/home-hero.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5));pointer-events:none"></div>
         <div style="position:relative;padding:26px 20px 22px">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Coach Hamstra</div>
