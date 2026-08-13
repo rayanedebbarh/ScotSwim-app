@@ -10,6 +10,22 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- TEMPORARY: enables <image-slot>'s built-in Edit/reframe controls
+     (hover a photo, click Edit, drag to pan / scroll or corner-handles
+     to scale) outside the design-canvas editor it was built for. Saves
+     don't hit a real file here — they land in localStorage and on
+     window.__imageSlotsState so the result can be copied out and sent
+     back to be baked in permanently. Delete this whole <script> block
+     once photo framing is finalized so the app goes back to read-only. -->
+<script>
+window.omelette = window.omelette || {};
+window.omelette.writeFile = function(path, content){
+  try{ localStorage.setItem('scotswim.imageSlots.'+path, content); }catch(e){}
+  window.__imageSlotsState = content;
+  console.log('[ScotSwim] photo framing updated — run copy(window.__imageSlotsState) in this console to grab the result.');
+  return Promise.resolve();
+};
+</script>
 <script src="./image-slot.js"></script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
@@ -69,11 +85,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden">
         <div style="position:absolute;inset:0;background-image:url('uploads/ss1.png');background-size:cover;background-position:center 30%"></div>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.55),rgba(42,18,24,.88))"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.2),rgba(42,18,24,.45))"></div>
         <div style="position:relative;padding:26px 20px 22px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px">Welcome, {{ heroName }}</div>
-          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px">Alma Scots · Swimming &amp; Diving</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Welcome, {{ heroName }}</div>
+          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -237,11 +253,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden">
         <div style="position:absolute;inset:0;background-image:url('uploads/ss1.png');background-size:cover;background-position:center 30%"></div>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.6),rgba(42,18,24,.9))"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5))"></div>
         <div style="position:relative;padding:26px 20px 22px">
-          <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px">Coach Hamstra</div>
-          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px">Alma Scots · Swimming &amp; Diving · Head Coach</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Coach Hamstra</div>
+          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving · Head Coach</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
