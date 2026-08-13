@@ -1,3 +1,8 @@
+# macOS / editor / tooling junk
+.DS_Store
+**/.DS_Store
+package-lock.json
+
 # Team-picked playlist tracks are commercial/copyrighted — keep them local
 # for testing only, never commit/push the actual audio. Filenames match
 # the `playlist` array in ScotSwim.dc.html; the app skips missing files
