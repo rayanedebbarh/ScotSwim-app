@@ -35,6 +35,8 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 @keyframes scotswimMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 input::placeholder{color:rgba(245,233,220,.5)}
+.simCtaBtn{flex:1;border:1.5px solid #6B1F33;background:none;color:#6B1F33;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer;transition:background .15s ease,color .15s ease}
+.simCtaBtn:hover,.simCtaBtn:active{background:#6B1F33;color:#F5E9DC}
 </style>
 </helmet>
 <div style="display:flex;justify-content:center;min-height:100vh;align-items:flex-start;background:#2A1218">
@@ -283,8 +285,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
       </div>
       <div style="display:flex;gap:10px">
-        <button onClick="{{ goSim }}" style="flex:1;border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer">RUN MEET SIM</button>
-        <button onClick="{{ goGoals }}" style="flex:1;border:1.5px solid #6B1F33;background:none;color:#6B1F33;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer">SET GOALS</button>
+        <button onClick="{{ goSim }}" class="simCtaBtn">RUN MEET SIM</button>
+        <button onClick="{{ goGoals }}" class="simCtaBtn">SET GOALS</button>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
