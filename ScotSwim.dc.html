@@ -1314,7 +1314,7 @@ class Component extends DCLogic {
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
       :[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
-    const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'ROSTER',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:'ALL MY SWIMS'};
+    const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:'ALL MY SWIMS'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
@@ -1523,8 +1523,8 @@ class Component extends DCLogic {
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
       menuItems:(isCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Roster'],['goals','Goal Setting'],['dive','Diving Well']]
-        :[['home','Home'],['meets','Meets'],['sim','Meet Simulator'],['train','Training'],['team','Roster'],['dive','Diving Well'],['me','My Profile']]
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
+        :[['home','Home'],['meets','Meets'],['sim','Meet Simulator'],['train','Training'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
