@@ -1024,6 +1024,7 @@ class Component extends DCLogic {
     this.byId={};this.all.forEach(s=>this.byId[s.id]=s);
     // Rayane Debbarh — real lifetime bests from almascots.com bio (2025-26)
     const ray=this.byId['Rayane Debbarh'];
+    ray.pos='Freestyle/Breaststroke';
     ray.primary=['50FR','100FR','100BR','200BR'];
     Object.assign(ray.pbs,{'50FR':27.48,'100FR':62.32,'100BR':75.12,'200BR':210.19,'100FL':86.81});
     ray.hist=mkHist(ray.pbs,ray.primary,hs(ray.id));
@@ -1034,7 +1035,7 @@ class Component extends DCLogic {
       'Chris Hamstra':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2024/7/16/IMG_4124.JPG?width=300',
       'Kodi Stone':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2025/7/11/IMG_0705.jpg?width=300'
     };
-    this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Petronella Wilson','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Cooper Couch','Ryan Fowler','Brett Gaff','Nolan Kaiser','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
+    this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Petronella Wilson','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Cooper Couch','Sam Couch','Ryan Fowler','Brett Gaff','Nolan Kaiser','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
     this.slotIdOf=n=>'photo-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-');
     this.photoOf=n=>this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
     this.coaches=[
@@ -1080,11 +1081,12 @@ class Component extends DCLogic {
       {t:'Goal-setting 1:1s with Coach Hamstra — sign up outside the pool office.',d:'Jul 29'}
     ];
     this.opps=[
-      {n:'Hope',f:0.985,grp:'MIAA'},{n:'Calvin',f:0.99,grp:'MIAA'},{n:'Kalamazoo',f:1.0,grp:'MIAA'},{n:'Trine',f:1.005,grp:'MIAA'},
-      {n:'Albion',f:1.02,grp:'MIAA'},{n:'Adrian',f:1.03,grp:'MIAA'},{n:"Saint Mary's",f:1.035,wOnly:true,grp:'MIAA'},{n:'Olivet',f:1.05,grp:'MIAA'},{n:'Manchester',f:1.06,grp:'MIAA'},
-      {n:'Denison',f:0.865,grp:'D3'},{n:'Emory',f:0.865,grp:'D3'},{n:'Kenyon',f:0.875,grp:'D3'},{n:'MIT',f:0.875,grp:'D3'},
-      {n:'NYU',f:0.88,grp:'D3'},{n:'Chicago',f:0.885,grp:'D3'},{n:'WashU St. Louis',f:0.89,grp:'D3'},{n:'Johns Hopkins',f:0.89,grp:'D3'},
-      {n:'Williams',f:0.90,grp:'D3'},{n:'Tufts',f:0.905,grp:'D3'},{n:'Pomona-Pitzer',f:0.91,grp:'D3'},{n:'Carnegie Mellon',f:0.91,grp:'D3'}
+      {n:'Hope',f:0.985,grp:'MIAA'},{n:'Calvin',f:0.99,grp:'MIAA'},{n:'Kalamazoo',f:1.0,grp:'MIAA'},
+      {n:'Albion',f:1.02,grp:'MIAA'},{n:'Olivet',f:1.05,grp:'MIAA'}
+      // 'D3 National' group intentionally left empty pending the real list
+      // of schools Alma actually schedules non-conference (see chat) —
+      // was previously a made-up set of elite programs Alma likely never
+      // plays, which isn't useful as a "who do we actually face" comparison.
     ];
     this.DUAL=['MR','200FR','100BK','100BR','200FL','50FR','DV1','100FR','200BK','200BR','500FR','DV3','100FL','200IM','FRR'];
     // Background music — drop MP3s into /music using these exact filenames
@@ -1098,7 +1100,11 @@ class Component extends DCLogic {
       {id:'squabble-up',title:'Squabble Up',artist:'Kendrick Lamar',src:'music/03-squabble-up.mp3'},
       {id:'all-the-stars',title:'All the Stars',artist:'Kendrick Lamar & SZA',src:'music/04-all-the-stars.mp3'},
       {id:'pepas',title:'Pepas',artist:'Farruko',src:'music/05-pepas.mp3'},
-      {id:'xo-tour-llif3',title:'XO Tour Llif3',artist:'Lil Uzi Vert',src:'music/06-xo-tour-llif3.mp3'}
+      {id:'xo-tour-llif3',title:'XO Tour Llif3',artist:'Lil Uzi Vert',src:'music/06-xo-tour-llif3.mp3'},
+      {id:'panda',title:'Panda',artist:'Desiigner',src:'music/07-panda-desiigner.mp3'},
+      {id:'sicko-mode',title:'Sicko Mode',artist:'Travis Scott',src:'music/08-sicko-mode.mp3'},
+      {id:'temperature',title:'Temperature',artist:'Sean Paul',src:'music/09-temperature.mp3'},
+      {id:'in-da-club',title:'In da Club',artist:'50 Cent',src:'music/10-in-da-club.mp3'}
     ];
     this.musicKey='scotswim.music.prefs';
     this.initMusic();
@@ -1118,7 +1124,12 @@ class Component extends DCLogic {
     this._audio=new Audio();
     this._audio.preload='auto';
     this._audio.volume=this.musicPrefs.volume;
-    this._audio.addEventListener('ended',()=>this.advanceTrack(true));
+    // A track that "ends" almost instantly never actually played — treat
+    // that like a load failure rather than a real play-through. Otherwise
+    // a broken/mismatched file can cascade through the whole playlist
+    // endlessly: 'ended' always reset the fail counter to 0 regardless of
+    // why it fired, bypassing the give-up-after-a-full-cycle guard below.
+    this._audio.addEventListener('ended',()=>this.advanceTrack(this._audio.currentTime>1.5));
     this._audio.addEventListener('error',()=>this.advanceTrack(false));
     // Open on something other than whatever was playing when the last
     // session ended, so back-to-back logins don't repeat.
@@ -1434,7 +1445,14 @@ class Component extends DCLogic {
     const sim=this.simCalc();
     const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
     const oppGroups=[['MIAA','MIAA'],['D3','NATIONAL D3']].map(([id,n])=>({n,bg:st.oppGroup===id?'#2A1218':'#fff',fg:st.oppGroup===id?C:'rgba(42,18,24,.6)',
-      onTap:()=>{const first=this.opps.find(o=>o.grp===id&&(st.simGender==='W'||!o.wOnly));this.setState({oppGroup:id,simOpp:first.n,lineup:{}});}}));
+      onTap:()=>{
+        const first=this.opps.find(o=>o.grp===id&&(st.simGender==='W'||!o.wOnly));
+        // D3 National is intentionally empty right now (awaiting the real
+        // schedule list) — switch the tab but don't crash trying to
+        // auto-pick an opponent that doesn't exist yet.
+        if(!first)return this.setState({oppGroup:id});
+        this.setState({oppGroup:id,simOpp:first.n,lineup:{}});
+      }}));
     const oppList=this.opps.filter(o=>o.grp===st.oppGroup&&(st.simGender==='W'||!o.wOnly));
     const simOpps=oppList.map(o=>({n:o.n,bg:st.simOpp===o.n?I:'#fff',fg:st.simOpp===o.n?C:'rgba(42,18,24,.7)',onTap:()=>this.setState({simOpp:o.n,lineup:{}})}));
     const simModes=[['auto','AUTO LINEUP'],['lineup','BUILD LINEUP'],['compare','COMPARE']].map(([id,n])=>({n,bg:st.simMode===id?'#6B1F33':'transparent',fg:st.simMode===id?C:'rgba(42,18,24,.55)',onTap:()=>this.setState({simMode:id,pickerEv:null})}));
