@@ -17,6 +17,7 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{display:none}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes scotswimMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 input::placeholder{color:rgba(245,233,220,.5)}
 </style>
 </helmet>
@@ -25,16 +26,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <div style="height:100%;display:flex;flex-direction:column;background:#F2EDE5;color:#2A1218;font-family:'Barlow',sans-serif;position:relative;overflow:hidden">
 
 <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
-  <div style="position:absolute;inset:0;background-image:url('uploads/ss1.png');background-size:cover;background-position:center center;background-repeat:no-repeat;background-color:#RRGGBBAA"></div>
+  <div style="position:absolute;inset:0;background-image:url('uploads/ss1.png');background-size:contain;background-position:center top;background-repeat:no-repeat;background-color:#2A1218"></div>
   <div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end">
-    <div style="position:absolute;left:0;right:0;bottom:0;height:56%;background:linear-gradient(180deg,rgba(42,18,24,0),rgba(42,18,24,.55) 34%,rgba(42,18,24,.88) 62%,rgba(42,18,24,.95))"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:56%;background:linear-gradient(180deg,rgba(42,18,24,0),rgba(42,18,24,.18) 40%,rgba(42,18,24,.4) 70%,rgba(42,18,24,.6) 100%)"></div>
     <div style="position:relative;flex:none;padding:10px 24px 82px;display:flex;flex-direction:column;gap:10px">
       <div>
         <div style="font-size:10.5px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;line-height:1.05;color:#F5E9DC;margin-top:4px">Welcome to ScotSwim</div>
       </div>
-      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="username / email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.28);background:rgba(245,233,220,.07);color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
-      <input value="{{ pass }}" onChange="{{ onP }}" type="password" placeholder="password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.28);background:rgba(245,233,220,.07);color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="username / email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+      <input value="{{ pass }}" onChange="{{ onP }}" type="password" placeholder="password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
       <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">LOG IN</button>
       <div style="display:flex;gap:10px;justify-content:center">
         <button onClick="{{ quickA }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: swimmer</button>
@@ -352,6 +353,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">FULL RESULTS · SWIMCLOUD</div>
+        <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Live results feed from SwimCloud, embedded directly.</div>
+        <iframe src="{{ swimcloudResultsUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
+      </div>
     </div>
   </sc-if>
 
@@ -398,6 +404,13 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ s.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ s.bg }};color:{{ s.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">{{ s.n }}</button>
         </sc-for>
       </div>
+      <sc-if value="{{ showTeamViewToggle }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+          <sc-for list="{{ viewSegs }}" as="v" hint-placeholder-count="3">
+            <button onClick="{{ v.onTap }}" style="flex:1;border:none;border-radius:999px;padding:8px 0;background:{{ v.bg }};color:{{ v.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:1px;cursor:pointer">{{ v.n }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ showSwimList }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;justify-content:flex-end">
           <select value="{{ teamSort }}" onChange="{{ teamSortSel }}" style="background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
@@ -420,6 +433,20 @@ input::placeholder{color:rgba(245,233,220,.5)}
               </div>
             </div>
           </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showRecords }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM RECORDS</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Fastest time ever recorded by an Alma swimmer, per event · via SwimCloud</div>
+          <iframe src="{{ swimcloudRecordsUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showTimes }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TOP TIMES</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Best times this season across every event · via SwimCloud</div>
+          <iframe src="{{ swimcloudTimesUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
         </div>
       </sc-if>
       <sc-if value="{{ showStaff }}" hint-placeholder-val="{{ false }}">
@@ -739,7 +766,17 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ musicNext }}" aria-label="Next track" title="Next track" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">⏭</button>
           <div style="flex:1;min-width:0">
             <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.5)">TEAM HYPE MUSIC</div>
-            <div style="font-size:12.5px;font-weight:600;color:rgba(245,233,220,.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">{{ musicTrackName }}</div>
+            <div style="font-size:12.5px;font-weight:600;color:rgba(245,233,220,.85);white-space:nowrap;overflow:hidden;margin-top:2px">
+              <sc-if value="{{ musicTrackShort }}" hint-placeholder-val="{{ true }}">
+                <span>{{ musicTrackName }}</span>
+              </sc-if>
+              <sc-if value="{{ musicTrackScroll }}" hint-placeholder-val="{{ false }}">
+                <div style="display:inline-flex;animation:scotswimMarquee 9s linear infinite">
+                  <span style="white-space:nowrap;padding-right:36px">{{ musicTrackName }}</span>
+                  <span style="white-space:nowrap;padding-right:36px">{{ musicTrackName }}</span>
+                </div>
+              </sc-if>
+            </div>
             <input type="range" min="0" max="1" step="0.05" value="{{ musicVolume }}" onChange="{{ musicVolumeChange }}" aria-label="Music volume" style="width:100%;margin-top:5px;accent-color:#1B7A78">
           </div>
         </div>
@@ -838,7 +875,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 class Component extends DCLogic {
   constructor(p){
     super(p);
-    this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',sel:null,
+    this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false};
     this.EV=[
       {id:'50FR',n:'50 Free',g:'FR',b:{M:22.6,W:25.6}},
@@ -1061,6 +1098,10 @@ class Component extends DCLogic {
     if(!Number.isFinite(this.musicPrefs.volume))this.musicPrefs.volume=0.55;
     this._trackIdx=0;
     this._trackFails=0;
+    // Last 5 tracks played, most recent last — pickRandomTrack avoids all
+    // of these, not just the current one, so skipping repeatedly can't
+    // land back on anything heard recently.
+    this._recentIdx=[];
     this._audio=new Audio();
     this._audio.preload='auto';
     this._audio.volume=this.musicPrefs.volume;
@@ -1069,24 +1110,28 @@ class Component extends DCLogic {
     // Open on something other than whatever was playing when the last
     // session ended, so back-to-back logins don't repeat.
     const lastIdx=this.playlist.findIndex(t=>t.id===this.musicPrefs.lastTrackId);
-    this.loadTrackAt(this.pickRandomTrack(lastIdx));
+    if(lastIdx>=0)this._recentIdx=[lastIdx];
+    this.loadTrackAt(this.pickRandomTrack());
   }
   saveMusicPrefs(){
     try{localStorage.setItem(this.musicKey,JSON.stringify(this.musicPrefs))}catch(e){}
   }
-  // Plain random pick, no fixed rotation/order — just avoids immediately
-  // repeating whichever index is passed in (when there's more than one
-  // track), so back-to-back picks don't sound broken even though they're
-  // otherwise fully random each time.
-  pickRandomTrack(excludeIdx){
-    if(this.playlist.length<=1)return 0;
-    let i;
-    do{i=Math.floor(Math.random()*this.playlist.length)}while(i===excludeIdx);
-    return i;
+  // Plain random pick, no fixed rotation/order — just avoids the last 5
+  // tracks actually played (this._recentIdx, kept up to date by
+  // loadTrackAt) so skipping repeatedly can't land back on anything
+  // heard recently, while everything else stays fully random.
+  pickRandomTrack(){
+    const pool=this.playlist.map((_,i)=>i).filter(i=>!this._recentIdx.includes(i));
+    // Playlist too small to satisfy the exclusion — fall back to just
+    // avoiding the current one.
+    const choices=pool.length?pool:this.playlist.map((_,i)=>i).filter(i=>i!==this._trackIdx);
+    if(!choices.length)return 0;
+    return choices[Math.floor(Math.random()*choices.length)];
   }
   loadTrackAt(i){
     this._trackIdx=i;
     this._trackFails=0;
+    this._recentIdx=[...this._recentIdx,i].slice(-5);
     const track=this.playlist[i];
     this._audio.src=track.src;
     // Remembered across reloads/logins (see initMusic) so the next session
@@ -1099,14 +1144,14 @@ class Component extends DCLogic {
     // Every track in the playlist failed to load (e.g. no MP3s dropped in
     // yet) — stop cycling instead of looping error events forever.
     if(!playedThrough&&this._trackFails>=this.playlist.length)return;
-    this.loadTrackAt(this.pickRandomTrack(this._trackIdx));
+    this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
   }
   // Manual "skip" from the menu — jumps to a new random track, keeping
   // whatever play/pause state was already in effect.
   nextTrack(){
-    this.loadTrackAt(this.pickRandomTrack(this._trackIdx));
+    this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
   }
@@ -1267,7 +1312,7 @@ class Component extends DCLogic {
     };
     const navDef=isCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
-      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
+      :[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:'ALL MY SWIMS'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
@@ -1342,6 +1387,8 @@ class Component extends DCLogic {
     // team
     const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
+    const viewSegList=[['roster','ROSTER'],['records','RECORDS'],['times','TOP TIMES']];
+    const viewSegs=viewSegList.map(([id,n])=>({n,bg:st.teamView===id?T:'transparent',fg:st.teamView===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamView:id})}));
     const rosterSrc=st.teamSeg==='W'?this.women:this.men;
     let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
     if(st.teamSort==='pts')rl=rl.slice().sort((a,b)=>(b.pts??-1)-(a.pts??-1));
@@ -1417,6 +1464,8 @@ class Component extends DCLogic {
     const goalDet={name:gSel.name,ini:gSel.ini,cls:gSel.cls,pos:gSel.pos,
       slotId:this.slotIdOf(gSel.id),photo:this.photoOf(gSel.id),
       onView:()=>this.setState({sel:gSel.id,meEvent:null})};
+    const curTrack=this.playlist[this._trackIdx];
+    const curTrackName=curTrack.artist?curTrack.title+' — '+curTrack.artist:curTrack.title;
     return {
       isLogin,isApp,isCoach,
       uname:st.uname,pass:st.pass,
@@ -1465,7 +1514,12 @@ class Component extends DCLogic {
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
       musicToggle:()=>this.toggleMusic(),
       musicNext:()=>this.nextTrack(),
-      musicTrackName:this.playlist[this._trackIdx].title,
+      musicTrackName:curTrackName,
+      // Full title/artist never gets cut off — past this length it scrolls
+      // (marquee) instead of ellipsizing, so nothing about the panel's own
+      // size has to grow to fit a long "Title — Artist" string.
+      musicTrackScroll:curTrackName.length>26,
+      musicTrackShort:curTrackName.length<=26,
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
       menuItems:(isCoach
@@ -1518,11 +1572,20 @@ class Component extends DCLogic {
       anns:this.anns,week,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
-      segs,rosterList,showSwimList:st.teamSeg!=='S',showStaff:st.teamSeg==='S',
+      segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
+      rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
+      showRecords:st.teamSeg!=='S'&&st.teamView==='records',
+      showTimes:st.teamSeg!=='S'&&st.teamView==='times',
+      showStaff:st.teamSeg==='S',
       teamSort:st.teamSort,teamSortSel:e=>this.setState({teamSort:e.target.value}),
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       sched:schedT,results:this.results,
+      swimcloudResultsUrl:'https://www.swimcloud.com/results/iframe/?team=213',
+      // SwimCloud's gender param is F for women (not W) — this was wrong
+      // before and would have silently shown men's records under Women.
+      swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213',
+      swimcloudTimesUrl:'https://www.swimcloud.com/times/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213&hide_gender=1',
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,
