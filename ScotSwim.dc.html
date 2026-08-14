@@ -248,7 +248,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5));pointer-events:none"></div>
         <div style="position:relative;padding:26px 20px 22px">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Welcome, Coach Hamstra</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">Welcome, Coach Hamstra</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving · Head Coach</div>
         </div>
       </div>
@@ -1264,21 +1264,32 @@ class Component extends DCLogic {
     this._trackFails=playedThrough?0:this._trackFails+1;
     // Every track failed back-to-back (e.g. none of the MP3s are present,
     // as on a deployment where the audio isn't published) — stop cycling
-    // and show paused, instead of spinning through the playlist forever.
+    // instead of spinning through the playlist forever. This is a
+    // transient "nothing is loadable right now" state, NOT the same thing
+    // as the user's saved preference — it must never touch/persist
+    // musicPrefs.playing, or the next login/Next click would come back
+    // permanently silenced (that was the actual bug: this used to set
+    // musicPrefs.playing=false and save it, so a Next click after one
+    // failed cycle would look at that stale flag and refuse to even try).
     if(!playedThrough&&this._trackFails>=this.playlist.length){
       this._audio.pause();
-      this.musicPrefs.playing=false;
-      this.saveMusicPrefs();
+      this._suspended=true;
       this.forceUpdate();
       return;
     }
+    this._suspended=false;
     this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
   }
   // Manual "skip" from the menu — jumps to a new random track, keeping
-  // whatever play/pause state was already in effect.
+  // whatever play/pause preference was already in effect. Also gives a
+  // fresh shot at playback if a prior cycle had given up (see
+  // advanceTrack) — a manual skip is a deliberate signal to try again,
+  // e.g. after files were added without reloading.
   nextTrack(){
+    this._trackFails=0;
+    this._suspended=false;
     this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
@@ -1301,7 +1312,8 @@ class Component extends DCLogic {
   }
   toggleMusic(){
     this.musicPrefs.playing=!this.musicPrefs.playing;
-    if(this.musicPrefs.playing)this.playAudio();else this._audio.pause();
+    if(this.musicPrefs.playing){this._trackFails=0;this._suspended=false;this.playAudio();}
+    else this._audio.pause();
     this.saveMusicPrefs();
     this.forceUpdate();
   }
