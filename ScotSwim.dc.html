@@ -25,8 +25,14 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 @keyframes scotswimMarqueeA{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 @keyframes scotswimMarqueeB{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 input::placeholder{color:rgba(245,233,220,.5)}
-.simCtaBtn{flex:1;border:1.5px solid #6B1F33;background:none;color:#6B1F33;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer;transition:background .15s ease,color .15s ease}
-.simCtaBtn:hover,.simCtaBtn:active{background:#6B1F33;color:#F5E9DC}
+.simCtaBtn{flex:1;border:1.5px solid #6B1F33;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer;transition:background .15s ease,color .15s ease}
+.simCtaBtn:hover,.simCtaBtn:active{background:none;color:#6B1F33}
+/* Menu drawer items: background is set inline per-row (transparent white
+   while it's the active tab) — !important here is needed to win over that
+   inline style so hover/press show the same translucent-white regardless
+   of whether the row is currently active. */
+.menuItemBtn{transition:background .12s ease}
+.menuItemBtn:hover,.menuItemBtn:active{background:rgba(245,233,220,.14) !important}
 </style>
 </helmet>
 <div style="display:flex;justify-content:center;min-height:100vh;align-items:flex-start;background:#2A1218">
@@ -781,7 +787,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="flex:1;overflow-y:auto;padding:12px 10px">
         <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="6">
-          <button onClick="{{ m.onTap }}" style="width:100%;display:flex;align-items:center;gap:12px;border:none;background:{{ m.bg }};border-radius:8px;padding:13px 12px;cursor:pointer;text-align:left">
+          <button onClick="{{ m.onTap }}" class="menuItemBtn" style="width:100%;display:flex;align-items:center;gap:12px;border:none;background:{{ m.bg }};border-radius:8px;padding:13px 12px;cursor:pointer;text-align:left">
             <div style="width:8px;height:8px;border-radius:2px;background:{{ m.dot }};flex:none"></div>
             <div style="flex:1;font-size:14.5px;font-weight:600;color:{{ m.fg }};font-family:'Barlow'">{{ m.n }}</div>
             <div style="width:3px;height:16px;border-radius:2px;background:{{ m.bar }};flex:none"></div>
@@ -1283,13 +1289,17 @@ class Component extends DCLogic {
     this.forceUpdate();
   }
   // Manual "skip" from the menu — jumps to a new random track, keeping
-  // whatever play/pause preference was already in effect. Also gives a
-  // fresh shot at playback if a prior cycle had given up (see
-  // advanceTrack) — a manual skip is a deliberate signal to try again,
-  // e.g. after files were added without reloading.
+  // whatever play/pause preference was already in effect.
+  // Deliberately does NOT reset _trackFails/_suspended. It used to, as a
+  // "give it a fresh shot" idea — but when nothing is loadable at all
+  // (e.g. the audio files aren't published), that reset re-armed the full
+  // give-up-after-a-cycle counter on every single click, so each Next
+  // burned through the whole playlist rapid-fire before giving up again
+  // instead of just failing once. Leaving the counter alone means: once a
+  // cycle has already given up, one more click tries exactly the one new
+  // track, fails once, and immediately re-hits the already-maxed
+  // threshold — a single quiet failure, not a cascade.
   nextTrack(){
-    this._trackFails=0;
-    this._suspended=false;
     this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
@@ -1312,7 +1322,10 @@ class Component extends DCLogic {
   }
   toggleMusic(){
     this.musicPrefs.playing=!this.musicPrefs.playing;
-    if(this.musicPrefs.playing){this._trackFails=0;this._suspended=false;this.playAudio();}
+    // Same reasoning as nextTrack — don't reset the fail counter here,
+    // or pressing Play after a give-up re-triggers the full cascade
+    // instead of a single quiet retry.
+    if(this.musicPrefs.playing)this.playAudio();
     else this._audio.pause();
     this.saveMusicPrefs();
     this.forceUpdate();
