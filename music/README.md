@@ -1,17 +1,30 @@
 # Background music
 
-Playback shuffles through every track in `this.playlist` (defined in the
-`Component` constructor in `ScotSwim.dc.html`) in random order, plays all
-of them once, then reshuffles and repeats — so it's not a fixed sequence
-and nothing gets skipped over a session.
+Audio files in this folder are **deliberately not committed to the repo** —
+see "Why the files aren't here" below. The playback code ships; the audio
+stays local.
 
-## Team-picked playlist (awaiting files)
+## How playback works
 
-The code already references these 6 tracks by filename — drop the actual
-MP3 in here with the matching name and it plays automatically, no code
-changes needed. **Use the Clean/radio-edit version of each** (several of
-these have explicit-tagged standard releases) so the audio is safe for
-the whole team, coaches included.
+Defined by `this.playlist` in the `Component` constructor in
+`ScotSwim.dc.html`.
+
+- Starts automatically on login. The login click is what satisfies the
+  browser's autoplay policy, so playback is armed from that handler.
+- Keeps playing across every screen and tab — one `<audio>` element lives on
+  the component instance, so navigating never restarts it.
+- Picks tracks at random, excluding the last `playlist.length - 1` played, so
+  every track plays once before any repeat.
+- A new session won't open on whatever played last (`musicPrefs.lastTrackId`).
+- Play/pause and volume persist in `localStorage` under
+  `scotswim.music.prefs`.
+- If a track fails to load it moves on; if every track fails back-to-back it
+  stops and shows paused rather than cycling forever.
+
+Controls live in the hamburger menu: play/pause, skip, volume, and the
+now-playing title (which scrolls when too long to fit).
+
+## Current playlist
 
 | File | Track | Artist |
 | --- | --- | --- |
@@ -21,27 +34,45 @@ the whole team, coaches included.
 | `04-all-the-stars.mp3` | All the Stars | Kendrick Lamar & SZA |
 | `05-pepas.mp3` | Pepas | Farruko |
 | `06-xo-tour-llif3.mp3` | XO Tour Llif3 | Lil Uzi Vert |
+| `07-panda-desiigner.mp3` | Panda | Desiigner |
+| `08-sicko-mode.mp3` | Sicko Mode | Travis Scott |
+| `09-temperature.mp3` | Temperature | Sean Paul |
+| `10-in-da-club.mp3` | In da Club | 50 Cent |
 
-Also make sure whoever supplies these files actually holds the rights to
-use them this way — a personal purchase (e.g. an iTunes download) covers
-personal listening, not looping playback inside an app for a team. Worth
-a quick check before this goes further than local testing.
+Use the **Clean/radio edit** of each — several have explicit standard
+releases, and coaches use this app too.
 
-## Adding/changing tracks (any number)
+## Why the files aren't here
 
-1. Put the MP3 file in this `music/` folder. Keep the filename simple —
-   lowercase, no spaces (use `-`).
-2. In `ScotSwim.dc.html`, find `this.playlist=[...]` in the `Component`
-   constructor and add/edit one entry per track:
+These are commercial copyrighted recordings. The repo is public and is
+published via GitHub Pages, so committing them would put them at a public
+URL for anyone to download — that's distribution, not personal listening.
+All ten filenames are therefore listed in `.gitignore`.
+
+Consequences to know:
+
+- **Locally** — drop the MP3s in this folder with the exact filenames above
+  and music works fully.
+- **On the published site** — no audio files exist, so the player tries each
+  track once and settles into paused. Expected, not a bug.
+- To have working audio on the public link, swap in royalty-free tracks that
+  can legally be committed.
+
+Note: `.gitignore` only affects files git isn't already tracking. If one of
+these ever gets committed by accident, adding it here won't untrack it —
+use `git rm --cached <file>`. Be aware that removing it also deletes the
+file for anyone who later pulls that commit; they can restore it with
+`git show <commit>:<path> > <path>`.
+
+## Adding or changing tracks
+
+1. Put the MP3 in this folder — lowercase, hyphens, no spaces.
+2. Add an entry to `this.playlist` in `ScotSwim.dc.html`:
    ```js
    {id:'unique-id', title:'Track Title', artist:'Artist Name', src:'music/filename.mp3'}
    ```
-   `id` just needs to be unique; `title`/`artist` aren't shown in the UI
-   today but are there for a future "now playing" display; `src` is the
-   path relative to `ScotSwim.dc.html`.
-3. The playlist array can be any length — the shuffle logic adapts
-   automatically, no other code changes needed.
+   `id` must be unique; `title`/`artist` show in the now-playing line; `src`
+   is relative to `ScotSwim.dc.html`.
+3. Add the filename to `.gitignore` if it's another commercial track.
 
-Until a track's file actually exists, the player skips it automatically
-(see `advanceTrack()`/`reshuffleOrder()` in the Component script) instead
-of erroring — so it's safe to list tracks before the files are in place.
+The playlist can be any length — the shuffle window scales automatically.

@@ -17,7 +17,13 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{display:none}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
-@keyframes scotswimMarquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* Two identical marquees on purpose. Changing animation-name is what makes
+   CSS restart an animation, so the now-playing line alternates between A and
+   B on every track change — otherwise the new title would appear part-way
+   through the previous title's scroll instead of at its beginning. The
+   0%-12% hold keeps the start of the title readable before it moves. */
+@keyframes scotswimMarqueeA{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes scotswimMarqueeB{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 input::placeholder{color:rgba(245,233,220,.5)}
 .simCtaBtn{flex:1;border:1.5px solid #6B1F33;background:none;color:#6B1F33;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer;transition:background .15s ease,color .15s ease}
 .simCtaBtn:hover,.simCtaBtn:active{background:#6B1F33;color:#F5E9DC}
@@ -808,7 +814,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <span>{{ musicTrackName }}</span>
               </sc-if>
               <sc-if value="{{ musicTrackScroll }}" hint-placeholder-val="{{ false }}">
-                <div style="display:inline-flex;animation:scotswimMarquee 9s linear infinite">
+                <div style="display:inline-flex;animation:{{ musicMarqueeAnim }} 10s linear infinite">
                   <span style="white-space:nowrap;padding-right:36px">{{ musicTrackName }}</span>
                   <span style="white-space:nowrap;padding-right:36px">{{ musicTrackName }}</span>
                 </div>
@@ -1244,6 +1250,10 @@ class Component extends DCLogic {
   }
   loadTrackAt(i){
     this._trackIdx=i;
+    // Flips the now-playing marquee between the A/B keyframes so its scroll
+    // restarts from the start of the new title. Counting changes (rather
+    // than using the track index) guarantees the name always alternates.
+    this._marqueeTick=(this._marqueeTick||0)+1;
     // NB: _trackFails is deliberately NOT reset here — only the 'playing'
     // event clears it (see initMusic).
     this._recentIdx=[...this._recentIdx,i].slice(-Math.max(1,this.playlist.length-1));
@@ -1675,6 +1685,7 @@ class Component extends DCLogic {
       // size has to grow to fit a long "Title — Artist" string.
       musicTrackScroll:curTrackName.length>26,
       musicTrackShort:curTrackName.length<=26,
+      musicMarqueeAnim:((this._marqueeTick||0)%2)?'scotswimMarqueeB':'scotswimMarqueeA',
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
       menuItems:(isCoach
