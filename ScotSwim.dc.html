@@ -1200,9 +1200,10 @@ class Component extends DCLogic {
     if(!Number.isFinite(this.musicPrefs.volume))this.musicPrefs.volume=0.55;
     this._trackIdx=0;
     this._trackFails=0;
-    // Last 5 tracks played, most recent last — pickRandomTrack avoids all
-    // of these, not just the current one, so skipping repeatedly can't
-    // land back on anything heard recently.
+    // Recently-played track indexes, most recent last. pickRandomTrack
+    // avoids everything in here, and the window is playlist.length-1, so
+    // every track plays once before any repeat. Derived rather than a
+    // fixed number so adding/removing tracks keeps working.
     this._recentIdx=[];
     this._audio=new Audio();
     this._audio.preload='auto';
@@ -1214,6 +1215,12 @@ class Component extends DCLogic {
     // why it fired, bypassing the give-up-after-a-full-cycle guard below.
     this._audio.addEventListener('ended',()=>this.advanceTrack(this._audio.currentTime>1.5));
     this._audio.addEventListener('error',()=>this.advanceTrack(false));
+    // Audio actually started producing sound — that, and only that, clears
+    // the consecutive-failure counter. Clearing it on load instead (as
+    // loadTrackAt used to) capped the counter at 1 and made the
+    // give-up guard in advanceTrack unreachable, so a playlist whose files
+    // were all missing would cascade through tracks forever at full speed.
+    this._audio.addEventListener('playing',()=>{this._trackFails=0});
     // Open on something other than whatever was playing when the last
     // session ended, so back-to-back logins don't repeat.
     const lastIdx=this.playlist.findIndex(t=>t.id===this.musicPrefs.lastTrackId);
@@ -1237,8 +1244,9 @@ class Component extends DCLogic {
   }
   loadTrackAt(i){
     this._trackIdx=i;
-    this._trackFails=0;
-    this._recentIdx=[...this._recentIdx,i].slice(-5);
+    // NB: _trackFails is deliberately NOT reset here — only the 'playing'
+    // event clears it (see initMusic).
+    this._recentIdx=[...this._recentIdx,i].slice(-Math.max(1,this.playlist.length-1));
     const track=this.playlist[i];
     this._audio.src=track.src;
     // Remembered across reloads/logins (see initMusic) so the next session
@@ -1248,9 +1256,16 @@ class Component extends DCLogic {
   }
   advanceTrack(playedThrough){
     this._trackFails=playedThrough?0:this._trackFails+1;
-    // Every track in the playlist failed to load (e.g. no MP3s dropped in
-    // yet) — stop cycling instead of looping error events forever.
-    if(!playedThrough&&this._trackFails>=this.playlist.length)return;
+    // Every track failed back-to-back (e.g. none of the MP3s are present,
+    // as on a deployment where the audio isn't published) — stop cycling
+    // and show paused, instead of spinning through the playlist forever.
+    if(!playedThrough&&this._trackFails>=this.playlist.length){
+      this._audio.pause();
+      this.musicPrefs.playing=false;
+      this.saveMusicPrefs();
+      this.forceUpdate();
+      return;
+    }
     this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
