@@ -1105,8 +1105,8 @@ class Component extends DCLogic {
     this.slotIdOf=n=>'photo-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-');
     this.photoOf=n=>this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
     this.coaches=[
-      {name:'Chris Hamstra',role:'Head Swimming & Diving Coach',ini:'CH'},
-      {name:'Kodi Stone',role:'Assistant Coach · Lead Diving Coach',ini:'KS'}
+      {name:'Chris Hamstra',role:'Swimming Coach',ini:'CH'},
+      {name:'Kodi Stone',role:'Diving Coach',ini:'KS'}
     ];
     this.staffList=[
       {name:'Nick Nemeth',role:'Asst. AD — Communications & Sports Information',ini:'NN'},
