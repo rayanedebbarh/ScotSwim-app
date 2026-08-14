@@ -10,21 +10,6 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
-<!-- TEMPORARY: re-enabled to frame Sam Couch's new photo. Unlocks Edit/
-     Replace on every <image-slot> (roster/staff/hero, all already-
-     finalized ones included) — hover to see it, drag to pan, scroll or
-     corner-handles to scale. Once framed, run
-     copy(window.__imageSlotsState) in the console and send the result
-     back, then this whole <script> block gets removed again. -->
-<script>
-window.omelette = window.omelette || {};
-window.omelette.writeFile = function(path, content){
-  try{ localStorage.setItem('scotswim.imageSlots.'+path, content); }catch(e){}
-  window.__imageSlotsState = content;
-  console.log('[ScotSwim] photo framing updated — run copy(window.__imageSlotsState) in this console to grab the result.');
-  return Promise.resolve();
-};
-</script>
 <script src="./image-slot.js"></script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
