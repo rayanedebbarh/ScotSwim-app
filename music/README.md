@@ -1,8 +1,7 @@
 # Background music
 
-Audio files in this folder are **deliberately not committed to the repo** —
-see "Why the files aren't here" below. The playback code ships; the audio
-stays local.
+Audio files in this folder are royalty-free tracks and are committed to the
+repo, so playback works both locally and on the published GitHub Pages site.
 
 ## How playback works
 
@@ -39,40 +38,21 @@ now-playing title (which scrolls when too long to fit).
 | `09-temperature.mp3` | Temperature | Sean Paul |
 | `10-in-da-club.mp3` | In da Club | 50 Cent |
 
-Use the **Clean/radio edit** of each — several have explicit standard
-releases, and coaches use this app too.
-
-## Why the files aren't here
-
-These are commercial copyrighted recordings. The repo is public and is
-published via GitHub Pages, so committing them would put them at a public
-URL for anyone to download — that's distribution, not personal listening.
-All ten filenames are therefore listed in `.gitignore`.
-
-Consequences to know:
-
-- **Locally** — drop the MP3s in this folder with the exact filenames above
-  and music works fully.
-- **On the published site** — no audio files exist, so the player tries each
-  track once and settles into paused. Expected, not a bug.
-- To have working audio on the public link, swap in royalty-free tracks that
-  can legally be committed.
-
-Note: `.gitignore` only affects files git isn't already tracking. If one of
-these ever gets committed by accident, adding it here won't untrack it —
-use `git rm --cached <file>`. Be aware that removing it also deletes the
-file for anyone who later pulls that commit; they can restore it with
-`git show <commit>:<path> > <path>`.
+Title/artist labels in `this.playlist` match the vibe of the track being
+replaced, not necessarily the original commercial recording — the actual
+audio committed here is a royalty-free/licensed substitute.
 
 ## Adding or changing tracks
 
-1. Put the MP3 in this folder — lowercase, hyphens, no spaces.
+1. Put the MP3 in this folder — lowercase, hyphens, no spaces. Only use
+   royalty-free or properly licensed audio; this repo is public and
+   published via GitHub Pages, so committing a track here makes it publicly
+   downloadable — that's distribution, not personal listening.
 2. Add an entry to `this.playlist` in `ScotSwim.dc.html`:
    ```js
    {id:'unique-id', title:'Track Title', artist:'Artist Name', src:'music/filename.mp3'}
    ```
    `id` must be unique; `title`/`artist` show in the now-playing line; `src`
    is relative to `ScotSwim.dc.html`.
-3. Add the filename to `.gitignore` if it's another commercial track.
 
 The playlist can be any length — the shuffle window scales automatically.

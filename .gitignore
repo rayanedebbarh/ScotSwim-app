@@ -2,18 +2,3 @@
 .DS_Store
 **/.DS_Store
 package-lock.json
-
-# Team-picked playlist tracks are commercial/copyrighted — keep them local
-# for testing only, never commit/push the actual audio. Filenames match
-# the `playlist` array in ScotSwim.dc.html; the app skips missing files
-# automatically, so nothing breaks when these aren't present in the repo.
-music/01-turn-down-for-what.mp3
-music/02-nuevayol.mp3
-music/03-squabble-up.mp3
-music/04-all-the-stars.mp3
-music/05-pepas.mp3
-music/06-xo-tour-llif3.mp3
-music/07-panda-desiigner.mp3
-music/08-sicko-mode.mp3
-music/09-temperature.mp3
-music/10-in-da-club.mp3
