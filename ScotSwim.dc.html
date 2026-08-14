@@ -248,7 +248,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5));pointer-events:none"></div>
         <div style="position:relative;padding:26px 20px 22px">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Coach Hamstra</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Welcome, Coach Hamstra</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving · Head Coach</div>
         </div>
       </div>
@@ -372,10 +372,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ TRAIN ============ -->
   <sc-if value="{{ vTrain }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:13px;font-weight:600">Practice streak</div>
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">14 in a row</div>
-      </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
         <sc-for list="{{ workoutLib }}" as="w" hint-placeholder-count="3">
