@@ -51,8 +51,14 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <input value="{{ pass }}" onChange="{{ onP }}" type="password" placeholder="password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
       <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">LOG IN</button>
       <div style="display:flex;gap:10px;justify-content:center">
-        <button onClick="{{ quickA }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: swimmer</button>
-        <button onClick="{{ quickC }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: coach</button>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button onClick="{{ quickA }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: swimmer</button>
+          <button onClick="{{ quickB }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: diver</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button onClick="{{ quickC }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: swim coach</button>
+          <button onClick="{{ quickD }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: diving coach</button>
+        </div>
       </div>
     </div>
   </div>
@@ -253,8 +259,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5));pointer-events:none"></div>
         <div style="position:relative;padding:26px 20px 22px">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">Welcome, Coach Hamstra</div>
-          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming · Head Coach</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">{{ coachWelcome }}</div>
+          <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">{{ coachSubtitle }}</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -1474,7 +1480,8 @@ class Component extends DCLogic {
     const role=st.role??(start==='coach'?'coach':'athlete');
     const isLogin=screen==='login';
     const isApp=screen==='app';
-    const isCoach=role==='coach';
+    const isCoach=role==='coach'||role==='dcoach';
+    const isDivingCoach=role==='dcoach';
     const tab=st.tab;
     const user=this.byId[st.userId]||this.men[4];
     const nextMeet=this.sched[0];
@@ -1483,6 +1490,7 @@ class Component extends DCLogic {
     const login=(r,uid)=>{this.armMusicOnLogin();this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false});};
     const doLogin=()=>{
       const u=st.uname.toLowerCase();
+      if(u.includes('stone')||u.includes('diving coach'))return login('dcoach','Rayane Debbarh');
       if(u.includes('hamstra')||u.includes('coach'))return login('coach','Rayane Debbarh');
       const m=this.all.find(s=>u&&s.name.toLowerCase().includes(u.trim()));
       login('athlete',m?m.id:'Rayane Debbarh');
@@ -1567,7 +1575,8 @@ class Component extends DCLogic {
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
     const viewSegList=[['roster','ROSTER'],['records','RECORDS'],['times','TOP TIMES']];
     const viewSegs=viewSegList.map(([id,n])=>({n,bg:st.teamView===id?T:'transparent',fg:st.teamView===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamView:id})}));
-    const rosterSrc=st.teamSeg==='W'?this.women:this.men;
+    let rosterSrc=st.teamSeg==='W'?this.women:this.men;
+    if(isDivingCoach)rosterSrc=rosterSrc.filter(s=>s.diver);
     let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
     if(st.teamSort==='pts')rl=rl.slice().sort((a,b)=>(b.pts??-1)-(a.pts??-1));
     else rl=rl.slice().sort((a,b)=>this.hs(a.s.id+'shuffle')-this.hs(b.s.id+'shuffle'));
@@ -1581,7 +1590,7 @@ class Component extends DCLogic {
     const det=this.detailFor(user,st.meEvent);
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
-    const improvers=this.all.filter(s=>!s.diver).map(s=>{
+    const improvers=this.all.filter(s=>isDivingCoach?s.diver:!s.diver).map(s=>{
       const h=s.hist[s.primary[0]];return {s,imp:(h[0]-h[5])/h[0]};
     }).sort((a,b)=>b.imp-a.imp).slice(0,3).map(x=>({
       name:x.s.name,ini:x.s.ini,avc:x.s.avc,ev:this.evMap[x.s.primary[0]].n,
@@ -1630,8 +1639,9 @@ class Component extends DCLogic {
         diff:(d>=0?'+':'−')+Math.abs(d).toFixed(2),col:d>=0?T:'#a04545'};
     }).filter(Boolean);
     const goalSegs=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.goalSeg===id?M:'transparent',fg:st.goalSeg===id?C:M,onTap:()=>this.setState({goalSeg:id,goalSel:null})}));
-    const gPool=st.goalSeg==='M'?this.men:this.women;
-    const gSel=this.byId[st.goalSel]&&this.byId[st.goalSel].gender===st.goalSeg?this.byId[st.goalSel]:gPool[0];
+    let gPool=st.goalSeg==='M'?this.men:this.women;
+    if(isDivingCoach)gPool=gPool.filter(s=>s.diver);
+    const gSel=this.byId[st.goalSel]&&this.byId[st.goalSel].gender===st.goalSeg&&(!isDivingCoach||this.byId[st.goalSel].diver)?this.byId[st.goalSel]:gPool[0];
     const goalChips=gPool.map(s=>({n:s.name.split(' ')[0]+' '+s.name.split(' ')[1][0]+'.',bg:gSel.id===s.id?I:'#fff',fg:gSel.id===s.id?C:'rgba(42,18,24,.7)',onTap:()=>this.setState({goalSel:s.id})}));
     const NOTES=['Hold your streamline off every wall.','Negative-split the back half.','Attack the third 25.','Clean entry — keep the rip.','Faster turns buy you a body length.'];
     const goalRows=gSel.primary.map((ev,i)=>{
@@ -1653,12 +1663,16 @@ class Component extends DCLogic {
     const curTrackName=curTrack.artist?curTrack.title+' — '+curTrack.artist:curTrack.title;
     return {
       isLogin,isApp,isCoach,
+      coachWelcome:isDivingCoach?'Welcome, Coach Stone':'Welcome, Coach Hamstra',
+      coachSubtitle:isDivingCoach?'Alma Scots · Diving · Diving Coach':'Alma Scots · Swimming · Head Coach',
       uname:st.uname,pass:st.pass,
       onU:e=>this.setState({uname:e.target.value}),
       onP:e=>this.setState({pass:e.target.value}),
       doLogin,
       quickA:()=>login('athlete','Rayane Debbarh'),
+      quickB:()=>login('athlete','Cooper Couch'),
       quickC:()=>login('coach','Rayane Debbarh'),
+      quickD:()=>login('dcoach','Rayane Debbarh'),
       logout:()=>{this.pauseMusicForSignOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       barTitle:TITLES[tab]||'HOME',
       vHome:isApp&&tab==='home',
@@ -1717,7 +1731,8 @@ class Component extends DCLogic {
         bar:tab===id?'#1B7A78':'transparent',
         onTap:()=>this.setState({tab:id,menuOpen:false,sel:null,pickerEv:null})})),
       menuProfiles:[
-        {n:isCoach?'Chris Hamstra':user.name,d:isCoach?'Swimming Coach':user.cls+' · '+user.pos},
+        {n:isDivingCoach?'Kodi Stone':(isCoach?'Chris Hamstra':user.name),
+         d:isDivingCoach?'Diving Coach':(isCoach?'Swimming Coach':user.cls+' · '+user.pos)},
         {n:'Alma College',d:'Scots · Swimming & Diving'},
         {n:'NCAA Division III',d:'National association'},
         {n:'MIAA',d:'Michigan Intercollegiate Athletic Assoc.'}
