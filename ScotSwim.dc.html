@@ -10,6 +10,22 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
+<!-- TEMPORARY: enables <image-slot>'s built-in Edit/reframe controls
+     (hover a photo, click Edit, drag to pan / scroll or corner-handles
+     to scale) outside the design-canvas editor it was built for. Saves
+     don't hit a real file here — they land in localStorage and on
+     window.__imageSlotsState so the result can be copied out and sent
+     back to be baked in permanently. Delete this whole <script> block
+     once photo framing is finalized so the app goes back to read-only. -->
+<script>
+window.omelette = window.omelette || {};
+window.omelette.writeFile = function(path, content){
+  try{ localStorage.setItem('scotswim.imageSlots.'+path, content); }catch(e){}
+  window.__imageSlotsState = content;
+  console.log('[ScotSwim] photo framing updated — run copy(window.__imageSlotsState) in this console to grab the result.');
+  return Promise.resolve();
+};
+</script>
 <script src="./image-slot.js"></script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
