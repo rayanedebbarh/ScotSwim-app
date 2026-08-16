@@ -1121,6 +1121,19 @@ class Component extends DCLogic {
     ray.hist=mkHist(ray.pbs,ray.primary,hs(ray.id));
     ray.goals=mkGoals(ray.pbs,ray.primary);
     ray.badges=[{n:'PB Machine',d:'Five lifetime bests in 2025-26',c:'#6B1F33'},{n:'Taper Titan',d:'Season bests at MIAA Championships',c:'#1B7A78'},{n:'Iron Attendance',d:'20 consecutive practices',c:'#2A1218'}];
+    // Cooper Couch — real 2025-26 diving results from SwimCloud meet pages.
+    // Six-dive dual/invite scores only; the Nov 20-22 Malone Invitational
+    // (268.90) is scored on an 11-dive format and isn't comparable to the
+    // rest, so it's left out of the progression rather than skewing it.
+    const cooper=this.byId['Cooper Couch'];
+    Object.assign(cooper.pbs,{DV1:191.95,DV3:132.95});
+    cooper.hist.DV1=[100.85,168.75,130.45,191.95];
+    cooper.hist.DV3=[132.95,114.65];
+    cooper.meetLogByEv={
+      DV1:[['Bethel Tri','Nov'],['Albion','Nov'],['Manchester','Jan'],['Manchester','Jan']],
+      DV3:[['Albion','Nov'],['MIAA Winter','Jan']]
+    };
+    cooper.goals=mkGoals(cooper.pbs,cooper.primary);
     this.photos={
       'Rayane Debbarh':'https://almascots.com/images/2025/10/27/IMG_9865.JPG?width=300',
       'Chris Hamstra':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2024/7/16/IMG_4124.JPG?width=300',
@@ -1392,14 +1405,16 @@ class Component extends DCLogic {
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
     const dots=hist.map((t,i)=>({x:X(i).toFixed(1),y:Y(t).toFixed(1),f:t===best?'#1B7A78':'#6B1F33'}));
-    return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),labs:this.HM.map(m=>({n:m[0].split(' ')[0].slice(0,6)})),
+    const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
+    return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),labs:meetLog.map(m=>({n:m[0].split(' ')[0].slice(0,6)})),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
     const ev=(evSel&&s.primary.includes(evSel))?evSel:s.primary[0];
     const h=s.hist[s.primary[0]];
     const dive=s.diver;
-    const imp=dive?'+'+(((h[5]-h[0])/h[0])*100).toFixed(1)+'%':'−'+(((h[0]-h[5])/h[0])*100).toFixed(1)+'%';
+    const hLast=h[h.length-1];
+    const imp=dive?'+'+(((hLast-h[0])/h[0])*100).toFixed(1)+'%':'−'+(((h[0]-hLast)/h[0])*100).toFixed(1)+'%';
     const YEAR={'Fr.':'Freshman','So.':'Sophomore','Jr.':'Junior','Sr.':'Senior'};
     // height/weight/high school aren't real data yet (see chat) — shown
     // blank rather than invented, ready to fill in with real bios later.
@@ -1524,10 +1539,14 @@ class Component extends DCLogic {
     const schedT=this.sched.map(m=>({...m,...tagOf(m)}));
     // athlete home
     const sig=user.primary[0];
-    const myRecent=(user.hist[sig]||[]).slice(-3).map((t,i,arr)=>{
-      const prev=i>0?arr[i-1]:(user.hist[sig]||[])[2];
+    const sigFullHist=user.hist[sig]||[];
+    const sigMeetLog=(user.meetLogByEv&&user.meetLogByEv[sig])||this.HM;
+    const sigOffset=Math.max(0,sigFullHist.length-3);
+    const myRecent=sigFullHist.slice(-3).map((t,i,arr)=>{
+      const prev=i>0?arr[i-1]:(sigOffset>0?sigFullHist[sigOffset-1]:t);
       const d=t-prev;const better=user.diver?d>0:d<0;
-      return {meet:this.HM[3+i][0]+' · '+this.HM[3+i][1],time:this.fmtEv(sig,t),
+      const m=sigMeetLog[sigOffset+i]||sigMeetLog[sigMeetLog.length-1]||['Meet',''];
+      return {meet:m[0]+' · '+m[1],time:this.fmtEv(sig,t),
         delta:(d<0?'−':'+')+Math.abs(d).toFixed(2),col:better?T:'#a04545'};
     });
     const pbOf=ev=>{
@@ -1612,11 +1631,13 @@ class Component extends DCLogic {
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
     const improvers=this.all.filter(s=>isDivingCoach?s.diver:!s.diver).map(s=>{
-      const h=s.hist[s.primary[0]];return {s,imp:(h[0]-h[5])/h[0]};
+      const h=s.hist[s.primary[0]];
+      const imp=s.diver?(h[h.length-1]-h[0])/h[0]:(h[0]-h[h.length-1])/h[0];
+      return {s,imp};
     }).sort((a,b)=>b.imp-a.imp).slice(0,3).map(x=>({
       name:x.s.name,ini:x.s.ini,avc:x.s.avc,ev:this.evMap[x.s.primary[0]].n,
       slotId:this.slotIdOf(x.s.id),photo:this.photoOf(x.s.id),
-      pb:this.fmt(x.s.pbs[x.s.primary[0]]),imp:'−'+(x.imp*100).toFixed(1)+'%',
+      pb:this.fmt(x.s.pbs[x.s.primary[0]]),imp:(x.s.diver?'+':'−')+(x.imp*100).toFixed(1)+'%',
       onTap:()=>this.setState({sel:x.s.id,meEvent:null})}));
     const sim=this.simCalc();
     const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
@@ -1718,8 +1739,12 @@ class Component extends DCLogic {
         user.primary.forEach(ev=>{
           const h=user.hist[ev]||[];
           const best=user.diver?Math.max(...h):Math.min(...h);
-          h.forEach((t,i)=>rows.push({evId:ev,ev:this.evMap[ev].n,meet:this.HM[i][0]+' · '+this.HM[i][1],season:'2025–26',
-            time:this.fmtEv(ev,t),raw:t,idx:i,isPB:t===best}));
+          const meetLog=(user.meetLogByEv&&user.meetLogByEv[ev])||this.HM;
+          h.forEach((t,i)=>{
+            const m=meetLog[i]||meetLog[meetLog.length-1]||['Meet',''];
+            rows.push({evId:ev,ev:this.evMap[ev].n,meet:m[0]+' · '+m[1],season:'2025–26',
+              time:this.fmtEv(ev,t),raw:t,idx:i,isPB:t===best});
+          });
         });
         if(st.swimEv!=='ALL')rows=rows.filter(r=>r.evId===st.swimEv);
         rows.sort(st.swimSort==='time'?(a,b)=>(user.diver?b.raw-a.raw:a.raw-b.raw):(a,b)=>b.idx-a.idx);
