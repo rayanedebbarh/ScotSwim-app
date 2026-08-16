@@ -138,8 +138,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">RECENT SWIMS</div>
-          <button onClick="{{ goSwims }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">All swims ›</button>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ recentLabel }}</div>
+          <button onClick="{{ goSwims }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ allLabel }} ›</button>
         </div>
         <sc-for list="{{ myRecent }}" as="r" hint-placeholder-count="3">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
@@ -152,7 +152,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </sc-for>
       </div>
       <div style="background:#2A1218;border-radius:8px;padding:16px 18px;color:#F5E9DC">
-        <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">LANE RIVALRY</div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">{{ rivalryLabel }}</div>
         <div style="display:flex;gap:8px;margin-top:10px">
           <select value="{{ rivalEv }}" onChange="{{ rivalEvSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
             <sc-for list="{{ rivalEvOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
@@ -585,7 +585,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </select>
         <select value="{{ swimSort }}" onChange="{{ swimSortSel }}" style="flex:1;background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:10px 10px;font-size:13px;font-weight:600;font-family:'Barlow';outline:none">
           <option value="date">Newest first</option>
-          <option value="time">Fastest first</option>
+          <option value="time">{{ bestFirstLabel }}</option>
         </select>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 18px">
@@ -1516,7 +1516,7 @@ class Component extends DCLogic {
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
       :[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
-    const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:'ALL MY SWIMS'};
+    const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
@@ -1569,11 +1569,13 @@ class Component extends DCLogic {
     });
     const rEv=(st.rivalEv&&user.pbs[st.rivalEv]!=null)?st.rivalEv:sig;
     const isDiveEv=!!this.evMap[rEv].dive;
-    const rivals=this.all.filter(s=>s.gender===user.gender&&s.id!==user.id&&s.pbs[rEv]!=null);
+    const rivals=user.diver
+      ?this.all.filter(s=>s.diver&&s.id!==user.id&&s.pbs[rEv]!=null)
+      :this.all.filter(s=>s.gender===user.gender&&s.id!==user.id&&s.pbs[rEv]!=null);
     rivals.sort((a,b)=>Math.abs(a.pbs[rEv]-user.pbs[rEv])-Math.abs(b.pbs[rEv]-user.pbs[rEv]));
     const rvPick=st.rivalId&&this.byId[st.rivalId]&&st.rivalId!==user.id?this.byId[st.rivalId]:null;
     const rv=(rvPick&&rvPick.pbs[rEv]!=null?rvPick:rivals[0])||user;
-    const rivalOpts=rivals.map(s=>({id:s.id,n:s.name}));
+    const rivalOpts=rivals.map(s=>({id:s.id,n:s.name+(user.diver&&s.gender!==user.gender?' ('+(s.gender==='M'?'M':'W')+')':'')}));
     const rivalId=rv.id;
     const rivalSel=e=>this.setState({rivalId:e.target.value});
     const rivalEvOpts=evPool.filter(e=>user.pbs[e.id]!=null).map(e=>({id:e.id,n:e.n}));
@@ -1581,10 +1583,12 @@ class Component extends DCLogic {
     const lead=isDiveEv?(user.pbs[rEv]>rv.pbs[rEv]):(user.pbs[rEv]<rv.pbs[rEv]);
     const gap=Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2);
     const aP=this.photoOf(user.id),bP=this.photoOf(rv.id);
+    const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
+    const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the Scots Relays';
     const chal={ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
       bIni:rv.ini,bName:rv.name.split(' ')[0],bTime:this.fmtEv(rEv,rv.pbs[rEv]),
       aPhoto:aP,aHasP:!!aP,aNoP:!aP,bPhoto:bP,bHasP:!!bP,bNoP:!bP,
-      note:lead?'You lead by '+gap+' — defend it at the Scots Relays':rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'};
+      note:lead?defendLine:rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'};
     const dayIdx=(new Date().getDay()+6)%7;
     const week=this.trainWeek.map((d,i)=>({...d,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)'}));
     // team
@@ -1771,7 +1775,7 @@ class Component extends DCLogic {
       allSelfLabel:st.showAllSelf?'Top 3 ‹':'All goals ›',
       allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
       allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
-      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,
+      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,
       workoutLib:[
         {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Coach will post sets here — none yet'},
         {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Coach will post circuits here — none yet'},
@@ -1786,6 +1790,9 @@ class Component extends DCLogic {
       goGoals:()=>this.setState({tab:'goals'}),
       upcoming:schedT.slice(0,2),
       myGoals,myRecent,sigEv:this.evMap[sig].n.toUpperCase(),chal,
+      recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
+      allLabel:user.diver?'All dives':'All swims',
+      bestFirstLabel:user.diver?'Highest score first':'Fastest first',
       todayName:this.trainWeek[dayIdx].day,todaySessions:this.trainWeek[dayIdx].s,
       anns:this.anns,week,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
