@@ -383,6 +383,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ TRAIN ============ -->
   <sc-if value="{{ vTrain }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:13px;font-weight:600">Practice streak</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">14 in a row</div>
+      </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
         <sc-for list="{{ workoutLib }}" as="w" hint-placeholder-count="3">
@@ -644,6 +648,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-for list="{{ simGenders }}" as="g" hint-placeholder-count="2">
           <button onClick="{{ g.onTap }}" style="flex:1;border:1.5px solid #6B1F33;background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:9px 0;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">{{ g.n }}</button>
         </sc-for>
+      </div>
+      <div style="position:relative;border-radius:10px;overflow:hidden;height:130px">
+        <sc-if value="{{ simIsMen }}" hint-placeholder-val="{{ true }}">
+          <image-slot id="sim-hero-men" shape="rect" fit="cover" src="uploads/sim-men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
+        <sc-if value="{{ simIsWomen }}" hint-placeholder-val="{{ false }}">
+          <image-slot id="sim-hero-women" shape="rect" fit="cover" src="uploads/sim-women.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.05),rgba(42,18,24,.4));pointer-events:none"></div>
+        <div style="position:absolute;left:14px;bottom:10px;font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#F5E9DC;text-shadow:0 2px 6px rgba(0,0,0,.7)">{{ simGLabel }}</div>
       </div>
       <div style="display:flex;gap:8px">
         <sc-for list="{{ oppGroups }}" as="g" hint-placeholder-count="2">
@@ -1790,6 +1804,7 @@ class Component extends DCLogic {
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,
+      simIsMen:st.simGender==='M',simIsWomen:st.simGender==='W',
       simGLabel:st.simGender==='M'?"MEN'S DUAL":"WOMEN'S DUAL",
       simOppUp:(sim.opp.n).toUpperCase(),
       simScoreA:String(sim.A),simScoreO:String(sim.O),
