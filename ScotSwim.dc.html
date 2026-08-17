@@ -105,7 +105,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="position:relative;border-radius:10px;overflow:hidden">
         <image-slot id="home-hero-athlete" shape="rect" fit="cover" src="uploads/home-hero.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.2),rgba(42,18,24,.45));pointer-events:none"></div>
-        <div style="position:relative;padding:26px 20px 22px">
+        <div style="position:relative;padding:26px 20px 22px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Welcome, {{ heroName }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving</div>
@@ -273,7 +273,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="position:relative;border-radius:10px;overflow:hidden">
         <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/home-hero.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5));pointer-events:none"></div>
-        <div style="position:relative;padding:26px 20px 22px">
+        <div style="position:relative;padding:26px 20px 22px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">{{ coachWelcome }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">{{ coachSubtitle }}</div>
@@ -584,7 +584,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
           <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
             <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
-            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="44" height="14" style="overflow:visible;pointer-events:none">
+            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="52" height="16" style="overflow:visible;pointer-events:none">
               <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
                 <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
               </div>
@@ -605,13 +605,22 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PERSONAL BESTS</div>
-        <sc-for list="{{ det.pbs }}" as="b" hint-placeholder-count="3">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="font-size:13.5px;font-weight:600">{{ b.ev }}</div>
-            <div style="display:flex;gap:12px;align-items:baseline">
-              <span style="font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:#6B1F33">{{ b.t }}</span>
-              <span style="font-size:11px;font-weight:700;color:#1B7A78;min-width:56px;text-align:right">{{ b.where }}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">MY EVENTS</div>
+          <select value="" onChange="{{ det.addEventSel }}" style="background:#fff;color:#1B7A78;border:1.5px solid #1B7A78;border-radius:999px;padding:6px 8px;font-size:11.5px;font-weight:700;font-family:'Barlow';outline:none;max-width:140px">
+            <option value="">＋ Add event</option>
+            <sc-for list="{{ det.addEventOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+          </select>
+        </div>
+        <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No events yet — pick one with ＋ Add event and enter your time. Only what you add here shows up in your progression, goals, and the team roster.</div>
+        </sc-if>
+        <sc-for list="{{ det.myEventRows }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input value="{{ r.value }}" onChange="{{ r.onChange }}" placeholder="{{ r.placeholder }}" style="width:84px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+              <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
             </div>
           </div>
         </sc-for>
@@ -1049,7 +1058,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{}};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1061,6 +1070,14 @@ class Component extends DCLogic {
     try{
       const savedStats=JSON.parse(localStorage.getItem('scotswim.stats')||'null');
       if(savedStats)this.state.stats=savedStats;
+    }catch(e){}
+    // Restore each athlete's self-picked events/times — real, self-reported
+    // data replacing the synthetic roster defaults. Only the raw text is
+    // restored here; applyMyEvents (called once this.byId exists, below)
+    // is what actually overrides the roster objects with it.
+    try{
+      const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEvents')||'null');
+      if(savedMyEvents)this.state.myEvents=savedMyEvents;
     }catch(e){}
     // Restore any goals set in a previous session (see saveGoalPrefs) —
     // done here, before the first render, so a coach's earlier adjustment
@@ -1226,6 +1243,11 @@ class Component extends DCLogic {
       DV3:[['Albion','Nov','11/15'],['MIAA Winter','Jan','1/24']]
     };
     cooper.goals=mkGoals(cooper.pbs,cooper.primary);
+    // Apply any athlete-picked events/times restored from localStorage —
+    // done last so a self-reported set of events (once an athlete has set
+    // one up) takes over from the synthetic default, same as it would for
+    // Rayane/Cooper above.
+    Object.keys(this.state.myEvents).forEach(id=>this.applyMyEvents(id,this.state.myEvents[id]));
     this.photos={
       'Rayane Debbarh':'https://almascots.com/images/2025/10/27/IMG_9865.JPG?width=300',
       'Chris Hamstra':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2024/7/16/IMG_4124.JPG?width=300',
@@ -1493,29 +1515,24 @@ class Component extends DCLogic {
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
     const X=i=>18+i*(284/(hist.length-1||1));
-    const Y=t=>32+((dive?(mx-t):(t-mn))/(mx-mn))*90;
+    const Y=t=>45+((dive?(mx-t):(t-mn))/(mx-mn))*77;
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Each label sits right next to its own point, offset perpendicular to
-    // the line's local direction there (rather than a fixed up/down nudge)
-    // — that's the one direction guaranteed not to run along either
-    // connecting segment, so the label reads as attached to its point
-    // without the line ever cutting through it, on any slope.
+    // Each label sits directly above its own point, centered on it, with a
+    // vertical offset sized to whichever adjacent segment is steepest —
+    // computed so the line can't reach the label's box at its horizontal
+    // edge (rise-over-run * half-box-width) by the time it's traveled that
+    // far, guaranteeing clearance on any slope instead of approximating it.
+    const HW=26,HH=8;
     const dots=hist.map((t,i)=>{
       const x=X(i),y=Y(t);
-      let tx=1,ty=0;
-      if(hist.length>1){
-        if(i>0&&i<hist.length-1){tx=X(i+1)-X(i-1);ty=Y(hist[i+1])-Y(hist[i-1]);}
-        else if(i===0){tx=X(1)-x;ty=Y(hist[1])-y;}
-        else{tx=x-X(i-1);ty=y-Y(hist[i-1]);}
-      }
-      const tl=Math.hypot(tx,ty)||1;tx/=tl;ty/=tl;
-      let perpx=-ty,perpy=tx;
-      if(perpy>0){perpx=-perpx;perpy=-perpy;}
-      const lx=x+perpx*15,ly=y+perpy*15;
-      const fx=Math.min(276,Math.max(2,lx-22));
+      let steep=0;
+      if(i>0){const dx=x-X(i-1);if(dx>0)steep=Math.max(steep,Math.abs(y-Y(hist[i-1]))/dx);}
+      if(i<hist.length-1){const dx=X(i+1)-x;if(dx>0)steep=Math.max(steep,Math.abs(Y(hist[i+1])-y)/dx);}
+      const d=Math.max(14,steep*HW+HH+4);
+      const fx=Math.min(320-2*HW-2,Math.max(2,x-HW));
       return {x:x.toFixed(1),y:y.toFixed(1),
-        fx:fx.toFixed(1),fy:(ly-7).toFixed(1),
+        fx:fx.toFixed(1),fy:(y-d-HH).toFixed(1),
         f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)};
     });
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
@@ -1543,7 +1560,31 @@ class Component extends DCLogic {
       stats[s.id]={...(stats[s.id]||{}),[field]:val};
       this.setState({stats});this.saveStats(stats);
     };
+    // Athlete-picked events/times (see applyMyEvents) — every event that
+    // exists is offered, the athlete only tracks the ones they actually
+    // swim/dive, and enters their own time for each.
+    const myEv=this.state.myEvents[s.id]||{};
+    const trackedIds=Object.keys(myEv);
+    const evChoices=s.diver?this.EV.filter(e=>e.dive):this.EV.filter(e=>!e.dive);
+    const addEventOpts=evChoices.filter(e=>myEv[e.id]==null).map(e=>({id:e.id,n:e.n}));
+    const setMyEvents=next=>{
+      this.applyMyEvents(s.id,next);
+      const myEvents={...this.state.myEvents,[s.id]:next};
+      this.setState({myEvents});this.saveMyEvents(myEvents);
+    };
+    const myEventRows=trackedIds.map(evId=>{
+      const e=this.evMap[evId];
+      return {id:evId,n:e?e.n:evId,value:myEv[evId]||'',
+        placeholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
+        onChange:e2=>setMyEvents({...myEv,[evId]:e2.target.value}),
+        remove:()=>{const next={...myEv};delete next[evId];setMyEvents(next);}};
+    });
+    const addEventSel=e2=>{
+      const evId=e2.target.value;if(!evId)return;
+      setMyEvents({...myEv,[evId]:''});
+    };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
+      myEventRows,addEventOpts,addEventSel,myEventsEmpty:trackedIds.length===0,
       year:YEAR[s.cls]||s.cls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
       chart:this.chartFor(s,ev),
@@ -1572,6 +1613,36 @@ class Component extends DCLogic {
   }
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
+  saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEvents',JSON.stringify(myEvents))}catch(e){}}
+  // Overrides an athlete's primary/pbs/hist/goals in place with their own
+  // picked events and times (raw text -> parsed here), so every view that
+  // already reads s.primary/s.pbs/s.hist off the shared roster object —
+  // Team, Diving Well, Sim, Goal Setting, dashboard — picks it up for free.
+  // Falls back to the original synthetic data (backed up on first call)
+  // whenever nothing valid is entered yet, so the app never has to render
+  // a fully empty event list.
+  applyMyEvents(id,events){
+    const s=this.byId[id];if(!s)return;
+    if(!s.__origPrimary){s.__origPrimary=s.primary;s.__origPbs=s.pbs;s.__origHist=s.hist;s.__origGoals=s.goals;s.__origMeetLogByEv=s.meetLogByEv;}
+    const parsed={};
+    Object.keys(events||{}).forEach(evId=>{
+      const e=this.evMap[evId];if(!e)return;
+      const raw=(events[evId]||'').trim();if(!raw)return;
+      let v;
+      if(e.dive)v=parseFloat(raw);
+      else if(raw.includes(':')){const parts=raw.split(':');const mi=parseInt(parts[0],10),se=parseFloat(parts[1]);v=(isNaN(mi)||isNaN(se))?NaN:mi*60+se;}
+      else v=parseFloat(raw);
+      if(!isNaN(v)&&v>0)parsed[evId]=Math.round(v*100)/100;
+    });
+    if(Object.keys(parsed).length===0){
+      s.primary=s.__origPrimary;s.pbs=s.__origPbs;s.hist=s.__origHist;s.goals=s.__origGoals;s.meetLogByEv=s.__origMeetLogByEv;
+      return;
+    }
+    const primary=this.EV.filter(e=>parsed[e.id]!=null).map(e=>e.id);
+    const hist={},meetLogByEv={};
+    primary.forEach(evId=>{hist[evId]=[parsed[evId]];meetLogByEv[evId]=[['Latest','']];});
+    s.primary=primary;s.pbs=parsed;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(parsed,primary);
+  }
   oppTimes(oppN,f,ev,n){
     const e=this.evMap[ev];const out=[];
     for(let i=0;i<n;i++){const r=this.rnd(this.hs(oppN+ev)+i*13);
@@ -1659,9 +1730,11 @@ class Component extends DCLogic {
       const m=this.all.find(s=>u&&s.name.toLowerCase().includes(u.trim()));
       login('athlete',m?m.id:'Rayane Debbarh');
     };
-    const navDef=isCoach
+    const navDef=isDivingCoach
+      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['goals','GOALS']]
+      :isCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
-      :[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
+      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
@@ -1690,7 +1763,7 @@ class Component extends DCLogic {
     let selfList=myKeys.map(key=>{
       const ev=key.split('|')[1];const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
-      const step=e.dive?2:(pb>120?0.5:0.2);
+      const step=e.dive?2:0.1;
       const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*100)/100;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
         close:Math.abs(pb-val)/pb,
@@ -1824,7 +1897,7 @@ class Component extends DCLogic {
       const goal=this.goalOf(gSel,ev);
       const start_=gSel.hist[ev]?gSel.hist[ev][0]:pb*1.05;
       const pct=gSel.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
-      const step=e.dive?2:(pb>120?0.5:0.2);
+      const step=e.dive?2:0.1;
       const bump=d=>{const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;this.setState({goalDelta:gd});this.saveGoalPrefs(gd,this.state.selfGoals);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),
         note:NOTES[(this.hs(gSel.id+ev)+i)%NOTES.length],
@@ -1856,7 +1929,7 @@ class Component extends DCLogic {
       vTrain:isApp&&tab==='train',
       vTeam:isApp&&tab==='team',
       vMe:isApp&&!isCoach&&tab==='me',
-      vSim:isApp&&tab==='sim',
+      vSim:isApp&&isCoach&&tab==='sim',
       vGoals:isApp&&isCoach&&tab==='goals',
       vDive:isApp&&tab==='dive',
       vSwims:isApp&&tab==='swims',
@@ -1900,9 +1973,11 @@ class Component extends DCLogic {
       musicMarqueeAnim:((this._marqueeTick||0)%2)?'scotswimMarqueeB':'scotswimMarqueeA',
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
-      menuItems:(isCoach
+      menuItems:(isDivingCoach
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
+        :isCoach
         ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
-        :[['home','Home'],['meets','Meets'],['sim','Meet Simulator'],['train','Training'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
+        :[['home','Home'],['meets','Meets'],['train','Training'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
@@ -1917,10 +1992,10 @@ class Component extends DCLogic {
       ],
       diversM:this.men.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        dv1:s.pbs.DV1.toFixed(1),dv3:s.pbs.DV3.toFixed(1),onTap:()=>this.setState({sel:s.id,meEvent:null})})),
+        dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',onTap:()=>this.setState({sel:s.id,meEvent:null})})),
       diversW:this.women.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        dv1:s.pbs.DV1.toFixed(1),dv3:s.pbs.DV3.toFixed(1),onTap:()=>this.setState({sel:s.id,meEvent:null})})),
+        dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',onTap:()=>this.setState({sel:s.id,meEvent:null})})),
       navItems,
       heroName:user.name.split(' ')[0],
       nextMeet,cdDays:String(cdDays),nextShortName:'Scots Relays',
