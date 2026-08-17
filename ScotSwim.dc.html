@@ -501,12 +501,42 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 16px">
-          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ det.height }}</div></div>
-          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">WEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ det.weight }}</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">STATS</div>
+          <sc-if value="{{ det.canEditBio }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ det.toggleStats }}" style="border:none;background:none;color:#1B7A78;font-size:16px;cursor:pointer;padding:2px;line-height:1">{{ det.statsIcon }}</button>
+          </sc-if>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-top:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HEIGHT</div>
+            <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ det.heightValue }}" onChange="{{ det.onHeightChange }}" placeholder="e.g. 6'1&quot;" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+            </sc-if>
+            <sc-if value="{{ det.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13.5px;margin-top:2px">{{ det.height }}</div>
+            </sc-if>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">WEIGHT</div>
+            <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ det.weightValue }}" onChange="{{ det.onWeightChange }}" placeholder="e.g. 165 lbs" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+            </sc-if>
+            <sc-if value="{{ det.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13.5px;margin-top:2px">{{ det.weight }}</div>
+            </sc-if>
+          </div>
           <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ det.year }}</div></div>
           <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ det.home }}</div></div>
-          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div><div style="font-size:13.5px;margin-top:2px">{{ det.hs }}</div></div>
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div>
+            <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ det.hsValue }}" onChange="{{ det.onHsChange }}" placeholder="e.g. Alma High School" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+            </sc-if>
+            <sc-if value="{{ det.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13.5px;margin-top:2px">{{ det.hs }}</div>
+            </sc-if>
+          </div>
         </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
@@ -875,12 +905,42 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:12px">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px">
-            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.height }}</div></div>
-            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">WEIGHT</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.weight }}</div></div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">STATS</div>
+            <sc-if value="{{ selDet.canEditBio }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ selDet.toggleStats }}" style="border:none;background:none;color:#1B7A78;font-size:16px;cursor:pointer;padding:2px;line-height:1">{{ selDet.statsIcon }}</button>
+            </sc-if>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:8px">
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HEIGHT</div>
+              <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ selDet.heightValue }}" onChange="{{ selDet.onHeightChange }}" placeholder="e.g. 6'1&quot;" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+              </sc-if>
+              <sc-if value="{{ selDet.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13.5px;margin-top:2px">{{ selDet.height }}</div>
+              </sc-if>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">WEIGHT</div>
+              <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ selDet.weightValue }}" onChange="{{ selDet.onWeightChange }}" placeholder="e.g. 165 lbs" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+              </sc-if>
+              <sc-if value="{{ selDet.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13.5px;margin-top:2px">{{ selDet.weight }}</div>
+              </sc-if>
+            </div>
             <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.year }}</div></div>
             <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.home }}</div></div>
-            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.hs }}</div></div>
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div>
+              <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ selDet.hsValue }}" onChange="{{ selDet.onHsChange }}" placeholder="e.g. Alma High School" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+              </sc-if>
+              <sc-if value="{{ selDet.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13.5px;margin-top:2px">{{ selDet.hs }}</div>
+              </sc-if>
+            </div>
           </div>
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
@@ -973,12 +1033,18 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
       const savedBios=JSON.parse(localStorage.getItem('scotswim.bios')||'null');
       if(savedBios)this.state.bios=savedBios;
+    }catch(e){}
+    // Restore any height/weight/high school entered in a previous session —
+    // same persistence pattern as bios (see saveStats).
+    try{
+      const savedStats=JSON.parse(localStorage.getItem('scotswim.stats')||'null');
+      if(savedStats)this.state.stats=savedStats;
     }catch(e){}
     // Restore any goals set in a previous session (see saveGoalPrefs) —
     // done here, before the first render, so a coach's earlier adjustment
@@ -1429,13 +1495,21 @@ class Component extends DCLogic {
     const hLast=h[h.length-1];
     const imp=dive?'+'+(((hLast-h[0])/h[0])*100).toFixed(1)+'%':'−'+(((h[0]-hLast)/h[0])*100).toFixed(1)+'%';
     const YEAR={'Fr.':'Freshman','So.':'Sophomore','Jr.':'Junior','Sr.':'Senior'};
-    // height/weight/high school aren't real data yet (see chat) — shown
-    // blank rather than invented, ready to fill in with real bios later.
     const canEditBio=this.state.role==='athlete'&&this.state.userId===s.id;
     const bioEditing=canEditBio&&this.state.bioEdit===s.id;
     const bioVal=this.state.bios[s.id]||'';
+    // height/weight/high school are self-entered and persisted the same way
+    // as bios (see saveStats) — nothing invented, blank until the athlete
+    // fills it in, and it stays put until they change it again.
+    const statVal=this.state.stats[s.id]||{};
+    const statsEditing=canEditBio&&this.state.statsEdit===s.id;
+    const setStat=(field,val)=>{
+      const stats={...this.state.stats};
+      stats[s.id]={...(stats[s.id]||{}),[field]:val};
+      this.setState({stats});this.saveStats(stats);
+    };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
-      year:YEAR[s.cls]||s.cls,height:s.height||'—',weight:s.weight?(s.weight+' lbs'):'—',hs:s.hs||'—',
+      year:YEAR[s.cls]||s.cls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
       chart:this.chartFor(s,ev),
       evChips:s.primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
@@ -1450,9 +1524,19 @@ class Component extends DCLogic {
       onBioChange:e=>{
         const bios={...this.state.bios};bios[s.id]=e.target.value;
         this.setState({bios});this.saveBios(bios);
-      }};
+      },
+      statsEditing,statsReadOnly:!statsEditing,
+      statsIcon:statsEditing?'✓':'✎',
+      toggleStats:()=>this.setState({statsEdit:statsEditing?null:s.id}),
+      heightValue:statVal.height||'',
+      weightValue:statVal.weight||'',
+      hsValue:statVal.hs||'',
+      onHeightChange:e=>setStat('height',e.target.value),
+      onWeightChange:e=>setStat('weight',e.target.value),
+      onHsChange:e=>setStat('hs',e.target.value)};
   }
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
+  saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   oppTimes(oppN,f,ev,n){
     const e=this.evMap[ev];const out=[];
     for(let i=0;i<n;i++){const r=this.rnd(this.hs(oppN+ev)+i*13);
