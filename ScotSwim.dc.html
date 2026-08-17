@@ -1477,11 +1477,15 @@ class Component extends DCLogic {
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
     const X=i=>18+i*(284/(hist.length-1||1));
-    const Y=t=>34+((dive?(mx-t):(t-mn))/(mx-mn))*88;
+    // Labels live in a dedicated row (y 12-28) that's fully separate from
+    // the plotted line (y 42-122, an 8px gap below the label row) — fixed,
+    // not computed per-point, so a steep segment can never rise into a
+    // label's box and "cut" the line no matter what the data looks like.
+    const Y=t=>42+((dive?(mx-t):(t-mn))/(mx-mn))*80;
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
     const dots=hist.map((t,i)=>({x:X(i).toFixed(1),y:Y(t).toFixed(1),
-      fx:(X(i)-22).toFixed(1),fy:(Y(t)-16).toFixed(1),
+      fx:(X(i)-22).toFixed(1),fy:'12',
       f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)}));
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
     return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),
