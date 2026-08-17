@@ -605,13 +605,22 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PERSONAL BESTS</div>
-        <sc-for list="{{ det.pbs }}" as="b" hint-placeholder-count="3">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="font-size:13.5px;font-weight:600">{{ b.ev }}</div>
-            <div style="display:flex;gap:12px;align-items:baseline">
-              <span style="font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:#6B1F33">{{ b.t }}</span>
-              <span style="font-size:11px;font-weight:700;color:#1B7A78;min-width:56px;text-align:right">{{ b.where }}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">MY EVENTS</div>
+          <select value="" onChange="{{ det.addEventSel }}" style="background:#fff;color:#1B7A78;border:1.5px solid #1B7A78;border-radius:999px;padding:6px 8px;font-size:11.5px;font-weight:700;font-family:'Barlow';outline:none;max-width:140px">
+            <option value="">＋ Add event</option>
+            <sc-for list="{{ det.addEventOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+          </select>
+        </div>
+        <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No events yet — pick one with ＋ Add event and enter your time. Only what you add here shows up in your progression, goals, and the team roster.</div>
+        </sc-if>
+        <sc-for list="{{ det.myEventRows }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input value="{{ r.value }}" onChange="{{ r.onChange }}" placeholder="{{ r.placeholder }}" style="width:84px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+              <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
             </div>
           </div>
         </sc-for>
@@ -1049,7 +1058,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{}};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1061,6 +1070,14 @@ class Component extends DCLogic {
     try{
       const savedStats=JSON.parse(localStorage.getItem('scotswim.stats')||'null');
       if(savedStats)this.state.stats=savedStats;
+    }catch(e){}
+    // Restore each athlete's self-picked events/times — real, self-reported
+    // data replacing the synthetic roster defaults. Only the raw text is
+    // restored here; applyMyEvents (called once this.byId exists, below)
+    // is what actually overrides the roster objects with it.
+    try{
+      const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEvents')||'null');
+      if(savedMyEvents)this.state.myEvents=savedMyEvents;
     }catch(e){}
     // Restore any goals set in a previous session (see saveGoalPrefs) —
     // done here, before the first render, so a coach's earlier adjustment
@@ -1226,6 +1243,11 @@ class Component extends DCLogic {
       DV3:[['Albion','Nov','11/15'],['MIAA Winter','Jan','1/24']]
     };
     cooper.goals=mkGoals(cooper.pbs,cooper.primary);
+    // Apply any athlete-picked events/times restored from localStorage —
+    // done last so a self-reported set of events (once an athlete has set
+    // one up) takes over from the synthetic default, same as it would for
+    // Rayane/Cooper above.
+    Object.keys(this.state.myEvents).forEach(id=>this.applyMyEvents(id,this.state.myEvents[id]));
     this.photos={
       'Rayane Debbarh':'https://almascots.com/images/2025/10/27/IMG_9865.JPG?width=300',
       'Chris Hamstra':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2024/7/16/IMG_4124.JPG?width=300',
@@ -1538,7 +1560,31 @@ class Component extends DCLogic {
       stats[s.id]={...(stats[s.id]||{}),[field]:val};
       this.setState({stats});this.saveStats(stats);
     };
+    // Athlete-picked events/times (see applyMyEvents) — every event that
+    // exists is offered, the athlete only tracks the ones they actually
+    // swim/dive, and enters their own time for each.
+    const myEv=this.state.myEvents[s.id]||{};
+    const trackedIds=Object.keys(myEv);
+    const evChoices=s.diver?this.EV.filter(e=>e.dive):this.EV.filter(e=>!e.dive);
+    const addEventOpts=evChoices.filter(e=>myEv[e.id]==null).map(e=>({id:e.id,n:e.n}));
+    const setMyEvents=next=>{
+      this.applyMyEvents(s.id,next);
+      const myEvents={...this.state.myEvents,[s.id]:next};
+      this.setState({myEvents});this.saveMyEvents(myEvents);
+    };
+    const myEventRows=trackedIds.map(evId=>{
+      const e=this.evMap[evId];
+      return {id:evId,n:e?e.n:evId,value:myEv[evId]||'',
+        placeholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
+        onChange:e2=>setMyEvents({...myEv,[evId]:e2.target.value}),
+        remove:()=>{const next={...myEv};delete next[evId];setMyEvents(next);}};
+    });
+    const addEventSel=e2=>{
+      const evId=e2.target.value;if(!evId)return;
+      setMyEvents({...myEv,[evId]:''});
+    };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
+      myEventRows,addEventOpts,addEventSel,myEventsEmpty:trackedIds.length===0,
       year:YEAR[s.cls]||s.cls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
       chart:this.chartFor(s,ev),
@@ -1567,6 +1613,36 @@ class Component extends DCLogic {
   }
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
+  saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEvents',JSON.stringify(myEvents))}catch(e){}}
+  // Overrides an athlete's primary/pbs/hist/goals in place with their own
+  // picked events and times (raw text -> parsed here), so every view that
+  // already reads s.primary/s.pbs/s.hist off the shared roster object —
+  // Team, Diving Well, Sim, Goal Setting, dashboard — picks it up for free.
+  // Falls back to the original synthetic data (backed up on first call)
+  // whenever nothing valid is entered yet, so the app never has to render
+  // a fully empty event list.
+  applyMyEvents(id,events){
+    const s=this.byId[id];if(!s)return;
+    if(!s.__origPrimary){s.__origPrimary=s.primary;s.__origPbs=s.pbs;s.__origHist=s.hist;s.__origGoals=s.goals;s.__origMeetLogByEv=s.meetLogByEv;}
+    const parsed={};
+    Object.keys(events||{}).forEach(evId=>{
+      const e=this.evMap[evId];if(!e)return;
+      const raw=(events[evId]||'').trim();if(!raw)return;
+      let v;
+      if(e.dive)v=parseFloat(raw);
+      else if(raw.includes(':')){const parts=raw.split(':');const mi=parseInt(parts[0],10),se=parseFloat(parts[1]);v=(isNaN(mi)||isNaN(se))?NaN:mi*60+se;}
+      else v=parseFloat(raw);
+      if(!isNaN(v)&&v>0)parsed[evId]=Math.round(v*100)/100;
+    });
+    if(Object.keys(parsed).length===0){
+      s.primary=s.__origPrimary;s.pbs=s.__origPbs;s.hist=s.__origHist;s.goals=s.__origGoals;s.meetLogByEv=s.__origMeetLogByEv;
+      return;
+    }
+    const primary=this.EV.filter(e=>parsed[e.id]!=null).map(e=>e.id);
+    const hist={},meetLogByEv={};
+    primary.forEach(evId=>{hist[evId]=[parsed[evId]];meetLogByEv[evId]=[['Latest','']];});
+    s.primary=primary;s.pbs=parsed;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(parsed,primary);
+  }
   oppTimes(oppN,f,ev,n){
     const e=this.evMap[ev];const out=[];
     for(let i=0;i<n;i++){const r=this.rnd(this.hs(oppN+ev)+i*13);
@@ -1658,7 +1734,7 @@ class Component extends DCLogic {
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['goals','GOALS']]
       :isCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
-      :[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
+      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
@@ -1687,7 +1763,7 @@ class Component extends DCLogic {
     let selfList=myKeys.map(key=>{
       const ev=key.split('|')[1];const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
-      const step=e.dive?2:(pb>120?0.5:0.2);
+      const step=e.dive?2:0.1;
       const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*100)/100;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
         close:Math.abs(pb-val)/pb,
@@ -1821,7 +1897,7 @@ class Component extends DCLogic {
       const goal=this.goalOf(gSel,ev);
       const start_=gSel.hist[ev]?gSel.hist[ev][0]:pb*1.05;
       const pct=gSel.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
-      const step=e.dive?2:(pb>120?0.5:0.2);
+      const step=e.dive?2:0.1;
       const bump=d=>{const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;this.setState({goalDelta:gd});this.saveGoalPrefs(gd,this.state.selfGoals);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),
         note:NOTES[(this.hs(gSel.id+ev)+i)%NOTES.length],
@@ -1853,7 +1929,7 @@ class Component extends DCLogic {
       vTrain:isApp&&tab==='train',
       vTeam:isApp&&tab==='team',
       vMe:isApp&&!isCoach&&tab==='me',
-      vSim:isApp&&tab==='sim',
+      vSim:isApp&&isCoach&&tab==='sim',
       vGoals:isApp&&isCoach&&tab==='goals',
       vDive:isApp&&tab==='dive',
       vSwims:isApp&&tab==='swims',
@@ -1901,7 +1977,7 @@ class Component extends DCLogic {
         ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
         :isCoach
         ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
-        :[['home','Home'],['meets','Meets'],['sim','Meet Simulator'],['train','Training'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
+        :[['home','Home'],['meets','Meets'],['train','Training'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
@@ -1916,10 +1992,10 @@ class Component extends DCLogic {
       ],
       diversM:this.men.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        dv1:s.pbs.DV1.toFixed(1),dv3:s.pbs.DV3.toFixed(1),onTap:()=>this.setState({sel:s.id,meEvent:null})})),
+        dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',onTap:()=>this.setState({sel:s.id,meEvent:null})})),
       diversW:this.women.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        dv1:s.pbs.DV1.toFixed(1),dv3:s.pbs.DV3.toFixed(1),onTap:()=>this.setState({sel:s.id,meEvent:null})})),
+        dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',onTap:()=>this.setState({sel:s.id,meEvent:null})})),
       navItems,
       heroName:user.name.split(' ')[0],
       nextMeet,cdDays:String(cdDays),nextShortName:'Scots Relays',
