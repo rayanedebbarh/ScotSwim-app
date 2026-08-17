@@ -538,10 +538,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
           <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
             <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
+            <text x="{{ p.x }}" y="{{ p.ty }}" text-anchor="middle" style="font-size:9px;font-weight:700;fill:{{ p.f }};font-variant-numeric:tabular-nums">{{ p.t }}</text>
           </sc-for>
         </svg>
-        <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:600;color:rgba(42,18,24,.45);padding:0 6px">
-          <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6"><span>{{ l.n }}</span></sc-for>
+        <div style="display:flex;justify-content:space-between;padding:0 6px">
+          <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6">
+            <div style="text-align:center;line-height:1.35">
+              <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
+              <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
+            </div>
+          </sc-for>
         </div>
         <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;font-weight:600">
           <span style="color:rgba(42,18,24,.6)">Season best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ det.chart.pb }}</span></span>
@@ -1038,7 +1044,7 @@ class Component extends DCLogic {
     const hs=s=>{let h=0;for(let i=0;i<s.length;i++)h=((h*31+s.charCodeAt(i))>>>0)%100000;return h};
     const rnd=seed=>{const x=Math.sin(seed+1)*10000;return x-Math.floor(x)};
     this.hs=hs;this.rnd=rnd;
-    const HM=[['Scots Relays','Oct'],['Olivet','Nov'],['Albion','Nov'],['Calvin Inv','Nov'],['Winter Inv','Jan'],['MIAA','Feb']];
+    const HM=[['Scots Relays','Oct','10/4'],['Olivet','Nov','11/1'],['Albion','Nov','11/15'],['Calvin Inv','Nov','11/22'],['Winter Inv','Jan','1/17'],['MIAA','Feb','2/21']];
     this.HM=HM;
     const BADGES=[
       ['PB Machine','Dropped time in 3+ events this season','#6B1F33'],
@@ -1130,8 +1136,8 @@ class Component extends DCLogic {
     cooper.hist.DV1=[100.85,168.75,130.45,191.95];
     cooper.hist.DV3=[132.95,114.65];
     cooper.meetLogByEv={
-      DV1:[['Bethel Tri','Nov'],['Albion','Nov'],['Manchester','Jan'],['Manchester','Jan']],
-      DV3:[['Albion','Nov'],['MIAA Winter','Jan']]
+      DV1:[['Bethel Tri','Nov','11/1'],['Albion','Nov','11/15'],['Manchester','Jan','1/10'],['Manchester','Jan','1/10']],
+      DV3:[['Albion','Nov','11/15'],['MIAA Winter','Jan','1/24']]
     };
     cooper.goals=mkGoals(cooper.pbs,cooper.primary);
     this.photos={
@@ -1401,12 +1407,14 @@ class Component extends DCLogic {
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
     const X=i=>18+i*(284/(hist.length-1||1));
-    const Y=t=>18+((dive?(mx-t):(t-mn))/(mx-mn))*104;
+    const Y=t=>34+((dive?(mx-t):(t-mn))/(mx-mn))*88;
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    const dots=hist.map((t,i)=>({x:X(i).toFixed(1),y:Y(t).toFixed(1),f:t===best?'#1B7A78':'#6B1F33'}));
+    const dots=hist.map((t,i)=>({x:X(i).toFixed(1),y:Y(t).toFixed(1),ty:(Y(t)-9).toFixed(1),
+      f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)}));
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
-    return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),labs:meetLog.map(m=>({n:m[0].split(' ')[0].slice(0,6)})),
+    return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),
+      labs:meetLog.map(m=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||''})),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
