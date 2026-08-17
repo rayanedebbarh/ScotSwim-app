@@ -538,7 +538,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
           <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
             <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
-            <text x="{{ p.x }}" y="{{ p.ty }}" text-anchor="middle" style="font-size:9px;font-weight:700;fill:{{ p.f }};font-variant-numeric:tabular-nums">{{ p.t }}</text>
+            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="44" height="14" style="overflow:visible;pointer-events:none">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
+                <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
+              </div>
+            </foreignObject>
           </sc-for>
         </svg>
         <div style="display:flex;justify-content:space-between;padding:0 6px">
@@ -1410,7 +1414,8 @@ class Component extends DCLogic {
     const Y=t=>34+((dive?(mx-t):(t-mn))/(mx-mn))*88;
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    const dots=hist.map((t,i)=>({x:X(i).toFixed(1),y:Y(t).toFixed(1),ty:(Y(t)-9).toFixed(1),
+    const dots=hist.map((t,i)=>({x:X(i).toFixed(1),y:Y(t).toFixed(1),
+      fx:(X(i)-22).toFixed(1),fy:(Y(t)-16).toFixed(1),
       f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)}));
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
     return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),
