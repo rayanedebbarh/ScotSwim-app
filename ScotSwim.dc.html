@@ -102,10 +102,18 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ ATHLETE HOME ============ -->
   <sc-if value="{{ vAHome }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
-      <div style="position:relative;border-radius:10px;overflow:hidden">
-        <image-slot id="home-hero-athlete" shape="rect" fit="cover" src="uploads/home-hero.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.2),rgba(42,18,24,.45));pointer-events:none"></div>
-        <div style="position:relative;padding:26px 20px 22px;pointer-events:none">
+      <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
+        <sc-if value="{{ heroIsDiver }}" hint-placeholder-val="{{ false }}">
+          <image-slot id="home-hero-divers" shape="rect" fit="cover" src="uploads/divers.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
+        <sc-if value="{{ heroIsMen }}" hint-placeholder-val="{{ true }}">
+          <image-slot id="home-hero-men" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
+        <sc-if value="{{ heroIsWomen }}" hint-placeholder-val="{{ false }}">
+          <image-slot id="home-hero-women" shape="rect" fit="cover" src="uploads/women.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.05),rgba(42,18,24,.6));pointer-events:none"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 18px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Welcome, {{ heroName }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving</div>
@@ -270,10 +278,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ COACH HOME ============ -->
   <sc-if value="{{ vCHome }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
-      <div style="position:relative;border-radius:10px;overflow:hidden">
-        <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/home-hero.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.25),rgba(42,18,24,.5));pointer-events:none"></div>
-        <div style="position:relative;padding:26px 20px 22px;pointer-events:none">
+      <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
+        <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.1),rgba(42,18,24,.6));pointer-events:none"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 18px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">{{ coachWelcome }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">{{ coachSubtitle }}</div>
@@ -579,21 +587,27 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
           </sc-for>
         </div>
-        <svg width="100%" viewBox="0 0 320 150" style="margin-top:8px">
-          <line x1="18" x2="302" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
+        <svg width="100%" viewBox="0 0 320 300" style="margin-top:8px">
+          <sc-for list="{{ det.chart.yTicks }}" as="g" hint-placeholder-count="5">
+            <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
+            <foreignObject x="0" y="{{ g.ly }}" width="{{ det.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+            </foreignObject>
+          </sc-for>
+          <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
           <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
           <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
             <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
-            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="52" height="16" style="overflow:visible;pointer-events:none">
+            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
               <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
                 <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
               </div>
             </foreignObject>
           </sc-for>
         </svg>
-        <div style="display:flex;justify-content:space-between;padding:0 6px">
+        <div style="position:relative;height:28px;margin-top:2px">
           <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6">
-            <div style="text-align:center;line-height:1.35">
+            <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
               <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
               <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
             </div>
@@ -608,19 +622,32 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">MY EVENTS</div>
           <select value="" onChange="{{ det.addEventSel }}" style="background:#fff;color:#1B7A78;border:1.5px solid #1B7A78;border-radius:999px;padding:6px 8px;font-size:11.5px;font-weight:700;font-family:'Barlow';outline:none;max-width:140px">
-            <option value="">＋ Add event</option>
+            <option value="">＋ Add time</option>
             <sc-for list="{{ det.addEventOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
           </select>
         </div>
         <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No events yet — pick one with ＋ Add event and enter your time. Only what you add here shows up in your progression, goals, and the team roster.</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the meet and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
         </sc-if>
         <sc-for list="{{ det.myEventRows }}" as="r" hint-placeholder-count="3">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <input value="{{ r.value }}" onChange="{{ r.onChange }}" placeholder="{{ r.placeholder }}" style="width:84px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+          <div style="padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+              <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
               <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
+            </div>
+            <div style="margin-top:6px">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">SWIM MEET NAME</div>
+              <input value="{{ r.meetValue }}" onChange="{{ r.onMeetChange }}" placeholder="Meet name" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
+                <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+              </div>
+              <div style="flex:none">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">TIME</div>
+                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:80px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+              </div>
             </div>
           </div>
         </sc-for>
@@ -716,10 +743,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="position:relative;border-radius:10px;overflow:hidden;height:130px">
         <sc-if value="{{ simIsMen }}" hint-placeholder-val="{{ true }}">
-          <image-slot id="sim-hero-men" shape="rect" fit="cover" src="uploads/sim-men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+          <image-slot id="sim-hero-men" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         </sc-if>
         <sc-if value="{{ simIsWomen }}" hint-placeholder-val="{{ false }}">
-          <image-slot id="sim-hero-women" shape="rect" fit="cover" src="uploads/sim-women.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+          <image-slot id="sim-hero-women" shape="rect" fit="cover" src="uploads/women.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         </sc-if>
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.05),rgba(42,18,24,.4));pointer-events:none"></div>
         <div style="position:absolute;left:14px;bottom:10px;font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#F5E9DC;text-shadow:0 2px 6px rgba(0,0,0,.7)">{{ simGLabel }}</div>
@@ -987,8 +1014,14 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION — {{ selDet.chart.ev }}</div>
             <div style="font-size:11.5px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ selDet.imp }}</div>
           </div>
-          <svg width="100%" viewBox="0 0 320 140">
-            <line x1="18" x2="302" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
+          <svg width="100%" viewBox="0 0 320 300">
+            <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
+              <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
+              <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+              </foreignObject>
+            </sc-for>
+            <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
             <polyline points="{{ selDet.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
             <sc-for list="{{ selDet.chart.dots }}" as="p" hint-placeholder-count="6">
               <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
@@ -1071,12 +1104,13 @@ class Component extends DCLogic {
       const savedStats=JSON.parse(localStorage.getItem('scotswim.stats')||'null');
       if(savedStats)this.state.stats=savedStats;
     }catch(e){}
-    // Restore each athlete's self-picked events/times — real, self-reported
-    // data replacing the synthetic roster defaults. Only the raw text is
-    // restored here; applyMyEvents (called once this.byId exists, below)
-    // is what actually overrides the roster objects with it.
+    // Restore each athlete's logged event entries (event + meet + time) —
+    // real, self-reported data replacing the synthetic roster defaults.
+    // Only the raw entries are restored here; applyMyEvents (called once
+    // this.byId exists, below) is what actually overrides the roster
+    // objects with them.
     try{
-      const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEvents')||'null');
+      const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEventEntries')||'null');
       if(savedMyEvents)this.state.myEvents=savedMyEvents;
     }catch(e){}
     // Restore any goals set in a previous session (see saveGoalPrefs) —
@@ -1265,18 +1299,17 @@ class Component extends DCLogic {
       {name:'Erik Hartwell',role:'Associate Athletic Trainer',ini:'EH'},
       {name:'Fletcher Roberts',role:'Director of Sports Performance',ini:'FR'}
     ];
+    // ACSD Competition Schedule — 2026-27 season.
     this.sched=[
-      {d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Scots Relays (Intrasquad)',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'OCT',d2:'31',d:'Sat, Oct 31, 2026',n:'Alma vs. Olivet',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma at Albion',loc:'Albion, MI'},
-      {d1:'NOV',d2:'14',d:'Sat, Nov 14, 2026',n:"Alma vs. Saint Mary's",loc:'McClure Natatorium, Alma',home:true},
-      {d1:'NOV',d2:'20–21',d:'Nov 20–21, 2026',n:'Calvin Invitational',loc:'Grand Rapids, MI',inv:true},
-      {d1:'DEC',d2:'5',d:'Sat, Dec 5, 2026',n:'Alma at Trine',loc:'Angola, IN'},
-      {d1:'JAN',d2:'9',d:'Sat, Jan 9, 2027',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'JAN',d2:'16',d:'Sat, Jan 16, 2027',n:'Alma at Hope',loc:'Holland, MI'},
-      {d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Winter Invite',loc:'Grand Rapids, MI',inv:true},
+      {d1:'OCT',d2:'9',d:'Fri, Oct 9, 2026',n:'Alma at SVSU & LSSU',loc:'University Center, MI'},
+      {d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Alma at Albion',loc:'Albion, MI'},
+      {d1:'OCT',d2:'24',d:'Sat, Oct 24, 2026',n:'MIAA Invite',loc:'Holland, MI or Grand Rapids, MI (site TBD) · 11:30 AM',inv:true},
+      {d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
+      {d1:'NOV',d2:'19–21',d:'Nov 19–21, 2026',n:'Cardinal Invitational',loc:'University Center, MI',inv:true},
+      {d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Invite',loc:'Grand Rapids, MI or Holland, MI (site TBD) · 11:30 AM',inv:true},
       {d1:'JAN',d2:'30',d:'Sat, Jan 30, 2027',n:'Alma vs. Kalamazoo',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Holland, MI',champ:true}
+      {d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Grand Rapids, MI',champ:true},
+      {d1:'MAR',d2:'18–21',d:'Mar 18–21, 2027',n:'D3 National Championships',loc:'Greensboro, NC',champ:true}
     ];
     this.results=[
       {tag:'W',bg:'#1B7A78',n:'Alma vs. Manchester',d:'Jan 10, 2026 · North Manchester, IN',score:'156 – 104'},
@@ -1507,6 +1540,26 @@ class Component extends DCLogic {
     try{localStorage.setItem('scotswim.goals',JSON.stringify({goalDelta,selfGoals}))}catch(e){}
   }
   toastMsg(m){this.setState({toast:m});clearTimeout(this._tt);this._tt=setTimeout(()=>this.setState({toast:''}),2200)}
+  // "Nice" axis ticks spanning the given range. With a forceStep (e.g. the
+  // 0.5s SwimCloud uses) every gridline lands on that exact increment;
+  // otherwise falls back to the standard 1/2/2.5/5/10 × power-of-ten pick.
+  niceTicks(min,max,targetCount,forceStep){
+    const range=(max-min)||1;
+    let niceStep;
+    if(forceStep){
+      niceStep=forceStep;
+    }else{
+      const rawStep=range/targetCount;
+      const magnitude=Math.pow(10,Math.floor(Math.log10(rawStep)));
+      const norm=rawStep/magnitude;
+      niceStep=(norm<=1?1:norm<=2?2:norm<=2.5?2.5:norm<=5?5:10)*magnitude;
+    }
+    const niceMin=Math.floor(min/niceStep)*niceStep;
+    const niceMax=Math.ceil(max/niceStep)*niceStep;
+    const ticks=[];
+    for(let v=niceMin;v<=niceMax+niceStep*0.001;v+=niceStep)ticks.push(Math.round(v*1000)/1000);
+    return ticks;
+  }
   chartFor(s,ev){
     const dive=this.evMap[ev].dive;
     const hist=s.hist[ev]||[];
@@ -1514,30 +1567,76 @@ class Component extends DCLogic {
     const vals=[...hist,goal];
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
-    const X=i=>18+i*(284/(hist.length-1||1));
-    const Y=t=>45+((dive?(mx-t):(t-mn))/(mx-mn))*77;
+    const PL=54,PR=302,PT=68,PH=222;
+    const X=i=>PL+i*((PR-PL)/(hist.length-1||1));
+    const Y=t=>PT+((dive?(mx-t):(t-mn))/(mx-mn))*PH;
+    // Gridline values are derived from this event's own mn/mx (already
+    // padded around this athlete's actual entered times), not a fixed
+    // scale. Swim (non-dive) events force the same 0.5s step SwimCloud
+    // uses, unless that would put an unreasonable number of gridlines on
+    // a long-distance event's wide range — then it falls back to a
+    // dynamically-picked round step.
+    const halfStepTicks=dive?null:this.niceTicks(mn,mx,4,0.5);
+    const yTicks=(dive||!halfStepTicks||halfStepTicks.length>18?this.niceTicks(mn,mx,4):halfStepTicks)
+      .map(v=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:this.fmtEv(ev,v)}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Each label sits directly above its own point, centered on it, with a
-    // vertical offset sized to whichever adjacent segment is steepest —
-    // computed so the line can't reach the label's box at its horizontal
-    // edge (rise-over-run * half-box-width) by the time it's traveled that
-    // far, guaranteeing clearance on any slope instead of approximating it.
-    const HW=26,HH=8;
+    // Each label's box is sized to its own text (not a fixed worst-case
+    // width) and stays centered on its point — clamped only at the SVG's
+    // physical edges (so nothing gets clipped), never at the plot/axis
+    // bounds, so the point always sits under the label's middle. Its
+    // vertical offset is picked by walking the polyline's actual height
+    // across the box's real horizontal span and clearing the closest
+    // approach with a small fixed margin — exact for any slope, and no
+    // bigger than it needs to be, so labels sit close/snug above their
+    // point rather than floating far above it. A second left-to-right pass
+    // then checks each label's box against every already-placed label's
+    // box and, on any overlap, raises it above that label too — so
+    // close-together points (5+ entries in one event) stack their labels
+    // in clear rows instead of overlapping each other.
+    const HH=8,LH=16,GAP=2;
+    const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
+    const lineYAt=xq=>{
+      for(let k=0;k<hist.length-1;k++){
+        const x0=X(k),x1=X(k+1);
+        if(xq>=x0-0.01&&xq<=x1+0.01){
+          const y0=Y(hist[k]),y1=Y(hist[k+1]);
+          return y0+(y1-y0)*((x1-x0)?(xq-x0)/(x1-x0):0);
+        }
+      }
+      return xq<X(0)?Y(hist[0]):Y(hist[hist.length-1]);
+    };
+    const lineMinYInRange=(xa,xb)=>{
+      const cand=[xa,xb];
+      for(let k=0;k<hist.length;k++){const xk=X(k);if(xk>xa&&xk<xb)cand.push(xk);}
+      return Math.min(...cand.map(lineYAt));
+    };
+    const placed=[];
     const dots=hist.map((t,i)=>{
       const x=X(i),y=Y(t);
-      let steep=0;
-      if(i>0){const dx=x-X(i-1);if(dx>0)steep=Math.max(steep,Math.abs(y-Y(hist[i-1]))/dx);}
-      if(i<hist.length-1){const dx=X(i+1)-x;if(dx>0)steep=Math.max(steep,Math.abs(Y(hist[i+1])-y)/dx);}
-      const d=Math.max(14,steep*HW+HH+4);
-      const fx=Math.min(320-2*HW-2,Math.max(2,x-HW));
+      const label=this.fmtEv(ev,t);
+      const lw=boxW(label);
+      const fx=Math.min(318-lw,Math.max(2,x-lw/2));
+      const minLineY=lineMinYInRange(fx,fx+lw);
+      const d=Math.max(14,(y-minLineY)+14);
+      let fy=y-d-HH,moved=true;
+      while(moved){
+        moved=false;
+        for(const b of placed){
+          const xOverlap=fx<b.fx+b.lw+GAP&&b.fx<fx+lw+GAP;
+          const yOverlap=fy<b.fy+LH+GAP&&b.fy<fy+LH+GAP;
+          if(xOverlap&&yOverlap){fy=b.fy-LH-GAP;moved=true;}
+        }
+      }
+      fy=Math.max(4,fy);
+      placed.push({fx,fy,lw});
       return {x:x.toFixed(1),y:y.toFixed(1),
-        fx:fx.toFixed(1),fy:(y-d-HH).toFixed(1),
-        f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)};
+        fx:fx.toFixed(1),fy:fy.toFixed(1),fw:lw,
+        f:t===best?'#1B7A78':'#6B1F33',t:label};
     });
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
-    return {ev:this.evMap[ev].n,pts,dots,goalY:Y(goal).toFixed(1),
-      labs:meetLog.map(m=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||''})),
+    return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,goalY:Y(goal).toFixed(1),
+      labs:meetLog.map((m,i)=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||'',x:(X(i)/320*100).toFixed(2)+'%'})),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
@@ -1563,28 +1662,35 @@ class Component extends DCLogic {
     // Athlete-picked events/times (see applyMyEvents) — every event that
     // exists is offered, the athlete only tracks the ones they actually
     // swim/dive, and enters their own time for each.
-    const myEv=this.state.myEvents[s.id]||{};
-    const trackedIds=Object.keys(myEv);
+    const myEntries=this.state.myEvents[s.id]||{};
+    const entryIds=Object.keys(myEntries);
+    // Always the full event list — the same event can be logged any
+    // number of times (once per meet), so nothing gets filtered out here.
     const evChoices=s.diver?this.EV.filter(e=>e.dive):this.EV.filter(e=>!e.dive);
-    const addEventOpts=evChoices.filter(e=>myEv[e.id]==null).map(e=>({id:e.id,n:e.n}));
+    const addEventOpts=evChoices.map(e=>({id:e.id,n:e.n}));
     const setMyEvents=next=>{
       this.applyMyEvents(s.id,next);
       const myEvents={...this.state.myEvents,[s.id]:next};
       this.setState({myEvents});this.saveMyEvents(myEvents);
     };
-    const myEventRows=trackedIds.map(evId=>{
-      const e=this.evMap[evId];
-      return {id:evId,n:e?e.n:evId,value:myEv[evId]||'',
-        placeholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
-        onChange:e2=>setMyEvents({...myEv,[evId]:e2.target.value}),
-        remove:()=>{const next={...myEv};delete next[evId];setMyEvents(next);}};
+    const myEventRows=entryIds.map(entryId=>{
+      const entry=myEntries[entryId];
+      const e=this.evMap[entry.eventId];
+      return {id:entryId,n:e?e.n:entry.eventId,
+        meetValue:entry.meet||'',timeValue:entry.time||'',dateValue:entry.date||'',
+        timePlaceholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
+        onMeetChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,meet:e2.target.value}}),
+        onTimeChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,time:e2.target.value}}),
+        onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
+        remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
     });
     const addEventSel=e2=>{
       const evId=e2.target.value;if(!evId)return;
-      setMyEvents({...myEv,[evId]:''});
+      const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
+      setMyEvents({...myEntries,[entryId]:{eventId:evId,meet:'',time:'',date:''}});
     };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
-      myEventRows,addEventOpts,addEventSel,myEventsEmpty:trackedIds.length===0,
+      myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
       year:YEAR[s.cls]||s.cls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
       chart:this.chartFor(s,ev),
@@ -1613,35 +1719,76 @@ class Component extends DCLogic {
   }
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
-  saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEvents',JSON.stringify(myEvents))}catch(e){}}
-  // Overrides an athlete's primary/pbs/hist/goals in place with their own
-  // picked events and times (raw text -> parsed here), so every view that
+  saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
+  // Overrides an athlete's primary/pbs/hist/goals/meetLogByEv in place with
+  // their own logged entries (raw text -> parsed here), so every view that
   // already reads s.primary/s.pbs/s.hist off the shared roster object —
   // Team, Diving Well, Sim, Goal Setting, dashboard — picks it up for free.
-  // Falls back to the original synthetic data (backed up on first call)
-  // whenever nothing valid is entered yet, so the app never has to render
-  // a fully empty event list.
-  applyMyEvents(id,events){
+  // entries is {entryId: {eventId, meet, time}} — the same event can appear
+  // under any number of entryIds (one per meet), which is what lets the
+  // progression chart build a real multi-point history instead of a single
+  // "current" value. Falls back to the original synthetic data (backed up
+  // on first call) whenever nothing valid is entered yet, so the app never
+  // has to render a fully empty event list.
+  // Accepts M/D/YYYY, M/D/YY, or YYYY-MM-DD; returns a real Date or null.
+  parseEntryDate(raw){
+    const s=(raw||'').trim();if(!s)return null;
+    let m;
+    if((m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/))){
+      let yr=m[3];yr=yr.length===2?'20'+yr:yr;
+      const d=new Date(+yr,+m[1]-1,+m[2]);
+      return isNaN(d.getTime())?null:d;
+    }
+    if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))){
+      const d=new Date(+m[1],+m[2]-1,+m[3]);
+      return isNaN(d.getTime())?null:d;
+    }
+    return null;
+  }
+  fmtEntryDate(d){
+    return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear();
+  }
+  applyMyEvents(id,entries){
     const s=this.byId[id];if(!s)return;
     if(!s.__origPrimary){s.__origPrimary=s.primary;s.__origPbs=s.pbs;s.__origHist=s.hist;s.__origGoals=s.goals;s.__origMeetLogByEv=s.meetLogByEv;}
-    const parsed={};
-    Object.keys(events||{}).forEach(evId=>{
-      const e=this.evMap[evId];if(!e)return;
-      const raw=(events[evId]||'').trim();if(!raw)return;
+    const byEvent={};
+    Object.keys(entries||{}).forEach(entryId=>{
+      const entry=entries[entryId];if(!entry)return;
+      const e=this.evMap[entry.eventId];if(!e)return;
+      const raw=(entry.time||'').trim();if(!raw)return;
       let v;
       if(e.dive)v=parseFloat(raw);
       else if(raw.includes(':')){const parts=raw.split(':');const mi=parseInt(parts[0],10),se=parseFloat(parts[1]);v=(isNaN(mi)||isNaN(se))?NaN:mi*60+se;}
       else v=parseFloat(raw);
-      if(!isNaN(v)&&v>0)parsed[evId]=Math.round(v*100)/100;
+      if(isNaN(v)||v<=0)return;
+      const dateObj=this.parseEntryDate(entry.date);
+      (byEvent[entry.eventId]=byEvent[entry.eventId]||[]).push({
+        time:Math.round(v*100)/100,meet:(entry.meet||'').trim()||'Meet',dateObj});
     });
-    if(Object.keys(parsed).length===0){
+    const trackedIds=Object.keys(byEvent);
+    if(trackedIds.length===0){
       s.primary=s.__origPrimary;s.pbs=s.__origPbs;s.hist=s.__origHist;s.goals=s.__origGoals;s.meetLogByEv=s.__origMeetLogByEv;
       return;
     }
-    const primary=this.EV.filter(e=>parsed[e.id]!=null).map(e=>e.id);
-    const hist={},meetLogByEv={};
-    primary.forEach(evId=>{hist[evId]=[parsed[evId]];meetLogByEv[evId]=[['Latest','']];});
-    s.primary=primary;s.pbs=parsed;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(parsed,primary);
+    const primary=this.EV.filter(e=>byEvent[e.id]!=null).map(e=>e.id);
+    const pbs={},hist={},meetLogByEv={};
+    primary.forEach(evId=>{
+      // Chronological by the date the athlete entered — undated entries
+      // keep their original relative order and sort after every dated one
+      // — so the progression chart reads oldest to newest, not add-order.
+      const list=byEvent[evId].map((x,i)=>({...x,i}));
+      list.sort((a,b)=>{
+        if(a.dateObj&&b.dateObj)return a.dateObj-b.dateObj;
+        if(a.dateObj)return -1;
+        if(b.dateObj)return 1;
+        return a.i-b.i;
+      });
+      const dive=this.evMap[evId].dive;
+      hist[evId]=list.map(x=>x.time);
+      meetLogByEv[evId]=list.map(x=>[x.meet,'',x.dateObj?this.fmtEntryDate(x.dateObj):'']);
+      pbs[evId]=dive?Math.max(...hist[evId]):Math.min(...hist[evId]);
+    });
+    s.primary=primary;s.pbs=pbs;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(pbs,primary);
   }
   oppTimes(oppN,f,ev,n){
     const e=this.evMap[ev];const out=[];
@@ -1720,7 +1867,7 @@ class Component extends DCLogic {
     const tab=st.tab;
     const user=this.byId[st.userId]||this.men[4];
     const nextMeet=this.sched[0];
-    const cdDays=Math.max(0,Math.ceil((new Date('2026-10-17T13:00:00')-Date.now())/86400000));
+    const cdDays=Math.max(0,Math.ceil((new Date('2026-10-09T13:00:00')-Date.now())/86400000));
     const M='#6B1F33',C='#F5E9DC',T='#1B7A78',I='#2A1218';
     const login=(r,uid)=>{this.armMusicOnLogin();this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false});};
     const doLogin=()=>{
@@ -1808,7 +1955,7 @@ class Component extends DCLogic {
     const gap=Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2);
     const aP=this.photoOf(user.id),bP=this.photoOf(rv.id);
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
-    const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the Scots Relays';
+    const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the next meet';
     const chal={ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
       bIni:rv.ini,bName:rv.name.split(' ')[0],bTime:this.fmtEv(rEv,rv.pbs[rEv]),
       aPhoto:aP,aHasP:!!aP,aNoP:!aP,bPhoto:bP,bHasP:!!bP,bNoP:!bP,
@@ -1998,7 +2145,8 @@ class Component extends DCLogic {
         dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',onTap:()=>this.setState({sel:s.id,meEvent:null})})),
       navItems,
       heroName:user.name.split(' ')[0],
-      nextMeet,cdDays:String(cdDays),nextShortName:'Scots Relays',
+      heroIsDiver:user.diver,heroIsMen:!user.diver&&user.gender==='M',heroIsWomen:!user.diver&&user.gender==='W',
+      nextMeet,cdDays:String(cdDays),nextShortName:'SVSU & LSSU Duals',
       pbCount:user.id==='Rayane Debbarh'?'5':String(2+this.hs(user.id)%3),
       miaaPlace:user.id==='Rayane Debbarh'?'17th':(8+this.hs(user.id)%16)+'th',
       miaaEv:(user.id==='Rayane Debbarh'?'100 Breast':this.evMap[user.primary[0]].n)+' · MIAA 2026',
