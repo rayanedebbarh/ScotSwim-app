@@ -115,7 +115,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.05),rgba(42,18,24,.6));pointer-events:none"></div>
         <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 18px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">Welcome, {{ heroName }}</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">Welcome, {{ heroName }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving</div>
         </div>
       </div>
@@ -288,7 +288,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.1),rgba(42,18,24,.6));pointer-events:none"></div>
         <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 18px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">{{ coachWelcome }}</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">{{ coachWelcome }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">{{ coachSubtitle }}</div>
         </div>
       </div>
@@ -1572,7 +1572,7 @@ class Component extends DCLogic {
     const vals=[...hist,goal];
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
-    const PR=302,PT=68,PH=222;
+    const PR=302,PT=32,PH=258;
     const Y=t=>PT+((dive?(mx-t):(t-mn))/(mx-mn))*PH;
     const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     // Gridline values are derived from this event's own mn/mx (already
@@ -1583,7 +1583,13 @@ class Component extends DCLogic {
     // dynamically-picked round step.
     const halfStepTicks=dive?null:this.niceTicks(mn,mx,4,0.5);
     const tickVals=dive||!halfStepTicks||halfStepTicks.length>18?this.niceTicks(mn,mx,4):halfStepTicks;
-    const tickLabels=tickVals.map(v=>this.fmtEv(ev,v));
+    // Dive gridlines are always round numbers already (niceTicks picks
+    // 1/2/2.5/5/10 steps), so they don't need the decimal + " pts" suffix
+    // the point-value labels use — that suffix alone was blowing up the
+    // axis column's width and making dive charts read as a completely
+    // different shape from swim charts. Plain integers keep dive's axis
+    // column the same width as swim's.
+    const tickLabels=tickVals.map(v=>dive?String(Math.round(v)):this.fmtEv(ev,v));
     // The y-axis tick text is right-aligned against its own padding-right,
     // so its right edge sits a fixed distance in from the plot's left
     // edge (PL) no matter how wide the text is — widening PL alone can't
@@ -1603,19 +1609,19 @@ class Component extends DCLogic {
     const yTicks=tickVals.map((v,i)=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:tickLabels[i]}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Each label's box is sized to its own text (not a fixed worst-case
-    // width) and stays centered on its point — clamped only at the SVG's
-    // physical edges (so nothing gets clipped), never at the plot/axis
-    // bounds, so the point always sits under the label's middle. Its
-    // vertical offset is picked by walking the polyline's actual height
-    // across the box's real horizontal span and clearing the closest
-    // approach with a small fixed margin — exact for any slope, and no
-    // bigger than it needs to be, so labels sit close/snug above their
-    // point rather than floating far above it. A second left-to-right pass
-    // then checks each label's box against every already-placed label's
-    // box and, on any overlap, raises it above that label too — so
-    // close-together points (5+ entries in one event) stack their labels
-    // in clear rows instead of overlapping each other.
+    // Every label starts at the same baseline offset above its own point
+    // (centered on it, clamped only at the SVG's physical edges so nothing
+    // clips) — the common case reads as one consistent row of labels. It's
+    // only raised past that baseline when the line would actually pass
+    // through it there (walking the polyline's real height across the
+    // box's horizontal span), and only by the minimum amount that specific
+    // conflict needs — a steep segment genuinely does need more clearance
+    // than a flat one to keep the line from cutting through the label, so
+    // that much variation is unavoidable, but it's kept as small as it can
+    // safely be. A second left-to-right pass then checks each label's box
+    // against every already-placed label's box and, on any overlap, raises
+    // it above that label too — so close-together points (5+ entries in
+    // one event) stack their labels in clear rows instead of overlapping.
     const HH=8,LH=16,GAP=2;
     const lineYAt=xq=>{
       for(let k=0;k<hist.length-1;k++){
@@ -1639,7 +1645,7 @@ class Component extends DCLogic {
       const lw=boxW(label);
       const fx=Math.min(318-lw,Math.max(2,x-lw/2));
       const minLineY=lineMinYInRange(fx,fx+lw);
-      const d=Math.max(14,(y-minLineY)+14);
+      const d=Math.max(14,(y-minLineY)+10);
       let fy=y-d-HH,moved=true;
       while(moved){
         moved=false;
@@ -1904,7 +1910,7 @@ class Component extends DCLogic {
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
       :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
-    const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS'};
+    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
