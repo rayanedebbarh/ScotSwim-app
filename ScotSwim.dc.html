@@ -305,7 +305,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">93%</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ attPctDisplay }}</div>
           <div style="font-size:12.5px;color:rgba(42,18,24,.6)">last 30 days</div>
          </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
@@ -317,6 +317,20 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="display:flex;gap:10px">
         <button onClick="{{ goSim }}" class="simCtaBtn">RUN MEET SIM</button>
         <button onClick="{{ goGoals }}" class="simCtaBtn">SET GOALS</button>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PRACTICE ATTENDANCE</div>
+          <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
+        </div>
+        <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} here today — tap anyone who's out</div>
+        <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
+          <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+            <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
+            <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
+            <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border:1.5px solid {{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
+          </div>
+        </sc-for>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -414,7 +428,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
       <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:13px;font-weight:600">Practice streak</div>
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">14 in a row</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
@@ -1096,7 +1110,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{}};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{}};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1128,6 +1142,15 @@ class Component extends DCLogic {
         if(savedGoals.goalDelta)this.state.goalDelta=savedGoals.goalDelta;
         if(savedGoals.selfGoals)this.state.selfGoals=savedGoals.selfGoals;
       }
+    }catch(e){}
+    // Restore coach-taken practice attendance (see saveAttendance) — the
+    // day-by-day present/absent record the streak and attendance-% stats
+    // are computed from. A first-run seed (14 present days, so the streak
+    // stat isn't a jarring 0) is added further down, once the roster
+    // exists — only when there's no real saved data yet.
+    try{
+      const savedAttendance=JSON.parse(localStorage.getItem('scotswim.attendance')||'null');
+      if(savedAttendance)this.state.attendance=savedAttendance;
     }catch(e){}
     this.EV=[
       {id:'50FR',n:'50 Free',g:'FR',b:{M:22.6,W:25.6}},
@@ -1260,6 +1283,21 @@ class Component extends DCLogic {
     this.men=MEN.map(r=>mk(r,'M'));
     this.women=WOMEN.map(r=>mk(r,'W'));
     this.all=[...this.men,...this.women];
+    // First-run only: seed the last 14 days as present for everyone so a
+    // coach opening Attendance for the first time sees a real, editable
+    // streak instead of a blank slate — never overwrites actual saved
+    // attendance data (the localStorage restore above already ran).
+    if(!Object.keys(this.state.attendance).length){
+      const seed={},d=new Date();
+      for(let i=0;i<14;i++){
+        d.setDate(d.getDate()-1);
+        const day={};
+        this.all.forEach(s=>{day[s.id]=true;});
+        seed[this.ymd(d)]=day;
+      }
+      this.state.attendance=seed;
+      this.saveAttendance(seed);
+    }
     this.byId={};this.all.forEach(s=>this.byId[s.id]=s);
     // Rayane Debbarh — real lifetime bests from almascots.com bio (2025-26)
     const ray=this.byId['Rayane Debbarh'];
@@ -1577,12 +1615,13 @@ class Component extends DCLogic {
     const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     // Gridline values are derived from this event's own mn/mx (already
     // padded around this athlete's actual entered times), not a fixed
-    // scale. Swim (non-dive) events force the same 0.5s step SwimCloud
-    // uses, unless that would put an unreasonable number of gridlines on
-    // a long-distance event's wide range — then it falls back to a
-    // dynamically-picked round step.
-    const halfStepTicks=dive?null:this.niceTicks(mn,mx,4,0.5);
-    const tickVals=dive||!halfStepTicks||halfStepTicks.length>18?this.niceTicks(mn,mx,4):halfStepTicks;
+    // scale. Both swim and dive force a fixed, evenly-spaced step — 0.5s
+    // for swim (matching SwimCloud) and 10pts for dive, its natural
+    // equivalent — instead of a dynamically-picked one, unless that would
+    // put an unreasonable number of gridlines on an unusually wide range,
+    // in which case it falls back to a dynamically-picked round step.
+    const forcedStepTicks=this.niceTicks(mn,mx,4,dive?10:0.5);
+    const tickVals=!forcedStepTicks||forcedStepTicks.length>18?this.niceTicks(mn,mx,4):forcedStepTicks;
     // Dive gridlines are always round numbers already (niceTicks picks
     // 1/2/2.5/5/10 steps), so they don't need the decimal + " pts" suffix
     // the point-value labels use — that suffix alone was blowing up the
@@ -1747,6 +1786,55 @@ class Component extends DCLogic {
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
+  ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance',JSON.stringify(attendance))}catch(e){}}
+  setAttendance(day,id,val){
+    const attendance={...this.state.attendance,[day]:{...(this.state.attendance[day]||{}),[id]:val}};
+    this.setState({attendance});this.saveAttendance(attendance);
+  }
+  markAllPresent(day,roster){
+    const dayRec={...(this.state.attendance[day]||{})};
+    roster.forEach(s=>{dayRec[s.id]=true;});
+    const attendance={...this.state.attendance,[day]:dayRec};
+    this.setState({attendance});this.saveAttendance(attendance);
+  }
+  // Current streak = consecutive present days walking back from today.
+  // An unmarked today doesn't break the streak (the coach just hasn't
+  // taken attendance yet) — it starts counting from yesterday instead;
+  // an explicit absence today (or any earlier gap) ends it at that point.
+  streakFor(id){
+    const attendance=this.state.attendance;
+    const d=new Date();
+    const todayVal=attendance[this.ymd(d)]&&attendance[this.ymd(d)][id];
+    if(todayVal===false)return 0;
+    if(todayVal!==true)d.setDate(d.getDate()-1);
+    let count=0;
+    while(true){
+      const rec=attendance[this.ymd(d)];
+      if(rec&&rec[id]===true){count++;d.setDate(d.getDate()-1);}
+      else break;
+    }
+    return count;
+  }
+  // Average present-rate across the last 30 days that actually have a
+  // recorded attendance entry (skips days nobody took attendance on).
+  attendancePct(roster){
+    const attendance=this.state.attendance;
+    let sum=0,days=0;
+    const d=new Date();
+    for(let i=0;i<30;i++){
+      const rec=attendance[this.ymd(d)];
+      if(rec&&roster.length){
+        // Same "missing = present" default the roster rows use, so a day
+        // where the coach only touched a couple of absentees isn't scored
+        // as if everyone else skipped practice too.
+        sum+=roster.filter(s=>rec[s.id]!==false).length/roster.length;
+        days++;
+      }
+      d.setDate(d.getDate()-1);
+    }
+    return days?Math.round(sum/days*100):null;
+  }
   // Overrides an athlete's primary/pbs/hist/goals/meetLogByEv in place with
   // their own logged entries (raw text -> parsed here), so every view that
   // already reads s.primary/s.pbs/s.hist off the shared roster object —
@@ -2018,6 +2106,26 @@ class Component extends DCLogic {
       slotId:this.slotIdOf(x.s.id),photo:this.photoOf(x.s.id),
       pb:this.fmt(x.s.pbs[x.s.primary[0]]),imp:(x.s.diver?'+':'−')+(x.imp*100).toFixed(1)+'%',
       onTap:()=>this.setState({sel:x.s.id,meEvent:null})}));
+    // Practice attendance — coach-only. Swim coach checks in swimmers,
+    // diving coach checks in divers, same split every other coach view
+    // already uses. Missing today's entry for someone defaults the row to
+    // present (checked) so the common case — everyone showed up — is zero
+    // taps; the coach only has to touch the ones who didn't.
+    const todayKey=this.ymd(new Date());
+    const attRoster=this.all.filter(s=>isDivingCoach?s.diver:!s.diver);
+    const todayRec=this.state.attendance[todayKey]||{};
+    const attRows=attRoster.map(s=>{
+      const present=todayRec[s.id]!==false;
+      return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
+        slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+        present,pillBg:present?'#1B7A78':'transparent',pillFg:present?C:'rgba(42,18,24,.5)',
+        pillBd:present?'#1B7A78':'rgba(42,18,24,.25)',pillLabel:present?'Present':'Absent',
+        onToggle:()=>this.setAttendance(todayKey,s.id,!present)};
+    });
+    const attPresentCount=attRows.filter(r=>r.present).length;
+    const attPct=this.attendancePct(attRoster);
+    const attPctDisplay=attPct==null?'—':attPct+'%';
+    const onMarkAllPresent=()=>this.markAllPresent(todayKey,attRoster);
     const sim=this.simCalc();
     const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
     const oppGroups=[['MIAA','MIAA'],['D3','NATIONAL D3']].map(([id,n])=>({n,bg:st.oppGroup===id?'#2A1218':'#fff',fg:st.oppGroup===id?C:'rgba(42,18,24,.6)',
@@ -2205,6 +2313,8 @@ class Component extends DCLogic {
       anns:this.anns,week,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
+      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
+      practiceStreak:this.streakFor(user.id)+' in a row',
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
       showRecords:st.teamSeg!=='S'&&st.teamView==='records',
