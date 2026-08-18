@@ -587,7 +587,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
           </sc-for>
         </div>
-        <svg width="100%" viewBox="0 0 320 190" style="margin-top:8px">
+        <svg width="100%" viewBox="0 0 320 300" style="margin-top:8px">
           <sc-for list="{{ det.chart.yTicks }}" as="g" hint-placeholder-count="5">
             <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
             <foreignObject x="0" y="{{ g.ly }}" width="{{ det.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
@@ -1014,7 +1014,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION — {{ selDet.chart.ev }}</div>
             <div style="font-size:11.5px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ selDet.imp }}</div>
           </div>
-          <svg width="100%" viewBox="0 0 320 190">
+          <svg width="100%" viewBox="0 0 320 300">
             <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
               <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
               <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
@@ -1541,15 +1541,20 @@ class Component extends DCLogic {
     try{localStorage.setItem('scotswim.goals',JSON.stringify({goalDelta,selfGoals}))}catch(e){}
   }
   toastMsg(m){this.setState({toast:m});clearTimeout(this._tt);this._tt=setTimeout(()=>this.setState({toast:''}),2200)}
-  // "Nice" axis ticks (1/2/2.5/5/10 × a power of ten) spanning the given
-  // range, the standard way charting libraries pick gridline values so
-  // they land on round numbers instead of the raw data bounds.
-  niceTicks(min,max,targetCount){
+  // "Nice" axis ticks spanning the given range. With a forceStep (e.g. the
+  // 0.5s SwimCloud uses) every gridline lands on that exact increment;
+  // otherwise falls back to the standard 1/2/2.5/5/10 × power-of-ten pick.
+  niceTicks(min,max,targetCount,forceStep){
     const range=(max-min)||1;
-    const rawStep=range/targetCount;
-    const magnitude=Math.pow(10,Math.floor(Math.log10(rawStep)));
-    const norm=rawStep/magnitude;
-    const niceStep=(norm<=1?1:norm<=2?2:norm<=2.5?2.5:norm<=5?5:10)*magnitude;
+    let niceStep;
+    if(forceStep){
+      niceStep=forceStep;
+    }else{
+      const rawStep=range/targetCount;
+      const magnitude=Math.pow(10,Math.floor(Math.log10(rawStep)));
+      const norm=rawStep/magnitude;
+      niceStep=(norm<=1?1:norm<=2?2:norm<=2.5?2.5:norm<=5?5:10)*magnitude;
+    }
     const niceMin=Math.floor(min/niceStep)*niceStep;
     const niceMax=Math.ceil(max/niceStep)*niceStep;
     const ticks=[];
@@ -1563,30 +1568,49 @@ class Component extends DCLogic {
     const vals=[...hist,goal];
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
-    const PL=54,PR=302;
+    const PL=54,PR=302,PT=68,PH=222;
     const X=i=>PL+i*((PR-PL)/(hist.length-1||1));
-    const Y=t=>55+((dive?(mx-t):(t-mn))/(mx-mn))*130;
+    const Y=t=>PT+((dive?(mx-t):(t-mn))/(mx-mn))*PH;
     // Gridline values are derived from this event's own mn/mx (already
     // padded around this athlete's actual entered times), not a fixed
-    // scale, so they're always accurate to what they've logged.
-    const yTicks=this.niceTicks(mn,mx,4).map(v=>({y:Y(v).toFixed(1),
-      ly:(Y(v)-6).toFixed(1),label:this.fmtEv(ev,v)}));
+    // scale. Swim (non-dive) events force the same 0.5s step SwimCloud
+    // uses, unless that would put an unreasonable number of gridlines on
+    // a long-distance event's wide range — then it falls back to a
+    // dynamically-picked round step.
+    const halfStepTicks=dive?null:this.niceTicks(mn,mx,4,0.5);
+    const yTicks=(dive||!halfStepTicks||halfStepTicks.length>18?this.niceTicks(mn,mx,4):halfStepTicks)
+      .map(v=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:this.fmtEv(ev,v)}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Each label sits directly above its own point, centered on it, with a
-    // vertical offset sized to whichever adjacent segment is steepest —
+    // Each label starts directly above its own point, centered on it, with
+    // a vertical offset sized to whichever adjacent segment is steepest —
     // computed so the line can't reach the label's box at its horizontal
     // edge (rise-over-run * half-box-width) by the time it's traveled that
-    // far, guaranteeing clearance on any slope instead of approximating it.
-    const HW=26,HH=8;
+    // far, guaranteeing line clearance on any slope. A second left-to-right
+    // pass then checks each label's box against every already-placed
+    // label's box and, on any overlap, raises it above that label too —
+    // so close-together points (5+ entries in one event) stack their
+    // labels in clear rows instead of overlapping each other.
+    const HW=26,HH=8,LW=52,LH=16,GAP=2;
+    const placed=[];
     const dots=hist.map((t,i)=>{
       const x=X(i),y=Y(t);
       let steep=0;
       if(i>0){const dx=x-X(i-1);if(dx>0)steep=Math.max(steep,Math.abs(y-Y(hist[i-1]))/dx);}
       if(i<hist.length-1){const dx=X(i+1)-x;if(dx>0)steep=Math.max(steep,Math.abs(Y(hist[i+1])-y)/dx);}
       const d=Math.max(14,steep*HW+HH+4);
-      const fx=Math.min(320-2*HW-2,Math.max(PL,x-HW));
-      const fy=Math.max(4,y-d-HH);
+      const fx=Math.min(320-LW-2,Math.max(PL,x-HW));
+      let fy=y-d-HH,moved=true;
+      while(moved){
+        moved=false;
+        for(const b of placed){
+          const xOverlap=fx<b.fx+LW+GAP&&b.fx<fx+LW+GAP;
+          const yOverlap=fy<b.fy+LH+GAP&&b.fy<fy+LH+GAP;
+          if(xOverlap&&yOverlap){fy=b.fy-LH-GAP;moved=true;}
+        }
+      }
+      fy=Math.max(4,fy);
+      placed.push({fx,fy});
       return {x:x.toFixed(1),y:y.toFixed(1),
         fx:fx.toFixed(1),fy:fy.toFixed(1),
         f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)};
