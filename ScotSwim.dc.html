@@ -1299,18 +1299,17 @@ class Component extends DCLogic {
       {name:'Erik Hartwell',role:'Associate Athletic Trainer',ini:'EH'},
       {name:'Fletcher Roberts',role:'Director of Sports Performance',ini:'FR'}
     ];
+    // ACSD Competition Schedule — 2026-27 season.
     this.sched=[
-      {d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Scots Relays (Intrasquad)',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'OCT',d2:'31',d:'Sat, Oct 31, 2026',n:'Alma vs. Olivet',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma at Albion',loc:'Albion, MI'},
-      {d1:'NOV',d2:'14',d:'Sat, Nov 14, 2026',n:"Alma vs. Saint Mary's",loc:'McClure Natatorium, Alma',home:true},
-      {d1:'NOV',d2:'20–21',d:'Nov 20–21, 2026',n:'Calvin Invitational',loc:'Grand Rapids, MI',inv:true},
-      {d1:'DEC',d2:'5',d:'Sat, Dec 5, 2026',n:'Alma at Trine',loc:'Angola, IN'},
-      {d1:'JAN',d2:'9',d:'Sat, Jan 9, 2027',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'JAN',d2:'16',d:'Sat, Jan 16, 2027',n:'Alma at Hope',loc:'Holland, MI'},
-      {d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Winter Invite',loc:'Grand Rapids, MI',inv:true},
+      {d1:'OCT',d2:'9',d:'Fri, Oct 9, 2026',n:'Alma at SVSU & LSSU',loc:'University Center, MI'},
+      {d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Alma at Albion',loc:'Albion, MI'},
+      {d1:'OCT',d2:'24',d:'Sat, Oct 24, 2026',n:'MIAA Invite',loc:'Holland, MI or Grand Rapids, MI (site TBD) · 11:30 AM',inv:true},
+      {d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
+      {d1:'NOV',d2:'19–21',d:'Nov 19–21, 2026',n:'Cardinal Invitational',loc:'University Center, MI',inv:true},
+      {d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Invite',loc:'Grand Rapids, MI or Holland, MI (site TBD) · 11:30 AM',inv:true},
       {d1:'JAN',d2:'30',d:'Sat, Jan 30, 2027',n:'Alma vs. Kalamazoo',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Holland, MI',champ:true}
+      {d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Grand Rapids, MI',champ:true},
+      {d1:'MAR',d2:'18–21',d:'Mar 18–21, 2027',n:'D3 National Championships',loc:'Greensboro, NC',champ:true}
     ];
     this.results=[
       {tag:'W',bg:'#1B7A78',n:'Alma vs. Manchester',d:'Jan 10, 2026 · North Manchester, IN',score:'156 – 104'},
@@ -1868,7 +1867,7 @@ class Component extends DCLogic {
     const tab=st.tab;
     const user=this.byId[st.userId]||this.men[4];
     const nextMeet=this.sched[0];
-    const cdDays=Math.max(0,Math.ceil((new Date('2026-10-17T13:00:00')-Date.now())/86400000));
+    const cdDays=Math.max(0,Math.ceil((new Date('2026-10-09T13:00:00')-Date.now())/86400000));
     const M='#6B1F33',C='#F5E9DC',T='#1B7A78',I='#2A1218';
     const login=(r,uid)=>{this.armMusicOnLogin();this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false});};
     const doLogin=()=>{
@@ -1956,7 +1955,7 @@ class Component extends DCLogic {
     const gap=Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2);
     const aP=this.photoOf(user.id),bP=this.photoOf(rv.id);
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
-    const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the Scots Relays';
+    const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the next meet';
     const chal={ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
       bIni:rv.ini,bName:rv.name.split(' ')[0],bTime:this.fmtEv(rEv,rv.pbs[rEv]),
       aPhoto:aP,aHasP:!!aP,aNoP:!aP,bPhoto:bP,bHasP:!!bP,bNoP:!bP,
@@ -2147,7 +2146,7 @@ class Component extends DCLogic {
       navItems,
       heroName:user.name.split(' ')[0],
       heroIsDiver:user.diver,heroIsMen:!user.diver&&user.gender==='M',heroIsWomen:!user.diver&&user.gender==='W',
-      nextMeet,cdDays:String(cdDays),nextShortName:'Scots Relays',
+      nextMeet,cdDays:String(cdDays),nextShortName:'SVSU & LSSU Duals',
       pbCount:user.id==='Rayane Debbarh'?'5':String(2+this.hs(user.id)%3),
       miaaPlace:user.id==='Rayane Debbarh'?'17th':(8+this.hs(user.id)%16)+'th',
       miaaEv:(user.id==='Rayane Debbarh'?'100 Breast':this.evMap[user.primary[0]].n)+' · MIAA 2026',
