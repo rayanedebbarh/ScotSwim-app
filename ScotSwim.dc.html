@@ -646,7 +646,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </select>
         </div>
         <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the meet and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
         </sc-if>
         <sc-for list="{{ det.myEventRows }}" as="r" hint-placeholder-count="3">
           <div style="padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
@@ -654,18 +654,14 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
               <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
             </div>
-            <div style="margin-top:6px">
-              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">SWIM MEET NAME</div>
-              <input value="{{ r.meetValue }}" onChange="{{ r.onMeetChange }}" placeholder="Meet name" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
-            </div>
             <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px">
               <div style="flex:1;min-width:0">
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
                 <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
               </div>
-              <div style="flex:none">
+              <div style="flex:1;min-width:0">
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">TIME</div>
-                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:80px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
               </div>
             </div>
           </div>
@@ -1154,6 +1150,9 @@ class Component extends DCLogic {
     }catch(e){}
     this.EV=[
       {id:'50FR',n:'50 Free',g:'FR',b:{M:22.6,W:25.6}},
+      {id:'50BK',n:'50 Back',g:'BK',b:{M:24.9,W:28.2}},
+      {id:'50BR',n:'50 Breast',g:'BR',b:{M:28.1,W:31.9}},
+      {id:'50FL',n:'50 Fly',g:'FL',b:{M:24.3,W:27.3}},
       {id:'100FR',n:'100 Free',g:'FR',b:{M:50.9,W:56.4}},
       {id:'200FR',n:'200 Free',g:'FR',b:{M:112.5,W:124.0}},
       {id:'500FR',n:'500 Free',g:'FR',b:{M:312.0,W:337.0}},
@@ -1700,9 +1699,16 @@ class Component extends DCLogic {
         fx:fx.toFixed(1),fy:fy.toFixed(1),fw:lw,
         f:t===best?'#1B7A78':'#6B1F33',t:label};
     });
-    const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
+    const hasRealLog=!!(s.meetLogByEv&&s.meetLogByEv[ev]);
+    const meetLog=(hasRealLog?s.meetLogByEv[ev]:this.HM).slice(0,hist.length);
+    // Self-logged entries show their full date (month+day on top, year
+    // below) instead of a meet name — there's no meet name to show
+    // anymore. The synthetic placeholder history (this.HM, shown until
+    // an athlete logs their own times) still carries a meet name; it's
+    // shown in full now too instead of truncated to the first word,
+    // which used to garble any multi-word meet name.
     return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px',goalY:Y(goal).toFixed(1),
-      labs:meetLog.map((m,i)=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||'',x:(X(i)/320*100).toFixed(2)+'%'})),
+      labs:meetLog.map((m,i)=>({n:m[0]||'',d:(hasRealLog?m[1]:m[2])||'',x:(X(i)/320*100).toFixed(2)+'%'})),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
@@ -1743,9 +1749,8 @@ class Component extends DCLogic {
       const entry=myEntries[entryId];
       const e=this.evMap[entry.eventId];
       return {id:entryId,n:e?e.n:entry.eventId,
-        meetValue:entry.meet||'',timeValue:entry.time||'',dateValue:entry.date||'',
+        timeValue:entry.time||'',dateValue:entry.date||'',
         timePlaceholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
-        onMeetChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,meet:e2.target.value}}),
         onTimeChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,time:e2.target.value}}),
         onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
@@ -1753,7 +1758,7 @@ class Component extends DCLogic {
     const addEventSel=e2=>{
       const evId=e2.target.value;if(!evId)return;
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
-      setMyEvents({...myEntries,[entryId]:{eventId:evId,meet:'',time:'',date:''}});
+      setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
     };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
       myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
@@ -1863,6 +1868,10 @@ class Component extends DCLogic {
   fmtEntryDate(d){
     return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear();
   }
+  fmtEntryDateShort(d){
+    const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return MO[d.getMonth()]+' '+d.getDate();
+  }
   applyMyEvents(id,entries){
     const s=this.byId[id];if(!s)return;
     if(!s.__origPrimary){s.__origPrimary=s.primary;s.__origPbs=s.pbs;s.__origHist=s.hist;s.__origGoals=s.goals;s.__origMeetLogByEv=s.meetLogByEv;}
@@ -1878,7 +1887,7 @@ class Component extends DCLogic {
       if(isNaN(v)||v<=0)return;
       const dateObj=this.parseEntryDate(entry.date);
       (byEvent[entry.eventId]=byEvent[entry.eventId]||[]).push({
-        time:Math.round(v*100)/100,meet:(entry.meet||'').trim()||'Meet',dateObj});
+        time:Math.round(v*100)/100,dateObj});
     });
     const trackedIds=Object.keys(byEvent);
     if(trackedIds.length===0){
@@ -1900,7 +1909,11 @@ class Component extends DCLogic {
       });
       const dive=this.evMap[evId].dive;
       hist[evId]=list.map(x=>x.time);
-      meetLogByEv[evId]=list.map(x=>[x.meet,'',x.dateObj?this.fmtEntryDate(x.dateObj):'']);
+      // [month+day, year] — chartFor and the recent-swims/all-swims lists
+      // display these as two stacked/joined pieces, so a self-logged
+      // entry shows its full date (e.g. "Jan 31" / "2026") instead of a
+      // meet name — there's no meet name collected anymore.
+      meetLogByEv[evId]=list.map(x=>x.dateObj?[this.fmtEntryDateShort(x.dateObj),String(x.dateObj.getFullYear())]:['','']);
       pbs[evId]=dive?Math.max(...hist[evId]):Math.min(...hist[evId]);
     });
     s.primary=primary;s.pbs=pbs;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(pbs,primary);
