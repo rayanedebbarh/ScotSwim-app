@@ -598,16 +598,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
           <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
             <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
-            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="52" height="16" style="overflow:visible;pointer-events:none">
+            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
               <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
                 <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
               </div>
             </foreignObject>
           </sc-for>
         </svg>
-        <div style="display:flex;justify-content:space-between;padding:0 6% 0 17%">
+        <div style="position:relative;height:28px;margin-top:2px">
           <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6">
-            <div style="text-align:center;line-height:1.35">
+            <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
               <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
               <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
             </div>
@@ -1582,19 +1582,21 @@ class Component extends DCLogic {
       .map(v=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:this.fmtEv(ev,v)}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Each label starts directly above its own point (centered on it,
-    // except near the plot edges where it's clamped to stay on-screen —
-    // which shifts the box off-center from the point). Its vertical offset
-    // is picked by actually walking the polyline's height across the box's
-    // real horizontal span (not an assumed symmetric one, so the edge-clamp
-    // case is handled correctly too) and clearing the closest approach with
-    // a fixed margin — exact for any slope or clamped position, unlike a
-    // steepness approximation. A second left-to-right pass then checks each
-    // label's box against every already-placed label's box and, on any
-    // overlap, raises it above that label too — so close-together points
-    // (5+ entries in one event) stack their labels in clear rows instead of
-    // overlapping each other.
-    const HH=8,LW=52,LH=16,GAP=2;
+    // Each label's box is sized to its own text (not a fixed worst-case
+    // width) and stays centered on its point — clamped only at the SVG's
+    // physical edges (so nothing gets clipped), never at the plot/axis
+    // bounds, so the point always sits under the label's middle. Its
+    // vertical offset is picked by walking the polyline's actual height
+    // across the box's real horizontal span and clearing the closest
+    // approach with a small fixed margin — exact for any slope, and no
+    // bigger than it needs to be, so labels sit close/snug above their
+    // point rather than floating far above it. A second left-to-right pass
+    // then checks each label's box against every already-placed label's
+    // box and, on any overlap, raises it above that label too — so
+    // close-together points (5+ entries in one event) stack their labels
+    // in clear rows instead of overlapping each other.
+    const HH=8,LH=16,GAP=2;
+    const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     const lineYAt=xq=>{
       for(let k=0;k<hist.length-1;k++){
         const x0=X(k),x1=X(k+1);
@@ -1613,27 +1615,29 @@ class Component extends DCLogic {
     const placed=[];
     const dots=hist.map((t,i)=>{
       const x=X(i),y=Y(t);
-      const fx=Math.min(320-LW-2,Math.max(PL,x-LW/2));
-      const minLineY=lineMinYInRange(fx,fx+LW);
-      const d=Math.max(14,(y-minLineY)+16);
+      const label=this.fmtEv(ev,t);
+      const lw=boxW(label);
+      const fx=Math.min(318-lw,Math.max(2,x-lw/2));
+      const minLineY=lineMinYInRange(fx,fx+lw);
+      const d=Math.max(14,(y-minLineY)+14);
       let fy=y-d-HH,moved=true;
       while(moved){
         moved=false;
         for(const b of placed){
-          const xOverlap=fx<b.fx+LW+GAP&&b.fx<fx+LW+GAP;
+          const xOverlap=fx<b.fx+b.lw+GAP&&b.fx<fx+lw+GAP;
           const yOverlap=fy<b.fy+LH+GAP&&b.fy<fy+LH+GAP;
           if(xOverlap&&yOverlap){fy=b.fy-LH-GAP;moved=true;}
         }
       }
       fy=Math.max(4,fy);
-      placed.push({fx,fy});
+      placed.push({fx,fy,lw});
       return {x:x.toFixed(1),y:y.toFixed(1),
-        fx:fx.toFixed(1),fy:fy.toFixed(1),
-        f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)};
+        fx:fx.toFixed(1),fy:fy.toFixed(1),fw:lw,
+        f:t===best?'#1B7A78':'#6B1F33',t:label};
     });
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
     return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,goalY:Y(goal).toFixed(1),
-      labs:meetLog.map(m=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||''})),
+      labs:meetLog.map((m,i)=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||'',x:(X(i)/320*100).toFixed(2)+'%'})),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
