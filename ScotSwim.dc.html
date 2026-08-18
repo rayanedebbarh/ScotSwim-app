@@ -1868,9 +1868,15 @@ class Component extends DCLogic {
   fmtEntryDate(d){
     return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear();
   }
-  fmtEntryDateShort(d){
+  // Full "Mon D, YYYY" date, e.g. "Jan 31, 2026" — never abbreviated or
+  // truncated, no matter how long it runs. Split across the label's two
+  // existing stacked lines ("Jan 31," / "2026", comma included) rather
+  // than crammed onto one, so it stays centered under its point and
+  // readable instead of running into its neighbors — every point still
+  // gets its complete, real date, just wrapped instead of cut off.
+  fmtEntryDateParts(d){
     const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return MO[d.getMonth()]+' '+d.getDate();
+    return [MO[d.getMonth()]+' '+d.getDate()+',',String(d.getFullYear())];
   }
   applyMyEvents(id,entries){
     const s=this.byId[id];if(!s)return;
@@ -1909,11 +1915,9 @@ class Component extends DCLogic {
       });
       const dive=this.evMap[evId].dive;
       hist[evId]=list.map(x=>x.time);
-      // [month+day, year] — chartFor and the recent-swims/all-swims lists
-      // display these as two stacked/joined pieces, so a self-logged
-      // entry shows its full date (e.g. "Jan 31" / "2026") instead of a
-      // meet name — there's no meet name collected anymore.
-      meetLogByEv[evId]=list.map(x=>x.dateObj?[this.fmtEntryDateShort(x.dateObj),String(x.dateObj.getFullYear())]:['','']);
+      // The full date — chartFor shows this in place of a meet name now,
+      // since there's no meet name collected anymore.
+      meetLogByEv[evId]=list.map(x=>x.dateObj?this.fmtEntryDateParts(x.dateObj):['','']);
       pbs[evId]=dive?Math.max(...hist[evId]):Math.min(...hist[evId]);
     });
     s.primary=primary;s.pbs=pbs;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(pbs,primary);
