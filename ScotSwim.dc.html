@@ -629,9 +629,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
               <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
             </div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-              <input value="{{ r.meetValue }}" onChange="{{ r.onMeetChange }}" placeholder="Meet name" style="flex:1;min-width:0;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
-              <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:80px;flex:none;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+            <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">SWIM MEET NAME</div>
+                <input value="{{ r.meetValue }}" onChange="{{ r.onMeetChange }}" placeholder="Meet name" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+              </div>
+              <div style="flex:none">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">TIME</div>
+                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:80px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+              </div>
             </div>
           </div>
         </sc-for>
