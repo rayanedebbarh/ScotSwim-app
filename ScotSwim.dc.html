@@ -1582,24 +1582,40 @@ class Component extends DCLogic {
       .map(v=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:this.fmtEv(ev,v)}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Each label starts directly above its own point, centered on it, with
-    // a vertical offset sized to whichever adjacent segment is steepest —
-    // computed so the line can't reach the label's box at its horizontal
-    // edge (rise-over-run * half-box-width) by the time it's traveled that
-    // far, guaranteeing line clearance on any slope. A second left-to-right
-    // pass then checks each label's box against every already-placed
-    // label's box and, on any overlap, raises it above that label too —
-    // so close-together points (5+ entries in one event) stack their
-    // labels in clear rows instead of overlapping each other.
-    const HW=26,HH=8,LW=52,LH=16,GAP=2;
+    // Each label starts directly above its own point (centered on it,
+    // except near the plot edges where it's clamped to stay on-screen —
+    // which shifts the box off-center from the point). Its vertical offset
+    // is picked by actually walking the polyline's height across the box's
+    // real horizontal span (not an assumed symmetric one, so the edge-clamp
+    // case is handled correctly too) and clearing the closest approach with
+    // a fixed margin — exact for any slope or clamped position, unlike a
+    // steepness approximation. A second left-to-right pass then checks each
+    // label's box against every already-placed label's box and, on any
+    // overlap, raises it above that label too — so close-together points
+    // (5+ entries in one event) stack their labels in clear rows instead of
+    // overlapping each other.
+    const HH=8,LW=52,LH=16,GAP=2;
+    const lineYAt=xq=>{
+      for(let k=0;k<hist.length-1;k++){
+        const x0=X(k),x1=X(k+1);
+        if(xq>=x0-0.01&&xq<=x1+0.01){
+          const y0=Y(hist[k]),y1=Y(hist[k+1]);
+          return y0+(y1-y0)*((x1-x0)?(xq-x0)/(x1-x0):0);
+        }
+      }
+      return xq<X(0)?Y(hist[0]):Y(hist[hist.length-1]);
+    };
+    const lineMinYInRange=(xa,xb)=>{
+      const cand=[xa,xb];
+      for(let k=0;k<hist.length;k++){const xk=X(k);if(xk>xa&&xk<xb)cand.push(xk);}
+      return Math.min(...cand.map(lineYAt));
+    };
     const placed=[];
     const dots=hist.map((t,i)=>{
       const x=X(i),y=Y(t);
-      let steep=0;
-      if(i>0){const dx=x-X(i-1);if(dx>0)steep=Math.max(steep,Math.abs(y-Y(hist[i-1]))/dx);}
-      if(i<hist.length-1){const dx=X(i+1)-x;if(dx>0)steep=Math.max(steep,Math.abs(Y(hist[i+1])-y)/dx);}
-      const d=Math.max(14,steep*HW+HH+4);
-      const fx=Math.min(320-LW-2,Math.max(PL,x-HW));
+      const fx=Math.min(320-LW-2,Math.max(PL,x-LW/2));
+      const minLineY=lineMinYInRange(fx,fx+LW);
+      const d=Math.max(14,(y-minLineY)+16);
       let fy=y-d-HH,moved=true;
       while(moved){
         moved=false;
