@@ -279,7 +279,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <sc-if value="{{ vCHome }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
-        <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        <sc-if value="{{ heroIsCoachDiver }}" hint-placeholder-val="{{ false }}">
+          <image-slot id="home-hero-coach-divers" shape="rect" fit="cover" src="uploads/divers.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
+        <sc-if value="{{ heroIsCoachMen }}" hint-placeholder-val="{{ true }}">
+          <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.1),rgba(42,18,24,.6));pointer-events:none"></div>
         <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 18px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
@@ -591,7 +596,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <sc-for list="{{ det.chart.yTicks }}" as="g" hint-placeholder-count="5">
             <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
             <foreignObject x="0" y="{{ g.ly }}" width="{{ det.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ det.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
             </foreignObject>
           </sc-for>
           <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
@@ -1018,7 +1023,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
               <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
               <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ selDet.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
               </foreignObject>
             </sc-for>
             <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
@@ -1567,9 +1572,9 @@ class Component extends DCLogic {
     const vals=[...hist,goal];
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
-    const PL=54,PR=302,PT=68,PH=222;
-    const X=i=>PL+i*((PR-PL)/(hist.length-1||1));
+    const PR=302,PT=68,PH=222;
     const Y=t=>PT+((dive?(mx-t):(t-mn))/(mx-mn))*PH;
+    const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     // Gridline values are derived from this event's own mn/mx (already
     // padded around this athlete's actual entered times), not a fixed
     // scale. Swim (non-dive) events force the same 0.5s step SwimCloud
@@ -1577,8 +1582,25 @@ class Component extends DCLogic {
     // a long-distance event's wide range — then it falls back to a
     // dynamically-picked round step.
     const halfStepTicks=dive?null:this.niceTicks(mn,mx,4,0.5);
-    const yTicks=(dive||!halfStepTicks||halfStepTicks.length>18?this.niceTicks(mn,mx,4):halfStepTicks)
-      .map(v=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:this.fmtEv(ev,v)}));
+    const tickVals=dive||!halfStepTicks||halfStepTicks.length>18?this.niceTicks(mn,mx,4):halfStepTicks;
+    const tickLabels=tickVals.map(v=>this.fmtEv(ev,v));
+    // The y-axis tick text is right-aligned against its own padding-right,
+    // so its right edge sits a fixed distance in from the plot's left
+    // edge (PL) no matter how wide the text is — widening PL alone can't
+    // create clearance from the first point's value label, since that
+    // label is centered on the first point (which sits at PL) and so its
+    // left edge is ALSO a fixed distance in from PL. Only growing the
+    // padding itself pushes the tick text further away from that label.
+    // Sized from the actual label text (mm:ss vs. dive "### pts" scales
+    // differ a lot) rather than a fixed guess, so the gap holds for any
+    // event; PL then just needs to be wide enough to fit the padding plus
+    // the widest tick text without clipping at the left edge.
+    const firstLabelHalf=hist.length?boxW(this.fmtEv(ev,hist[0]))/2:0;
+    const axisPad=Math.ceil(firstLabelHalf+10);
+    const maxTickW=Math.max(30,...tickLabels.map(t=>Math.round(t.length*5.6)));
+    const PL=Math.max(54,axisPad+maxTickW+6);
+    const X=i=>PL+i*((PR-PL)/(hist.length-1||1));
+    const yTicks=tickVals.map((v,i)=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:tickLabels[i]}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
     // Each label's box is sized to its own text (not a fixed worst-case
@@ -1595,7 +1617,6 @@ class Component extends DCLogic {
     // close-together points (5+ entries in one event) stack their labels
     // in clear rows instead of overlapping each other.
     const HH=8,LH=16,GAP=2;
-    const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     const lineYAt=xq=>{
       for(let k=0;k<hist.length-1;k++){
         const x0=X(k),x1=X(k+1);
@@ -1635,7 +1656,7 @@ class Component extends DCLogic {
         f:t===best?'#1B7A78':'#6B1F33',t:label};
     });
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
-    return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,goalY:Y(goal).toFixed(1),
+    return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px',goalY:Y(goal).toFixed(1),
       labs:meetLog.map((m,i)=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||'',x:(X(i)/320*100).toFixed(2)+'%'})),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
@@ -2059,6 +2080,7 @@ class Component extends DCLogic {
       isLogin,isApp,isCoach,
       coachWelcome:isDivingCoach?'Welcome, Coach Stone':'Welcome, Coach Hamstra',
       coachSubtitle:isDivingCoach?'Alma Scots · Diving · Diving Coach':'Alma Scots · Swimming · Head Coach',
+      heroIsCoachDiver:isDivingCoach,heroIsCoachMen:!isDivingCoach,
       uname:st.uname,pass:st.pass,
       onU:e=>this.setState({uname:e.target.value}),
       onP:e=>this.setState({pass:e.target.value}),
