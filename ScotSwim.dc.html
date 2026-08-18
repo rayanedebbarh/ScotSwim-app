@@ -587,11 +587,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
           </sc-for>
         </div>
-        <svg width="100%" viewBox="0 0 320 150" style="margin-top:8px">
+        <svg width="100%" viewBox="0 0 320 190" style="margin-top:8px">
           <sc-for list="{{ det.chart.yTicks }}" as="g" hint-placeholder-count="5">
             <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
             <foreignObject x="0" y="{{ g.ly }}" width="{{ det.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:6px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
             </foreignObject>
           </sc-for>
           <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
@@ -605,7 +605,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </foreignObject>
           </sc-for>
         </svg>
-        <div style="display:flex;justify-content:space-between;padding:0 6% 0 14%">
+        <div style="display:flex;justify-content:space-between;padding:0 6% 0 17%">
           <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6">
             <div style="text-align:center;line-height:1.35">
               <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
@@ -635,10 +635,14 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
               <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
             </div>
+            <div style="margin-top:6px">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">SWIM MEET NAME</div>
+              <input value="{{ r.meetValue }}" onChange="{{ r.onMeetChange }}" placeholder="Meet name" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+            </div>
             <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px">
               <div style="flex:1;min-width:0">
-                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">SWIM MEET NAME</div>
-                <input value="{{ r.meetValue }}" onChange="{{ r.onMeetChange }}" placeholder="Meet name" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
+                <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
               </div>
               <div style="flex:none">
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">TIME</div>
@@ -1010,11 +1014,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION — {{ selDet.chart.ev }}</div>
             <div style="font-size:11.5px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ selDet.imp }}</div>
           </div>
-          <svg width="100%" viewBox="0 0 320 140">
+          <svg width="100%" viewBox="0 0 320 190">
             <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
               <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
               <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:6px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
               </foreignObject>
             </sc-for>
             <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
@@ -1559,9 +1563,9 @@ class Component extends DCLogic {
     const vals=[...hist,goal];
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
-    const PL=44,PR=302;
+    const PL=54,PR=302;
     const X=i=>PL+i*((PR-PL)/(hist.length-1||1));
-    const Y=t=>45+((dive?(mx-t):(t-mn))/(mx-mn))*77;
+    const Y=t=>55+((dive?(mx-t):(t-mn))/(mx-mn))*130;
     // Gridline values are derived from this event's own mn/mx (already
     // padded around this athlete's actual entered times), not a fixed
     // scale, so they're always accurate to what they've logged.
@@ -1582,8 +1586,9 @@ class Component extends DCLogic {
       if(i<hist.length-1){const dx=X(i+1)-x;if(dx>0)steep=Math.max(steep,Math.abs(Y(hist[i+1])-y)/dx);}
       const d=Math.max(14,steep*HW+HH+4);
       const fx=Math.min(320-2*HW-2,Math.max(PL,x-HW));
+      const fy=Math.max(4,y-d-HH);
       return {x:x.toFixed(1),y:y.toFixed(1),
-        fx:fx.toFixed(1),fy:(y-d-HH).toFixed(1),
+        fx:fx.toFixed(1),fy:fy.toFixed(1),
         f:t===best?'#1B7A78':'#6B1F33',t:this.fmtEv(ev,t)};
     });
     const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
@@ -1629,16 +1634,17 @@ class Component extends DCLogic {
       const entry=myEntries[entryId];
       const e=this.evMap[entry.eventId];
       return {id:entryId,n:e?e.n:entry.eventId,
-        meetValue:entry.meet||'',timeValue:entry.time||'',
+        meetValue:entry.meet||'',timeValue:entry.time||'',dateValue:entry.date||'',
         timePlaceholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
         onMeetChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,meet:e2.target.value}}),
         onTimeChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,time:e2.target.value}}),
+        onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
     });
     const addEventSel=e2=>{
       const evId=e2.target.value;if(!evId)return;
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
-      setMyEvents({...myEntries,[entryId]:{eventId:evId,meet:'',time:''}});
+      setMyEvents({...myEntries,[entryId]:{eventId:evId,meet:'',time:'',date:''}});
     };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
       myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
@@ -1681,6 +1687,24 @@ class Component extends DCLogic {
   // "current" value. Falls back to the original synthetic data (backed up
   // on first call) whenever nothing valid is entered yet, so the app never
   // has to render a fully empty event list.
+  // Accepts M/D/YYYY, M/D/YY, or YYYY-MM-DD; returns a real Date or null.
+  parseEntryDate(raw){
+    const s=(raw||'').trim();if(!s)return null;
+    let m;
+    if((m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/))){
+      let yr=m[3];yr=yr.length===2?'20'+yr:yr;
+      const d=new Date(+yr,+m[1]-1,+m[2]);
+      return isNaN(d.getTime())?null:d;
+    }
+    if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))){
+      const d=new Date(+m[1],+m[2]-1,+m[3]);
+      return isNaN(d.getTime())?null:d;
+    }
+    return null;
+  }
+  fmtEntryDate(d){
+    return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear();
+  }
   applyMyEvents(id,entries){
     const s=this.byId[id];if(!s)return;
     if(!s.__origPrimary){s.__origPrimary=s.primary;s.__origPbs=s.pbs;s.__origHist=s.hist;s.__origGoals=s.goals;s.__origMeetLogByEv=s.meetLogByEv;}
@@ -1694,7 +1718,9 @@ class Component extends DCLogic {
       else if(raw.includes(':')){const parts=raw.split(':');const mi=parseInt(parts[0],10),se=parseFloat(parts[1]);v=(isNaN(mi)||isNaN(se))?NaN:mi*60+se;}
       else v=parseFloat(raw);
       if(isNaN(v)||v<=0)return;
-      (byEvent[entry.eventId]=byEvent[entry.eventId]||[]).push({time:Math.round(v*100)/100,meet:(entry.meet||'').trim()||'Meet'});
+      const dateObj=this.parseEntryDate(entry.date);
+      (byEvent[entry.eventId]=byEvent[entry.eventId]||[]).push({
+        time:Math.round(v*100)/100,meet:(entry.meet||'').trim()||'Meet',dateObj});
     });
     const trackedIds=Object.keys(byEvent);
     if(trackedIds.length===0){
@@ -1704,9 +1730,19 @@ class Component extends DCLogic {
     const primary=this.EV.filter(e=>byEvent[e.id]!=null).map(e=>e.id);
     const pbs={},hist={},meetLogByEv={};
     primary.forEach(evId=>{
-      const list=byEvent[evId];const dive=this.evMap[evId].dive;
+      // Chronological by the date the athlete entered — undated entries
+      // keep their original relative order and sort after every dated one
+      // — so the progression chart reads oldest to newest, not add-order.
+      const list=byEvent[evId].map((x,i)=>({...x,i}));
+      list.sort((a,b)=>{
+        if(a.dateObj&&b.dateObj)return a.dateObj-b.dateObj;
+        if(a.dateObj)return -1;
+        if(b.dateObj)return 1;
+        return a.i-b.i;
+      });
+      const dive=this.evMap[evId].dive;
       hist[evId]=list.map(x=>x.time);
-      meetLogByEv[evId]=list.map(x=>[x.meet,'']);
+      meetLogByEv[evId]=list.map(x=>[x.meet,'',x.dateObj?this.fmtEntryDate(x.dateObj):'']);
       pbs[evId]=dive?Math.max(...hist[evId]):Math.min(...hist[evId]);
     });
     s.primary=primary;s.pbs=pbs;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(pbs,primary);
