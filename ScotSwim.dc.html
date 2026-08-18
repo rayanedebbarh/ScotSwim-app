@@ -320,20 +320,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PRACTICE ATTENDANCE</div>
-          <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
-        </div>
-        <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} here today — tap anyone who's out</div>
-        <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
-          <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
-            <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
-            <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
-            <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border:1.5px solid {{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
-          </div>
-        </sc-for>
-      </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">UPCOMING MEETS</div>
           <button onClick="{{ goMeets }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">View all ›</button>
         </div>
@@ -370,6 +356,38 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
             <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">Posted {{ a.d }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ ATTENDANCE (coach) ============ -->
+  <sc-if value="{{ vAttendance }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#2A1218;border-radius:8px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+        <button onClick="{{ attPrevDay }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">‹</button>
+        <div style="text-align:center">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:19px;letter-spacing:1px;color:#F5E9DC">{{ attDateLabel }}</div>
+        </div>
+        <sc-if value="{{ attIsToday }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:22px;font-weight:700;padding:2px 12px;line-height:1;color:rgba(245,233,220,.25)">›</div>
+        </sc-if>
+        <sc-if value="{{ attNotToday }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ attNextDay }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">›</button>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
+          <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
+        </div>
+        <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} present — tap anyone who's out</div>
+        <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
+          <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+            <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
+            <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
+            <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border:1.5px solid {{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
           </div>
         </sc-for>
       </div>
@@ -597,6 +615,24 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </sc-if>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BADGES</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <sc-for list="{{ det.badges }}" as="b" hint-placeholder-count="4">
+            <div style="border:1px solid rgba(107,31,51,.22);border-radius:8px;padding:12px;background:#FDFBF7">
+              <div style="width:28px;height:28px;border-radius:50%;background:{{ b.c }};display:flex;align-items:center;justify-content:center;color:#F5E9DC;font-size:13px">★</div>
+              <div style="font-weight:700;font-size:13px;margin-top:8px">{{ b.n }}</div>
+              <div style="font-size:11px;color:rgba(42,18,24,.55);margin-top:2px;line-height:1.35">{{ b.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ PROGRESSION (athlete) ============ -->
+  <sc-if value="{{ vProgress }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PROGRESSION</div>
           <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }} this season</div>
@@ -666,18 +702,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </div>
           </div>
         </sc-for>
-      </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BADGES</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
-          <sc-for list="{{ det.badges }}" as="b" hint-placeholder-count="4">
-            <div style="border:1px solid rgba(107,31,51,.22);border-radius:8px;padding:12px;background:#FDFBF7">
-              <div style="width:28px;height:28px;border-radius:50%;background:{{ b.c }};display:flex;align-items:center;justify-content:center;color:#F5E9DC;font-size:13px">★</div>
-              <div style="font-weight:700;font-size:13px;margin-top:8px">{{ b.n }}</div>
-              <div style="font-size:11px;color:rgba(42,18,24,.55);margin-top:2px;line-height:1.35">{{ b.d }}</div>
-            </div>
-          </sc-for>
-        </div>
       </div>
     </div>
   </sc-if>
@@ -2010,12 +2034,12 @@ class Component extends DCLogic {
       login('athlete',m?m.id:'Rayane Debbarh');
     };
     const navDef=isDivingCoach
-      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['goals','GOALS']]
+      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :isCoach
-      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
-      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
+      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
+      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['progress','PROGRESS'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
-    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS'};
+    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
@@ -2125,24 +2149,33 @@ class Component extends DCLogic {
       onTap:()=>this.setState({sel:x.s.id,meEvent:null})}));
     // Practice attendance — coach-only. Swim coach checks in swimmers,
     // diving coach checks in divers, same split every other coach view
-    // already uses. Missing today's entry for someone defaults the row to
+    // already uses. Missing an entry for someone defaults the row to
     // present (checked) so the common case — everyone showed up — is zero
-    // taps; the coach only has to touch the ones who didn't.
-    const todayKey=this.ymd(new Date());
+    // taps; the coach only has to touch the ones who didn't. Not locked to
+    // today — st.attDate lets a coach step back to catch up on a day they
+    // forgot, or forward again up to (but not past) today.
+    const todayDateObj=new Date();
+    const todayKey=this.ymd(todayDateObj);
+    const attDateObj=st.attDate?new Date(st.attDate+'T00:00:00'):todayDateObj;
+    const attDateKey=st.attDate||todayKey;
+    const attIsToday=attDateKey===todayKey;
+    const attDateLabel=attIsToday?'Today':attDateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const attPrevDay=()=>{const d=new Date(attDateObj);d.setDate(d.getDate()-1);this.setState({attDate:this.ymd(d)});};
+    const attNextDay=()=>{if(attIsToday)return;const d=new Date(attDateObj);d.setDate(d.getDate()+1);this.setState({attDate:this.ymd(d)});};
     const attRoster=this.all.filter(s=>isDivingCoach?s.diver:!s.diver);
-    const todayRec=this.state.attendance[todayKey]||{};
+    const attDateRec=this.state.attendance[attDateKey]||{};
     const attRows=attRoster.map(s=>{
-      const present=todayRec[s.id]!==false;
+      const present=attDateRec[s.id]!==false;
       return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
         present,pillBg:present?'#1B7A78':'transparent',pillFg:present?C:'rgba(42,18,24,.5)',
         pillBd:present?'#1B7A78':'rgba(42,18,24,.25)',pillLabel:present?'Present':'Absent',
-        onToggle:()=>this.setAttendance(todayKey,s.id,!present)};
+        onToggle:()=>this.setAttendance(attDateKey,s.id,!present)};
     });
     const attPresentCount=attRows.filter(r=>r.present).length;
     const attPct=this.attendancePct(attRoster);
     const attPctDisplay=attPct==null?'—':attPct+'%';
-    const onMarkAllPresent=()=>this.markAllPresent(todayKey,attRoster);
+    const onMarkAllPresent=()=>this.markAllPresent(attDateKey,attRoster);
     const sim=this.simCalc();
     const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
     const oppGroups=[['MIAA','MIAA'],['D3','NATIONAL D3']].map(([id,n])=>({n,bg:st.oppGroup===id?'#2A1218':'#fff',fg:st.oppGroup===id?C:'rgba(42,18,24,.6)',
@@ -2229,6 +2262,8 @@ class Component extends DCLogic {
       vTrain:isApp&&tab==='train',
       vTeam:isApp&&tab==='team',
       vMe:isApp&&!isCoach&&tab==='me',
+      vProgress:isApp&&!isCoach&&tab==='progress',
+      vAttendance:isApp&&isCoach&&tab==='attendance',
       vSim:isApp&&isCoach&&tab==='sim',
       vGoals:isApp&&isCoach&&tab==='goals',
       vDive:isApp&&tab==='dive',
@@ -2331,6 +2366,7 @@ class Component extends DCLogic {
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
+      attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       practiceStreak:this.streakFor(user.id)+' in a row',
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
