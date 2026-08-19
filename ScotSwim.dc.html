@@ -1067,9 +1067,22 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <polyline points="{{ selDet.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
             <sc-for list="{{ selDet.chart.dots }}" as="p" hint-placeholder-count="6">
               <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
+              <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
+                  <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
+                </div>
+              </foreignObject>
             </sc-for>
           </svg>
-          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:4px">
+          <div style="position:relative;height:28px;margin-top:2px">
+            <sc-for list="{{ selDet.chart.labs }}" as="l" hint-placeholder-count="6">
+              <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
+                <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
+                <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:10px">
             <span style="color:rgba(42,18,24,.6)">Best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.pb }}</span></span>
             <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.goal }}</span></span>
           </div>
@@ -1168,11 +1181,14 @@ class Component extends DCLogic {
     }catch(e){}
     // Restore coach-taken practice attendance (see saveAttendance) — the
     // day-by-day present/absent record the streak and attendance-% stats
-    // are computed from. A first-run seed (14 present days, so the streak
-    // stat isn't a jarring 0) is added further down, once the roster
-    // exists — only when there's no real saved data yet.
+    // are computed from. Starts empty every season — practices haven't
+    // happened yet until a coach actually takes attendance for a real
+    // day. (Key bumped to .v2 to leave behind an earlier build's
+    // pre-seeded 14 fake "present" days, which shouldn't have existed —
+    // real users on that build get a clean reset here rather than
+    // carrying that fake history forward.)
     try{
-      const savedAttendance=JSON.parse(localStorage.getItem('scotswim.attendance')||'null');
+      const savedAttendance=JSON.parse(localStorage.getItem('scotswim.attendance.v2')||'null');
       if(savedAttendance)this.state.attendance=savedAttendance;
     }catch(e){}
     this.EV=[
@@ -1309,21 +1325,6 @@ class Component extends DCLogic {
     this.men=MEN.map(r=>mk(r,'M'));
     this.women=WOMEN.map(r=>mk(r,'W'));
     this.all=[...this.men,...this.women];
-    // First-run only: seed the last 14 days as present for everyone so a
-    // coach opening Attendance for the first time sees a real, editable
-    // streak instead of a blank slate — never overwrites actual saved
-    // attendance data (the localStorage restore above already ran).
-    if(!Object.keys(this.state.attendance).length){
-      const seed={},d=new Date();
-      for(let i=0;i<14;i++){
-        d.setDate(d.getDate()-1);
-        const day={};
-        this.all.forEach(s=>{day[s.id]=true;});
-        seed[this.ymd(d)]=day;
-      }
-      this.state.attendance=seed;
-      this.saveAttendance(seed);
-    }
     this.byId={};this.all.forEach(s=>this.byId[s.id]=s);
     // Rayane Debbarh — real lifetime bests from almascots.com bio (2025-26)
     const ray=this.byId['Rayane Debbarh'];
@@ -1727,18 +1728,31 @@ class Component extends DCLogic {
     const hasRealLog=!!(s.meetLogByEv&&s.meetLogByEv[ev]);
     const meetLog=(hasRealLog?s.meetLogByEv[ev]:this.HM).slice(0,hist.length);
     // Every x-axis label shows only the date the time was set — never a
-    // meet name, for any athlete. Self-logged entries are 2-element
-    // tuples ([month+day, year]); the seeded placeholder history some
-    // demo athletes carry (this.HM, or a specific athlete's own
-    // meetLogByEv override like Cooper's) is a 3-element
-    // [meet name, month, short date] tuple — detected by shape here
-    // rather than by hasRealLog, since a seeded override lives in the
-    // same s.meetLogByEv property real self-logged data does. Either
-    // way, only the date piece is ever shown.
+    // meet name, for any athlete — formatted the same way (month+day on
+    // top, year below) regardless of source. Self-logged entries are
+    // already 2-element [month+day, year] tuples. The seeded placeholder
+    // history some demo athletes carry (this.HM, or a specific athlete's
+    // own meetLogByEv override like Cooper's) is a 3-element
+    // [meet name, month, short "M/D" date] tuple with no year in it —
+    // detected by shape here rather than by hasRealLog, since a seeded
+    // override lives in the same s.meetLogByEv property real self-logged
+    // data does — so its year is inferred from the season the month
+    // falls in (Aug-Dec = first calendar year of the season, Jan-Jul =
+    // the second) and it's reformatted through the same date parts
+    // helper real entries use, for one consistent look everywhere.
+    const seasonYear=mo=>['Aug','Sep','Oct','Nov','Dec'].includes(mo)?2026:2027;
     return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px',goalY:Y(goal).toFixed(1),
-      labs:meetLog.map((m,i)=>m.length>=3
-        ?{n:m[2]||'',d:'',x:(X(i)/320*100).toFixed(2)+'%'}
-        :{n:m[0]||'',d:m[1]||'',x:(X(i)/320*100).toFixed(2)+'%'}),
+      labs:meetLog.map((m,i)=>{
+        if(m.length>=3){
+          const parts=(m[2]||'').split('/').map(Number);
+          if(parts[0]&&parts[1]){
+            const dp=this.fmtEntryDateParts(new Date(seasonYear(m[1]),parts[0]-1,parts[1]));
+            return {n:dp[0],d:dp[1],x:(X(i)/320*100).toFixed(2)+'%'};
+          }
+          return {n:'',d:'',x:(X(i)/320*100).toFixed(2)+'%'};
+        }
+        return {n:m[0]||'',d:m[1]||'',x:(X(i)/320*100).toFixed(2)+'%'};
+      }),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
@@ -1822,7 +1836,7 @@ class Component extends DCLogic {
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
   ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-  saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance',JSON.stringify(attendance))}catch(e){}}
+  saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance.v2',JSON.stringify(attendance))}catch(e){}}
   setAttendance(day,id,val){
     const attendance={...this.state.attendance,[day]:{...(this.state.attendance[day]||{}),[id]:val}};
     this.setState({attendance});this.saveAttendance(attendance);
@@ -2064,7 +2078,17 @@ class Component extends DCLogic {
       const d=t-prev;const better=user.diver?d>0:d<0;
       const meetLog=(user.meetLogByEv&&user.meetLogByEv[evId])||this.HM;
       const m=meetLog[h.length-1]||meetLog[meetLog.length-1]||['',''];
-      const dateLabel=m.length>=3?(m[2]||''):(m[0]+(m[1]?', '+m[1]:''));
+      let dateLabel='';
+      if(m.length>=3){
+        const parts=(m[2]||'').split('/').map(Number);
+        if(parts[0]&&parts[1]){
+          const seasonYear=['Aug','Sep','Oct','Nov','Dec'].includes(m[1])?2026:2027;
+          const dp=this.fmtEntryDateParts(new Date(seasonYear,parts[0]-1,parts[1]));
+          dateLabel=dp[0]+' '+dp[1];
+        }
+      }else{
+        dateLabel=m[0]+(m[1]?' '+m[1]:'');
+      }
       return {ev:this.evMap[evId].n,meet:dateLabel,time:this.fmtEv(evId,t),
         delta:(d<0?'−':'+')+Math.abs(d).toFixed(2),col:better?T:'#a04545'};
     });
@@ -2378,7 +2402,7 @@ class Component extends DCLogic {
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
-      practiceStreak:this.streakFor(user.id)+' in a row',
+      practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
       showRecords:st.teamSeg!=='S'&&st.teamView==='records',
