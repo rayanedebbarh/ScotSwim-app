@@ -167,7 +167,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <sc-for list="{{ myRecent }}" as="r" hint-placeholder-count="3">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="font-size:13px;color:rgba(42,18,24,.7)">{{ r.meet }}</div>
+            <div>
+              <div style="font-size:13.5px;font-weight:600">{{ r.ev }}</div>
+              <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:1px">{{ r.meet }}</div>
+            </div>
             <div style="display:flex;gap:10px;align-items:baseline">
               <span style="font-weight:700;font-variant-numeric:tabular-nums;font-size:15px">{{ r.time }}</span>
               <span style="font-size:11.5px;font-weight:700;color:{{ r.col }};min-width:44px;text-align:right">{{ r.delta }}</span>
@@ -1643,8 +1646,8 @@ class Component extends DCLogic {
     // equivalent — instead of a dynamically-picked one, unless that would
     // put an unreasonable number of gridlines on an unusually wide range,
     // in which case it falls back to a dynamically-picked round step.
-    const forcedStepTicks=this.niceTicks(mn,mx,4,dive?10:0.5);
-    const tickVals=!forcedStepTicks||forcedStepTicks.length>18?this.niceTicks(mn,mx,4):forcedStepTicks;
+    const forcedStepTicks=this.niceTicks(mn,mx,4,dive?5:0.5);
+    const tickVals=!forcedStepTicks||forcedStepTicks.length>45?this.niceTicks(mn,mx,4):forcedStepTicks;
     // Dive gridlines are always round numbers already (niceTicks picks
     // 1/2/2.5/5/10 steps), so they don't need the decimal + " pts" suffix
     // the point-value labels use — that suffix alone was blowing up the
@@ -1723,14 +1726,19 @@ class Component extends DCLogic {
     });
     const hasRealLog=!!(s.meetLogByEv&&s.meetLogByEv[ev]);
     const meetLog=(hasRealLog?s.meetLogByEv[ev]:this.HM).slice(0,hist.length);
-    // Self-logged entries show their full date (month+day on top, year
-    // below) instead of a meet name — there's no meet name to show
-    // anymore. The synthetic placeholder history (this.HM, shown until
-    // an athlete logs their own times) still carries a meet name; it's
-    // shown in full now too instead of truncated to the first word,
-    // which used to garble any multi-word meet name.
+    // Every x-axis label shows only the date the time was set — never a
+    // meet name, for any athlete. Self-logged entries are 2-element
+    // tuples ([month+day, year]); the seeded placeholder history some
+    // demo athletes carry (this.HM, or a specific athlete's own
+    // meetLogByEv override like Cooper's) is a 3-element
+    // [meet name, month, short date] tuple — detected by shape here
+    // rather than by hasRealLog, since a seeded override lives in the
+    // same s.meetLogByEv property real self-logged data does. Either
+    // way, only the date piece is ever shown.
     return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px',goalY:Y(goal).toFixed(1),
-      labs:meetLog.map((m,i)=>({n:m[0]||'',d:(hasRealLog?m[1]:m[2])||'',x:(X(i)/320*100).toFixed(2)+'%'})),
+      labs:meetLog.map((m,i)=>m.length>=3
+        ?{n:m[2]||'',d:'',x:(X(i)/320*100).toFixed(2)+'%'}
+        :{n:m[0]||'',d:m[1]||'',x:(X(i)/320*100).toFixed(2)+'%'}),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
@@ -2045,14 +2053,19 @@ class Component extends DCLogic {
     const schedT=this.sched.map(m=>({...m,...tagOf(m)}));
     // athlete home
     const sig=user.primary[0];
-    const sigFullHist=user.hist[sig]||[];
-    const sigMeetLog=(user.meetLogByEv&&user.meetLogByEv[sig])||this.HM;
-    const sigOffset=Math.max(0,sigFullHist.length-3);
-    const myRecent=sigFullHist.slice(-3).map((t,i,arr)=>{
-      const prev=i>0?arr[i-1]:(sigOffset>0?sigFullHist[sigOffset-1]:t);
+    // One row per event the athlete tracks (not the same event 3 times) —
+    // each shows the event name and its most recent time, so "recent
+    // swims" actually reads as which events were swum, not just repeats
+    // of the signature one.
+    const myRecent=user.primary.slice(0,3).map(evId=>{
+      const h=user.hist[evId]||[];
+      const t=h[h.length-1];
+      const prev=h.length>1?h[h.length-2]:t;
       const d=t-prev;const better=user.diver?d>0:d<0;
-      const m=sigMeetLog[sigOffset+i]||sigMeetLog[sigMeetLog.length-1]||['Meet',''];
-      return {meet:m[0]+' · '+m[1],time:this.fmtEv(sig,t),
+      const meetLog=(user.meetLogByEv&&user.meetLogByEv[evId])||this.HM;
+      const m=meetLog[h.length-1]||meetLog[meetLog.length-1]||['',''];
+      const dateLabel=m.length>=3?(m[2]||''):(m[0]+(m[1]?', '+m[1]:''));
+      return {ev:this.evMap[evId].n,meet:dateLabel,time:this.fmtEv(evId,t),
         delta:(d<0?'−':'+')+Math.abs(d).toFixed(2),col:better?T:'#a04545'};
     });
     const pbOf=ev=>{
