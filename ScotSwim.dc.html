@@ -1652,22 +1652,20 @@ class Component extends DCLogic {
     // different shape from swim charts. Plain integers keep dive's axis
     // column the same width as swim's.
     const tickLabels=tickVals.map(v=>dive?String(Math.round(v)):this.fmtEv(ev,v));
-    // The y-axis tick text is right-aligned against its own padding-right,
-    // so its right edge sits a fixed distance in from the plot's left
-    // edge (PL) no matter how wide the text is — widening PL alone can't
-    // create clearance from the first point's value label, since that
-    // label is centered on the first point (which sits at PL) and so its
-    // left edge is ALSO a fixed distance in from PL. Only growing the
-    // padding itself pushes the tick text further away from that label.
-    // Sized from the actual label text (mm:ss vs. dive "### pts" scales
-    // differ a lot) rather than a fixed guess, so the gap holds for any
-    // event; PL then just needs to be wide enough to fit the padding plus
-    // the widest tick text without clipping at the left edge.
-    const firstLabelHalf=hist.length?boxW(this.fmtEv(ev,hist[0]))/2:0;
-    const axisPad=Math.ceil(firstLabelHalf+10);
+    // The axis column stays tight — a small, fixed padding-right on the
+    // tick text (not stretched to fit the first point's label), so the
+    // gridlines start right after the numbers instead of leaving a big
+    // gap. The first point sits at PL by construction and its value
+    // label is centered on it, so it still needs to clear the axis
+    // text — handled by nudging just the first point rightward (INSET)
+    // by exactly as much as its own label's width requires, rather than
+    // widening the whole axis column to make room for it.
+    const axisPad=10;
     const maxTickW=Math.max(30,...tickLabels.map(t=>Math.round(t.length*5.6)));
     const PL=Math.max(54,axisPad+maxTickW+6);
-    const X=i=>PL+i*((PR-PL)/(hist.length-1||1));
+    const firstLabelHalf=hist.length?boxW(this.fmtEv(ev,hist[0]))/2:0;
+    const INSET=Math.max(0,Math.ceil(firstLabelHalf-axisPad+6));
+    const X=i=>PL+INSET+i*((PR-PL-INSET)/(hist.length-1||1));
     const yTicks=tickVals.map((v,i)=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:tickLabels[i]}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
@@ -2309,10 +2307,10 @@ class Component extends DCLogic {
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
       menuItems:(isDivingCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
         :isCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
-        :[['home','Home'],['meets','Meets'],['train','Training'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
+        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
