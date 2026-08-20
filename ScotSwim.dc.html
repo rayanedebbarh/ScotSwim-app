@@ -998,7 +998,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <sc-for list="{{ navItems }}" as="t" hint-placeholder-count="5">
     <button onClick="{{ t.onTap }}" style="flex:1;min-width:0;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px">
       <div style="width:34px;height:3px;border-radius:2px;background:{{ t.bar }}"></div>
-      <div style="font-family:'Barlow Condensed';font-weight:700;font-size:11.5px;letter-spacing:0.8px;color:{{ t.fg }};white-space:nowrap">{{ t.n }}</div>
+      <div style="font-family:'Barlow Condensed';font-weight:700;font-size:{{ t.sz }};letter-spacing:{{ t.ls }};color:{{ t.fg }};white-space:nowrap">{{ t.n }}</div>
     </button>
   </sc-for>
 </div>
@@ -2235,7 +2235,15 @@ class Component extends DCLogic {
       :isCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['progress','PROGRESS'],['team','TEAM'],['me','ME']];
-    const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
+    // Equal-width tabs (min-width:0 in the markup) is what actually keeps
+    // every label centered between its neighbors — PROGRESS is the one
+    // label long enough that it doesn't fit its equal share at the
+    // standard 14px/1.5px used everywhere else, so it alone gets a
+    // slightly smaller size rather than resizing (or unevenly spacing)
+    // every tab to accommodate it.
+    const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
+      sz:id==='progress'?'11.5px':'14px',ls:id==='progress'?'0.8px':'1.5px',
+      onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
