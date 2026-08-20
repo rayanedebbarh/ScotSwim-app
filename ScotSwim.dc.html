@@ -996,9 +996,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- bottom nav -->
 <div style="flex:none;display:flex;background:#FFFFFF;border-top:1px solid rgba(42,18,24,.08);padding:8px 8px 24px">
   <sc-for list="{{ navItems }}" as="t" hint-placeholder-count="5">
-    <button onClick="{{ t.onTap }}" style="flex:1;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px">
+    <button onClick="{{ t.onTap }}" style="flex:1;min-width:0;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px">
       <div style="width:34px;height:3px;border-radius:2px;background:{{ t.bar }}"></div>
-      <div style="font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1.5px;color:{{ t.fg }}">{{ t.n }}</div>
+      <div style="font-family:'Barlow Condensed';font-weight:700;font-size:11.5px;letter-spacing:0.8px;color:{{ t.fg }};white-space:nowrap">{{ t.n }}</div>
     </button>
   </sc-for>
 </div>
@@ -2233,7 +2233,7 @@ class Component extends DCLogic {
     const navDef=isDivingCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :isCoach
-      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
+      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['progress','PROGRESS'],['team','TEAM'],['me','ME']];
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
@@ -2540,7 +2540,7 @@ class Component extends DCLogic {
       menuItems:(isDivingCoach
         ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
         :isCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
         :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
