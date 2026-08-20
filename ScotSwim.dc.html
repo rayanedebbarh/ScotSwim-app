@@ -10,22 +10,6 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
-<!-- TEMPORARY: enables <image-slot>'s built-in Edit/reframe controls
-     (hover a photo, click Edit, drag to pan / scroll or corner-handles
-     to scale) outside the design-canvas editor it was built for. Saves
-     don't hit a real file here — they land in localStorage and on
-     window.__imageSlotsState so the result can be copied out and sent
-     back to be baked in permanently. Delete this whole <script> block
-     once photo framing is finalized so the app goes back to read-only. -->
-<script>
-window.omelette = window.omelette || {};
-window.omelette.writeFile = function(path, content){
-  try{ localStorage.setItem('scotswim.imageSlots.'+path, content); }catch(e){}
-  window.__imageSlotsState = content;
-  console.log('[ScotSwim] photo framing updated — run copy(window.__imageSlotsState) in this console to grab the result.');
-  return Promise.resolve();
-};
-</script>
 <script src="./image-slot.js"></script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
@@ -268,6 +252,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ANNOUNCEMENTS</div>
+        <sc-if value="{{ annsEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:22px 8px 6px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#1B7A78">TBA</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">No announcements yet — coach updates will show up here once the season gets underway.</div>
+          </div>
+        </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
           <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#1B7A78;margin-top:5px;flex:none"></div>
@@ -355,6 +345,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM ANNOUNCEMENTS</div>
+        <sc-if value="{{ annsEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:22px 8px 6px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">TBA</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Nothing posted yet — announcements you send to the team will show up here.</div>
+          </div>
+        </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
           <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
@@ -557,13 +553,40 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <sc-if value="{{ vMe }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
       <div style="background:#6B1F33;color:#F5E9DC;border-radius:10px;padding:18px;display:flex;align-items:center;gap:14px">
-        <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none"><image-slot id="{{ det.slotId }}" src="{{ det.photo }}" minimal="true" shape="circle" placeholder="{{ det.ini }}"></image-slot></div>
+        <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none">
+          <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
+            <img src="{{ det.photo }}" style="width:100%;height:100%;object-fit:cover;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+          </sc-if>
+          <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:20px">{{ det.ini }}</div>
+          </sc-if>
+        </div>
         <div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1">{{ det.name }}</div>
           <div style="font-size:12.5px;color:rgba(245,233,220,.8);margin-top:3px">{{ det.cls }} · {{ det.pos }}</div>
           <div style="font-size:11.5px;color:rgba(245,233,220,.6)">{{ det.home }}</div>
         </div>
       </div>
+      <sc-if value="{{ det.canEditBio }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1.5px;color:#6B1F33">PROFILE PHOTO</div>
+            <label for="mePhotoFile" style="border:1.5px solid #1B7A78;color:#1B7A78;border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">Change photo</label>
+            <input id="mePhotoFile" type="file" accept="image/*" onChange="{{ det.onPhotoFileChange }}" style="display:none">
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;color:rgba(42,18,24,.5);white-space:nowrap">Zoom</span>
+            <input type="range" min="100" max="250" value="{{ det.zoomPct }}" onChange="{{ det.onZoomChange }}" style="flex:1;accent-color:#6B1F33">
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+            <button onClick="{{ det.onPanLeft }}" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:12px;cursor:pointer;line-height:1">◀</button>
+            <button onClick="{{ det.onPanUp }}" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:12px;cursor:pointer;line-height:1">▲</button>
+            <button onClick="{{ det.onPanDown }}" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:12px;cursor:pointer;line-height:1">▼</button>
+            <button onClick="{{ det.onPanRight }}" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #6B1F33;background:none;color:#6B1F33;font-size:12px;cursor:pointer;line-height:1">▶</button>
+            <button onClick="{{ det.onResetFraming }}" style="margin-left:8px;border:none;background:none;color:rgba(42,18,24,.5);font-size:11.5px;font-weight:700;cursor:pointer">Reset</button>
+          </div>
+        </div>
+      </sc-if>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">STATS</div>
@@ -590,8 +613,26 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:13.5px;margin-top:2px">{{ det.weight }}</div>
             </sc-if>
           </div>
-          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ det.year }}</div></div>
-          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ det.home }}</div></div>
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div>
+            <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
+              <select value="{{ det.clsValue }}" onChange="{{ det.onClsChange }}" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box;background:#fff">
+                <sc-for list="{{ det.clsOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+              </select>
+            </sc-if>
+            <sc-if value="{{ det.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13.5px;margin-top:2px">{{ det.year }}</div>
+            </sc-if>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div>
+            <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ det.homeValue }}" onChange="{{ det.onHomeChange }}" placeholder="e.g. Alma, MI" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+            </sc-if>
+            <sc-if value="{{ det.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13.5px;margin-top:2px">{{ det.home }}</div>
+            </sc-if>
+          </div>
           <div>
             <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div>
             <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
@@ -619,6 +660,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BADGES</div>
+        <sc-if value="{{ det.badgesEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No badges yet — these unlock as you hit real milestones once the season starts.</div>
+        </sc-if>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
           <sc-for list="{{ det.badges }}" as="b" hint-placeholder-count="4">
             <div style="border:1px solid rgba(107,31,51,.22);border-radius:8px;padding:12px;background:#FDFBF7">
@@ -1024,8 +1068,26 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <div style="font-size:13.5px;margin-top:2px">{{ selDet.weight }}</div>
               </sc-if>
             </div>
-            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.year }}</div></div>
-            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.home }}</div></div>
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div>
+              <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
+                <select value="{{ selDet.clsValue }}" onChange="{{ selDet.onClsChange }}" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box;background:#fff">
+                  <sc-for list="{{ selDet.clsOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+                </select>
+              </sc-if>
+              <sc-if value="{{ selDet.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13.5px;margin-top:2px">{{ selDet.year }}</div>
+              </sc-if>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div>
+              <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ selDet.homeValue }}" onChange="{{ selDet.onHomeChange }}" placeholder="e.g. Alma, MI" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+              </sc-if>
+              <sc-if value="{{ selDet.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13.5px;margin-top:2px">{{ selDet.home }}</div>
+              </sc-if>
+            </div>
             <div>
               <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div>
               <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
@@ -1095,6 +1157,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </div>
           </sc-for>
         </div>
+        <sc-if value="{{ selDet.badgesEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:rgba(42,18,24,.45)">No badges yet</div>
+        </sc-if>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <sc-for list="{{ selDet.badges }}" as="b" hint-placeholder-count="3">
             <div style="border:1px solid rgba(107,31,51,.3);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;color:#6B1F33;background:#fff">★ {{ b.n }}</div>
@@ -1146,7 +1211,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{}};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{}};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1168,6 +1233,13 @@ class Component extends DCLogic {
       const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEventEntries')||'null');
       if(savedMyEvents)this.state.myEvents=savedMyEvents;
     }catch(e){}
+    // Restore each athlete's own profile-photo replacement + framing
+    // (see saveMyPhotos) — self-uploaded, only ever touched by that
+    // athlete's own ME tab.
+    try{
+      const savedMyPhotos=JSON.parse(localStorage.getItem('scotswim.myPhotos')||'null');
+      if(savedMyPhotos)this.state.myPhotos=savedMyPhotos;
+    }catch(e){}
     // Restore any goals set in a previous session (see saveGoalPrefs) —
     // done here, before the first render, so a coach's earlier adjustment
     // is already visible the moment an athlete logs in, not just within
@@ -1188,7 +1260,7 @@ class Component extends DCLogic {
     // real users on that build get a clean reset here rather than
     // carrying that fake history forward.)
     try{
-      const savedAttendance=JSON.parse(localStorage.getItem('scotswim.attendance.v2')||'null');
+      const savedAttendance=JSON.parse(localStorage.getItem('scotswim.attendance.v3')||'null');
       if(savedAttendance)this.state.attendance=savedAttendance;
     }catch(e){}
     this.EV=[
@@ -1214,54 +1286,46 @@ class Component extends DCLogic {
     ];
     this.evMap={};this.EV.forEach(e=>this.evMap[e.id]=e);
     const MEN=[
-      ['Andrew Barrett','Sr.','Sprint Freestyle/Butterfly','Hartland, Mich.'],
-      ['Cody Benkovsky','Jr.','Breaststroke','Eaton Rapids, Mich.'],
-      ['Karl Bray','Fr.','Breaststroke','Ferndale, Mich.'],
+      ['Andrew Barrett','Sr.','Sprint Freestyle/Butterfly','Hartland, MI'],
+      ['Cody Benkovsky','Jr.','Breaststroke','Eaton Rapids, MI'],
+      ['Karl Bray','Fr.','Breaststroke','Ferndale, MI'],
       ['Ruairidh Davis','Fr.','Sprint Freestyle','Belfast, Ireland'],
       ['Rayane Debbarh','Sr.','Freestyle','Rabat, Morocco'],
-      ['Ryan Fowler','Sr.','Freestyle','Massillon, Ohio'],
-      ['Brett Gaff','Jr.','Freestyle/Butterfly','Houghton, Mich.'],
-      ['Anthony Kulka','Jr.','Butterfly/Freestyle','Jackson, Mich.'],
-      ['Colin Moran','Jr.','Freestyle','Jackson, Mich.'],
-      ['Noah Newman','Jr.','Freestyle/Butterfly','Merrillville, Ind.'],
-      ['Max Nielsen','Sr.','Freestyle/Fly','Clinton Twp., Mich.'],
-      ['Colton Ralko','Jr.','Butterfly','Howell, Mich.'],
-      ['Morrison Wood','Jr.','Backstroke/Freestyle','Macomb, Mich.'],
-      ['Nate Yearkey','Fr.','Sprint Freestyle','Macomb, Mich.']
+      ['Ryan Fowler','Sr.','Freestyle','Massillon, OH'],
+      ['Brett Gaff','Jr.','Freestyle/Butterfly','Houghton, MI'],
+      ['Anthony Kulka','Jr.','Butterfly/Freestyle','Jackson, MI'],
+      ['Colin Moran','Jr.','Freestyle','Jackson, MI'],
+      ['Noah Newman','Jr.','Freestyle/Butterfly','Merrillville, IN'],
+      ['Max Nielsen','Sr.','Freestyle/Fly','Clinton Twp., MI'],
+      ['Colton Ralko','Jr.','Butterfly','Howell, MI'],
+      ['Morrison Wood','Jr.','Backstroke/Freestyle','Macomb, MI'],
+      ['Nate Yearkey','Fr.','Sprint Freestyle','Macomb, MI']
     ];
     const WOMEN=[
-      ['Zoe Barringer','So.','Freestyle','Flat Rock, Mich.'],
-      ['Anya Drewnicki','Sr.','Freestyle','Warren, Mich.'],
-      ['Abby Dumond','So.','Diving','Middleville, Mich.'],
-      ['Kellie Fahey','Fr.','Freestyle/Individual Medley','Tecumseh, Mich.'],
-      ['Rowan Frost','Fr.','Sprint Freestyle','Mount Pleasant, Mich.'],
-      ['Marie Halligan','So.','Breaststroke','Grand Blanc, Mich.'],
-      ['Aubrey Hawks','So.','Backstroke/Freestyle','Wayland, Mich.'],
-      ['Emma Hoy','So.','Freestyle','Port Sanilac, Mich.'],
-      ['Katelyn Lamphere','So.','Freestyle/Backstroke','Ionia, Mich.'],
-      ['Isabel Lyshol','Jr.','Sprint Freestyle','Seattle, Wash.'],
-      ['Maddie McGuire','So.','Diving','Dexter, Mich.'],
-      ['Sarah Rabbideau','So.','Breaststroke','Lachine, Mich.'],
-      ['Heidi Ragainis','So.','Freestyle','Kalamazoo, Mich.'],
-      ['Sierra Scott','So.','Freestyle/Butterfly','Iron Mountain, Mich.'],
-      ['Abi Spitzley','So.','Freestyle/Butterfly','DeWitt, Mich.'],
-      ['Hannah Sullivan','So.','Freestyle/Butterfly','Canton, Mich.'],
-      ['Valerie Vinci','So.','Freestyle','Lake Orion, Mich.'],
-      ['Delilah Zingelewicz','So.','Freestyle/Breaststroke','Holt, Mich.']
+      ['Zoe Barringer','So.','Freestyle','Flat Rock, MI'],
+      ['Anya Drewnicki','Sr.','Freestyle','Warren, MI'],
+      ['Abby Dumond','So.','Diving','Middleville, MI'],
+      ['Kellie Fahey','Fr.','Freestyle/Individual Medley','Tecumseh, MI'],
+      ['Rowan Frost','Fr.','Sprint Freestyle','Mount Pleasant, MI'],
+      ['Marie Halligan','So.','Breaststroke','Grand Blanc, MI'],
+      ['Aubrey Hawks','So.','Backstroke/Freestyle','Wayland, MI'],
+      ['Emma Hoy','So.','Freestyle','Port Sanilac, MI'],
+      ['Katelyn Lamphere','So.','Freestyle/Backstroke','Ionia, MI'],
+      ['Isabel Lyshol','Jr.','Sprint Freestyle','Seattle, WA'],
+      ['Maddie McGuire','So.','Diving','Dexter, MI'],
+      ['Sarah Rabbideau','So.','Breaststroke','Lachine, MI'],
+      ['Heidi Ragainis','So.','Freestyle','Kalamazoo, MI'],
+      ['Sierra Scott','So.','Freestyle/Butterfly','Iron Mountain, MI'],
+      ['Abi Spitzley','So.','Freestyle/Butterfly','DeWitt, MI'],
+      ['Hannah Sullivan','So.','Freestyle/Butterfly','Canton, MI'],
+      ['Valerie Vinci','So.','Freestyle','Lake Orion, MI'],
+      ['Delilah Zingelewicz','So.','Freestyle/Breaststroke','Holt, MI']
     ];
     const hs=s=>{let h=0;for(let i=0;i<s.length;i++)h=((h*31+s.charCodeAt(i))>>>0)%100000;return h};
     const rnd=seed=>{const x=Math.sin(seed+1)*10000;return x-Math.floor(x)};
     this.hs=hs;this.rnd=rnd;
     const HM=[['Scots Relays','Oct','10/4'],['Olivet','Nov','11/1'],['Albion','Nov','11/15'],['Calvin Inv','Nov','11/22'],['Winter Inv','Jan','1/17'],['MIAA','Feb','2/21']];
     this.HM=HM;
-    const BADGES=[
-      ['PB Machine','Dropped time in 3+ events this season','#6B1F33'],
-      ['Taper Titan','Season best at MIAA Championships','#1B7A78'],
-      ['Iron Attendance','20 consecutive practices','#2A1218'],
-      ['First Splash','First collegiate race completed','#1B7A78'],
-      ['Podium','Top-3 finish in a dual meet','#6B1F33'],
-      ['Early Bird','10 morning practices this block','#2A1218']
-    ];
     const mkHist=(pbs,primary,seed)=>{
       const hist={};
       primary.forEach(ev=>{
@@ -1315,11 +1379,11 @@ class Component extends DCLogic {
         const prim=primary.includes(e.id);
         pbs[e.id]=Math.round(e.b[gender]*(prim?0.962+0.05*r:1.045+0.09*r)*100)/100;
       });
-      const bIdx=h%BADGES.length,bN=2+h%3;
-      const badges=[];for(let i=0;i<bN;i++){const b=BADGES[(bIdx+i*2)%BADGES.length];if(!badges.includes(b))badges.push(b);}
       return {id:name,name,cls,pos,home,gender,diver,sprint,primary,pbs,
         hist:mkHist(pbs,primary,h),goals:mkGoals(pbs,primary),
-        badges:badges.map(b=>({n:b[0],d:b[1],c:b[2]})),
+        // No badges are pre-assigned — the season hasn't started, so
+        // nobody's actually earned one yet.
+        badges:[],
         ini:name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
         avc:['#6B1F33','#1B7A78','#2A1218','#8a3247'][h%4]};
     };
@@ -1334,7 +1398,6 @@ class Component extends DCLogic {
     Object.assign(ray.pbs,{'50FR':27.48,'100FR':62.32,'100BR':75.12,'200BR':210.19,'100FL':86.81});
     ray.hist=mkHist(ray.pbs,ray.primary,hs(ray.id));
     ray.goals=mkGoals(ray.pbs,ray.primary);
-    ray.badges=[{n:'PB Machine',d:'Five lifetime bests in 2025-26',c:'#6B1F33'},{n:'Taper Titan',d:'Season bests at MIAA Championships',c:'#1B7A78'},{n:'Iron Attendance',d:'20 consecutive practices',c:'#2A1218'}];
     // Apply any athlete-picked events/times restored from localStorage —
     // done last so a self-reported set of events (once an athlete has set
     // one up) takes over from the synthetic default, same as it would for
@@ -1347,7 +1410,11 @@ class Component extends DCLogic {
     };
     this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Anya Drewnicki','Ryan Fowler','Brett Gaff','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
     this.slotIdOf=n=>'photo-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-    this.photoOf=n=>this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
+    this.photoOf=n=>{
+      const mine=this.state.myPhotos[n];
+      if(mine&&mine.data)return mine.data;
+      return this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
+    };
     this.coaches=[
       {name:'Chris Hamstra',role:'Swimming Coach',ini:'CH'},
       {name:'Kodi Stone',role:'Diving Coach',ini:'KS'}
@@ -1384,11 +1451,10 @@ class Component extends DCLogic {
       {day:'SATURDAY',s:[{t:'8:00 AM',n:'Long course endurance',tag:'POOL'}]},
       {day:'SUNDAY',s:[{t:'—',n:'Rest & mobility on your own',tag:'REST'}]}
     ];
-    this.anns=[
-      {t:'Team photos before Saturday practice — bring both caps.',d:'Aug 2'},
-      {t:'Fall training block starts Sep 8. Full week is posted in Training.',d:'Aug 1'},
-      {t:'Goal-setting 1:1s with Coach Hamstra — sign up outside the pool office.',d:'Jul 29'}
-    ];
+    // No real announcements exist yet pre-season — show a clean "check
+    // back soon" state (see annsEmpty) rather than invented placeholder
+    // posts.
+    this.anns=[];
     this.opps=[
       {n:'Hope',f:0.985,teamId:'99',grp:'MIAA'},
       {n:'Calvin',f:0.99,teamId:'55',grp:'MIAA'},
@@ -1758,6 +1824,14 @@ class Component extends DCLogic {
     // fills it in, and it stays put until they change it again.
     const statVal=this.state.stats[s.id]||{};
     const statsEditing=canEditBio&&this.state.statsEdit===s.id;
+    // Class year and hometown start from the roster record but can be
+    // corrected by the athlete themselves — same override-on-top-of-
+    // roster pattern as height/weight/hs, stored in the same place, so
+    // every place that reads them (this profile header included) sees
+    // the correction immediately.
+    const effCls=statVal.cls||s.cls;
+    const effHome=statVal.home||s.home;
+    const clsOptions=[{id:'Fr.',n:'Freshman'},{id:'So.',n:'Sophomore'},{id:'Jr.',n:'Junior'},{id:'Sr.',n:'Senior'}];
     const setStat=(field,val)=>{
       const stats={...this.state.stats};
       stats[s.id]={...(stats[s.id]||{}),[field]:val};
@@ -1777,6 +1851,22 @@ class Component extends DCLogic {
       const myEvents={...this.state.myEvents,[s.id]:next};
       this.setState({myEvents});this.saveMyEvents(myEvents);
     };
+    // Profile-photo replace + frame — self-only (gated by canEditBio,
+    // same as bio/stats). Scale/x/y are a CSS transform on a plain
+    // object-fit:cover img: object-fit already does the "cover" math for
+    // any aspect ratio, so scale/translate on top of it needs no natural-
+    // dimension bookkeeping of our own.
+    const myPhoto=this.state.myPhotos[s.id]||{};
+    const photoScale=Number.isFinite(myPhoto.s)?myPhoto.s:1;
+    const photoX=Number.isFinite(myPhoto.x)?myPhoto.x:0;
+    const photoY=Number.isFinite(myPhoto.y)?myPhoto.y:0;
+    const setMyPhoto=patch=>{
+      const myPhotos={...this.state.myPhotos};
+      myPhotos[s.id]={...myPhoto,...patch};
+      this.setState({myPhotos});this.saveMyPhotos(myPhotos);
+    };
+    const PAN_MAX=40,PAN_STEP=6;
+    const clampPan=v=>Math.max(-PAN_MAX,Math.min(PAN_MAX,v));
     const myEventRows=entryIds.map(entryId=>{
       const entry=myEntries[entryId];
       const e=this.evMap[entry.eventId];
@@ -1792,14 +1882,28 @@ class Component extends DCLogic {
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
       setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
     };
-    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
+    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:s.pos,home:effHome,imp,
       myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
-      year:YEAR[s.cls]||s.cls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
-      slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+      year:YEAR[effCls]||effCls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
+      clsValue:effCls,clsOptions,onClsChange:e=>setStat('cls',e.target.value),
+      homeValue:effHome,onHomeChange:e=>setStat('home',e.target.value),
+      slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),photoEmpty:!this.photoOf(s.id),
+      photoScale,photoX,photoY,zoomPct:String(Math.round(photoScale*100)),
+      onPhotoFileChange:e=>{
+        const f=e.target.files&&e.target.files[0];
+        if(f)this.readPhotoFile(f,data=>setMyPhoto({data,s:1,x:0,y:0}));
+        e.target.value='';
+      },
+      onZoomChange:e=>setMyPhoto({s:Math.max(1,Math.min(2.5,Number(e.target.value)/100))}),
+      onPanUp:()=>setMyPhoto({y:clampPan(photoY-PAN_STEP)}),
+      onPanDown:()=>setMyPhoto({y:clampPan(photoY+PAN_STEP)}),
+      onPanLeft:()=>setMyPhoto({x:clampPan(photoX-PAN_STEP)}),
+      onPanRight:()=>setMyPhoto({x:clampPan(photoX+PAN_STEP)}),
+      onResetFraming:()=>setMyPhoto({s:1,x:0,y:0}),
       chart:this.chartFor(s,ev),
       evChips:s.primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
       pbs:s.primary.map(e=>({ev:this.evMap[e].n,t:this.fmtEv(e,s.diver?Math.max(...s.hist[e]):s.pbs[e]),where:'MIAA · Feb'})),
-      badges:s.badges,
+      badges:s.badges,badgesEmpty:(s.badges||[]).length===0,
       canEditBio,bioEditing,
       bioIcon:bioEditing?'✓':'✎',
       bioReadOnly:!bioEditing,
@@ -1823,8 +1927,29 @@ class Component extends DCLogic {
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
+  saveMyPhotos(myPhotos){try{localStorage.setItem('scotswim.myPhotos',JSON.stringify(myPhotos))}catch(e){}}
+  // Downscale + re-encode an uploaded photo through a canvas so a phone
+  // camera shot (several MB) doesn't blow up localStorage — 320px is
+  // plenty for an avatar shown at 60px with room to zoom.
+  readPhotoFile(file,cb){
+    if(!file||!/^image\//.test(file.type))return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=320;
+        const scale=Math.min(1,MAX/Math.max(img.width,img.height));
+        const w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale));
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        cb(canvas.toDataURL('image/jpeg',0.85));
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
   ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-  saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance.v2',JSON.stringify(attendance))}catch(e){}}
+  saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance.v3',JSON.stringify(attendance))}catch(e){}}
   setAttendance(day,id,val){
     const attendance={...this.state.attendance,[day]:{...(this.state.attendance[day]||{}),[id]:val}};
     this.setState({attendance});this.saveAttendance(attendance);
@@ -2385,7 +2510,7 @@ class Component extends DCLogic {
       allLabel:user.diver?'All dives':'All swims',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
       todayName:this.trainWeek[dayIdx].day,todaySessions:this.trainWeek[dayIdx].s,
-      anns:this.anns,week,
+      anns:this.anns,annsEmpty:this.anns.length===0,week,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
