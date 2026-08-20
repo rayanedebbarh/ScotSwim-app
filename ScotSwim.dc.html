@@ -1215,38 +1215,39 @@ class Component extends DCLogic {
     this.evMap={};this.EV.forEach(e=>this.evMap[e.id]=e);
     const MEN=[
       ['Andrew Barrett','Sr.','Sprint Freestyle/Butterfly','Hartland, Mich.'],
-      ['Cody Benkovsky','So.','Breaststroke','Eaton Rapids, Mich.'],
-      ['Cooper Couch','So.','Diving','Alma, Mich.'],
-      ['Sam Couch','Sr.','Freestyle','Alma, Mich.'],
+      ['Cody Benkovsky','Jr.','Breaststroke','Eaton Rapids, Mich.'],
+      ['Karl Bray','Fr.','Breaststroke','Hometown TBA'],
+      ['Ruairidh Davis','Fr.','Sprint Freestyle','Hometown TBA'],
       ['Rayane Debbarh','Sr.','Freestyle','Rabat, Morocco'],
-      ['Ryan Fowler','Jr.','Freestyle','Massillon, Ohio'],
-      ['Brett Gaff','So.','Freestyle/Butterfly','Houghton, Mich.'],
-      ['Nolan Kaiser','So.','Freestyle/Butterfly','Royal Oak, Mich.'],
-      ['Anthony Kulka','So.','Butterfly/Freestyle','Jackson, Mich.'],
-      ['Colin Moran','So.','Freestyle','Jackson, Mich.'],
-      ['Noah Newman','So.','Freestyle/Butterfly','Merrillville, Ind.'],
+      ['Ryan Fowler','Sr.','Freestyle','Massillon, Ohio'],
+      ['Brett Gaff','Jr.','Freestyle/Butterfly','Houghton, Mich.'],
+      ['Anthony Kulka','Jr.','Butterfly/Freestyle','Jackson, Mich.'],
+      ['Colin Moran','Jr.','Freestyle','Jackson, Mich.'],
+      ['Noah Newman','Jr.','Freestyle/Butterfly','Merrillville, Ind.'],
       ['Max Nielsen','Sr.','Freestyle/Fly','Clinton Twp., Mich.'],
-      ['Colton Ralko','So.','Butterfly','Howell, Mich.'],
-      ['Morrison Wood','So.','Backstroke/Freestyle','Macomb, Mich.']
+      ['Colton Ralko','Jr.','Butterfly','Howell, Mich.'],
+      ['Morrison Wood','Jr.','Backstroke/Freestyle','Macomb, Mich.'],
+      ['Nate Yearkey','Fr.','Sprint Freestyle','Hometown TBA']
     ];
     const WOMEN=[
-      ['Zoe Barringer','Fr.','Freestyle','Flat Rock, Mich.'],
+      ['Zoe Barringer','So.','Freestyle','Flat Rock, Mich.'],
       ['Anya Drewnicki','Sr.','Freestyle','Warren, Mich.'],
-      ['Abby Dumond','Fr.','Diving','Middleville, Mich.'],
-      ['Marie Halligan','Fr.','Breaststroke','Grand Blanc, Mich.'],
-      ['Aubrey Hawks','Fr.','Backstroke/Freestyle','Wayland, Mich.'],
-      ['Emma Hoy','Fr.','Freestyle','Port Sanilac, Mich.'],
-      ['Katelyn Lamphere','Fr.','Freestyle/Backstroke','Ionia, Mich.'],
-      ['Isabel Lyshol','So.','Sprint Freestyle','Seattle, Wash.'],
-      ['Maddie McGuire','Fr.','Diving','Dexter, Mich.'],
-      ['Sarah Rabbideau','Fr.','Breaststroke','Lachine, Mich.'],
-      ['Heidi Ragainis','Fr.','Freestyle','Kalamazoo, Mich.'],
-      ['Sierra Scott','Fr.','Freestyle/Butterfly','Iron Mountain, Mich.'],
-      ['Abi Spitzley','Fr.','Freestyle/Butterfly','DeWitt, Mich.'],
-      ['Hannah Sullivan','Fr.','Freestyle/Butterfly','Canton, Mich.'],
-      ['Valerie Vinci','Fr.','Freestyle','Lake Orion, Mich.'],
-      ['Petronella Wilson','So.','Freestyle','Traverse City, Mich.'],
-      ['Delilah Zingelewicz','Fr.','Freestyle/Breaststroke','Holt, Mich.']
+      ['Abby Dumond','So.','Diving','Middleville, Mich.'],
+      ['Kellie Fahey','Fr.','Freestyle/Individual Medley','Hometown TBA'],
+      ['Rowan Frost','Fr.','Sprint Freestyle','Hometown TBA'],
+      ['Marie Halligan','So.','Breaststroke','Grand Blanc, Mich.'],
+      ['Aubrey Hawks','So.','Backstroke/Freestyle','Wayland, Mich.'],
+      ['Emma Hoy','So.','Freestyle','Port Sanilac, Mich.'],
+      ['Katelyn Lamphere','So.','Freestyle/Backstroke','Ionia, Mich.'],
+      ['Isabel Lyshol','Jr.','Sprint Freestyle','Seattle, Wash.'],
+      ['Maddie McGuire','So.','Diving','Dexter, Mich.'],
+      ['Sarah Rabbideau','So.','Breaststroke','Lachine, Mich.'],
+      ['Heidi Ragainis','So.','Freestyle','Kalamazoo, Mich.'],
+      ['Sierra Scott','So.','Freestyle/Butterfly','Iron Mountain, Mich.'],
+      ['Abi Spitzley','So.','Freestyle/Butterfly','DeWitt, Mich.'],
+      ['Hannah Sullivan','So.','Freestyle/Butterfly','Canton, Mich.'],
+      ['Valerie Vinci','So.','Freestyle','Lake Orion, Mich.'],
+      ['Delilah Zingelewicz','So.','Freestyle/Breaststroke','Holt, Mich.']
     ];
     const hs=s=>{let h=0;for(let i=0;i<s.length;i++)h=((h*31+s.charCodeAt(i))>>>0)%100000;return h};
     const rnd=seed=>{const x=Math.sin(seed+1)*10000;return x-Math.floor(x)};
@@ -1334,30 +1335,17 @@ class Component extends DCLogic {
     ray.hist=mkHist(ray.pbs,ray.primary,hs(ray.id));
     ray.goals=mkGoals(ray.pbs,ray.primary);
     ray.badges=[{n:'PB Machine',d:'Five lifetime bests in 2025-26',c:'#6B1F33'},{n:'Taper Titan',d:'Season bests at MIAA Championships',c:'#1B7A78'},{n:'Iron Attendance',d:'20 consecutive practices',c:'#2A1218'}];
-    // Cooper Couch — real 2025-26 diving results from SwimCloud meet pages.
-    // Six-dive dual/invite scores only; the Nov 20-22 Malone Invitational
-    // (268.90) is scored on an 11-dive format and isn't comparable to the
-    // rest, so it's left out of the progression rather than skewing it.
-    const cooper=this.byId['Cooper Couch'];
-    Object.assign(cooper.pbs,{DV1:191.95,DV3:132.95});
-    cooper.hist.DV1=[100.85,168.75,130.45,191.95];
-    cooper.hist.DV3=[132.95,114.65];
-    cooper.meetLogByEv={
-      DV1:[['Bethel Tri','Nov','11/1'],['Albion','Nov','11/15'],['Manchester','Jan','1/10'],['Manchester','Jan','1/10']],
-      DV3:[['Albion','Nov','11/15'],['MIAA Winter','Jan','1/24']]
-    };
-    cooper.goals=mkGoals(cooper.pbs,cooper.primary);
     // Apply any athlete-picked events/times restored from localStorage —
     // done last so a self-reported set of events (once an athlete has set
     // one up) takes over from the synthetic default, same as it would for
-    // Rayane/Cooper above.
+    // Rayane above.
     Object.keys(this.state.myEvents).forEach(id=>this.applyMyEvents(id,this.state.myEvents[id]));
     this.photos={
       'Rayane Debbarh':'https://almascots.com/images/2025/10/27/IMG_9865.JPG?width=300',
       'Chris Hamstra':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2024/7/16/IMG_4124.JPG?width=300',
       'Kodi Stone':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2025/7/11/IMG_0705.jpg?width=300'
     };
-    this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Petronella Wilson','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Cooper Couch','Sam Couch','Anya Drewnicki','Ryan Fowler','Brett Gaff','Nolan Kaiser','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
+    this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Anya Drewnicki','Ryan Fowler','Brett Gaff','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
     this.slotIdOf=n=>'photo-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-');
     this.photoOf=n=>this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
     this.coaches=[
@@ -1591,8 +1579,8 @@ class Component extends DCLogic {
   fmt(t){if(t>=60){const m=Math.floor(t/60);const s=t-m*60;return m+':'+s.toFixed(2).padStart(5,'0')}return t.toFixed(2)}
   ptsOf(s){
     // Real SwimCloud season points (2025-26)
-    const R={'Andrew Barrett':494.15,'Cody Benkovsky':496.25,'Sam Couch':465.96,'Rayane Debbarh':273.45,
-      'Ryan Fowler':452.55,'Brett Gaff':381.10,'Nolan Kaiser':523.35,'Anthony Kulka':415.95,'Colin Moran':552.20,
+    const R={'Andrew Barrett':494.15,'Cody Benkovsky':496.25,'Rayane Debbarh':273.45,
+      'Ryan Fowler':452.55,'Brett Gaff':381.10,'Anthony Kulka':415.95,'Colin Moran':552.20,
       'Noah Newman':452.20,'Max Nielsen':469.00,'Colton Ralko':433.85,'Morrison Wood':474.20,
       'Zoe Barringer':460.00,'Anya Drewnicki':371.35,'Sofia Floros':493.85,'Marie Halligan':320.85,
       'Aubrey Hawks':373.60,'Emma Hoy':466.60,'Katelyn Lamphere':378.90,'Grace Ludema':558.20,'Isabel Lyshol':213.00,
@@ -1732,7 +1720,7 @@ class Component extends DCLogic {
     // top, year below) regardless of source. Self-logged entries are
     // already 2-element [month+day, year] tuples. The seeded placeholder
     // history some demo athletes carry (this.HM, or a specific athlete's
-    // own meetLogByEv override like Cooper's) is a 3-element
+    // own hardcoded meetLogByEv override) is a 3-element
     // [meet name, month, short "M/D" date] tuple with no year in it —
     // detected by shape here rather than by hasRealLog, since a seeded
     // override lives in the same s.meetLogByEv property real self-logged
@@ -2285,7 +2273,7 @@ class Component extends DCLogic {
       onP:e=>this.setState({pass:e.target.value}),
       doLogin,
       quickA:()=>login('athlete','Rayane Debbarh'),
-      quickB:()=>login('athlete','Cooper Couch'),
+      quickB:()=>login('athlete','Abby Dumond'),
       quickC:()=>login('coach','Rayane Debbarh'),
       quickD:()=>login('dcoach','Rayane Debbarh'),
       logout:()=>{this.pauseMusicForSignOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
