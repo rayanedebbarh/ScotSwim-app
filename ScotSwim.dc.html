@@ -10,22 +10,6 @@
 <helmet>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
-<!-- TEMPORARY: enables <image-slot>'s built-in Edit/reframe controls
-     (hover a photo, click Edit, drag to pan / scroll or corner-handles
-     to scale) outside the design-canvas editor it was built for. Saves
-     don't hit a real file here — they land in localStorage and on
-     window.__imageSlotsState so the result can be copied out and sent
-     back to be baked in permanently. Delete this whole <script> block
-     once photo framing is finalized so the app goes back to read-only. -->
-<script>
-window.omelette = window.omelette || {};
-window.omelette.writeFile = function(path, content){
-  try{ localStorage.setItem('scotswim.imageSlots.'+path, content); }catch(e){}
-  window.__imageSlotsState = content;
-  console.log('[ScotSwim] photo framing updated — run copy(window.__imageSlotsState) in this console to grab the result.');
-  return Promise.resolve();
-};
-</script>
 <script src="./image-slot.js"></script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
@@ -115,7 +99,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,20,33,.05),rgba(42,18,24,.6));pointer-events:none"></div>
         <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 18px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7)">Welcome, {{ heroName }}</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">Welcome, {{ heroName }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving</div>
         </div>
       </div>
@@ -167,7 +151,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <sc-for list="{{ myRecent }}" as="r" hint-placeholder-count="3">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="font-size:13px;color:rgba(42,18,24,.7)">{{ r.meet }}</div>
+            <div>
+              <div style="font-size:13.5px;font-weight:600">{{ r.ev }}</div>
+              <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:1px">{{ r.meet }}</div>
+            </div>
             <div style="display:flex;gap:10px;align-items:baseline">
               <span style="font-weight:700;font-variant-numeric:tabular-nums;font-size:15px">{{ r.time }}</span>
               <span style="font-size:11.5px;font-weight:700;color:{{ r.col }};min-width:44px;text-align:right">{{ r.delta }}</span>
@@ -265,6 +252,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ANNOUNCEMENTS</div>
+        <sc-if value="{{ annsEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:22px 8px 6px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#1B7A78">TBA</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">No announcements yet — coach updates will show up here once the season gets underway.</div>
+          </div>
+        </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
           <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#1B7A78;margin-top:5px;flex:none"></div>
@@ -279,11 +272,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <sc-if value="{{ vCHome }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
-        <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        <sc-if value="{{ heroIsCoachDiver }}" hint-placeholder-val="{{ false }}">
+          <image-slot id="home-hero-coach-divers" shape="rect" fit="cover" src="uploads/divers.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
+        <sc-if value="{{ heroIsCoachMen }}" hint-placeholder-val="{{ true }}">
+          <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+        </sc-if>
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.1),rgba(42,18,24,.6));pointer-events:none"></div>
         <div style="position:absolute;left:0;right:0;bottom:0;padding:0 20px 18px;pointer-events:none">
           <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#7fd0cd;text-shadow:0 1px 4px rgba(0,0,0,.7)">2026–2027 SEASON</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">{{ coachWelcome }}</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;line-height:1;color:#F5E9DC;margin-top:6px;text-shadow:0 2px 8px rgba(0,0,0,.7);white-space:nowrap">{{ coachWelcome }}</div>
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">{{ coachSubtitle }}</div>
         </div>
       </div>
@@ -300,7 +298,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">93%</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ attPctDisplay }}</div>
           <div style="font-size:12.5px;color:rgba(42,18,24,.6)">last 30 days</div>
          </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
@@ -347,10 +345,48 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM ANNOUNCEMENTS</div>
+        <sc-if value="{{ annsEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:22px 8px 6px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">TBA</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Nothing posted yet — announcements you send to the team will show up here.</div>
+          </div>
+        </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
           <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
             <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">Posted {{ a.d }}</div></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ ATTENDANCE (coach) ============ -->
+  <sc-if value="{{ vAttendance }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#2A1218;border-radius:8px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+        <button onClick="{{ attPrevDay }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">‹</button>
+        <div style="text-align:center">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:19px;letter-spacing:1px;color:#F5E9DC">{{ attDateLabel }}</div>
+        </div>
+        <sc-if value="{{ attIsToday }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:22px;font-weight:700;padding:2px 12px;line-height:1;color:rgba(245,233,220,.25)">›</div>
+        </sc-if>
+        <sc-if value="{{ attNotToday }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ attNextDay }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">›</button>
+        </sc-if>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
+          <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
+        </div>
+        <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} present — tap anyone who's out</div>
+        <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
+          <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+            <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
+            <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
+            <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border:1.5px solid {{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
           </div>
         </sc-for>
       </div>
@@ -409,7 +445,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
       <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
         <div style="font-size:13px;font-weight:600">Practice streak</div>
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">14 in a row</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
@@ -492,6 +528,35 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <iframe src="{{ swimcloudTimesUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
         </div>
       </sc-if>
+      <sc-if value="{{ showDiveTimes }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TOP TIMES</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 12px">All-time best scores by an Alma diver · via SwimCloud</div>
+          <div style="display:flex;gap:8px;margin-bottom:6px">
+            <select value="{{ diveTimesEv }}" onChange="{{ diveTimesEvSel }}" style="flex:1;background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
+              <option value="1M">1M Diving</option>
+              <option value="3M">3M Diving</option>
+            </select>
+            <select value="{{ diveTimesDives }}" onChange="{{ diveTimesDivesSel }}" style="flex:1;background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
+              <option value="6">6 Dives</option>
+              <option value="11">11 Dives</option>
+            </select>
+          </div>
+          <sc-if value="{{ diveTimesEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0">No times recorded yet for this event.</div>
+          </sc-if>
+          <sc-for list="{{ diveTimesRows }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+              <div style="min-width:18px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:rgba(42,18,24,.4);flex:none">{{ r.rank }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:13.5px">{{ r.name }}</div>
+                <div style="font-size:11px;color:rgba(42,18,24,.5)">{{ r.meet }}</div>
+              </div>
+              <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;color:#6B1F33;flex:none">{{ r.t }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ showStaff }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#6B1F33">COACHING STAFF</div>
@@ -516,13 +581,42 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ ME (athlete) ============ -->
   <sc-if value="{{ vMe }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#6B1F33;color:#F5E9DC;border-radius:10px;padding:18px;display:flex;align-items:center;gap:14px">
-        <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none"><image-slot id="{{ det.slotId }}" src="{{ det.photo }}" minimal="true" shape="circle" placeholder="{{ det.ini }}"></image-slot></div>
-        <div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1">{{ det.name }}</div>
-          <div style="font-size:12.5px;color:rgba(245,233,220,.8);margin-top:3px">{{ det.cls }} · {{ det.pos }}</div>
-          <div style="font-size:11.5px;color:rgba(245,233,220,.6)">{{ det.home }}</div>
+      <div style="background:#6B1F33;color:#F5E9DC;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none;position:relative">
+            <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
+              <img src="{{ det.photo }}" style="width:100%;height:100%;object-fit:cover;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+            </sc-if>
+            <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:20px">{{ det.ini }}</div>
+            </sc-if>
+            <sc-if value="{{ det.canEditBio }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ det.togglePhotoEdit }}" style="position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;border:2px solid #6B1F33;background:#F5E9DC;color:#6B1F33;font-size:11px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">{{ det.photoEditIcon }}</button>
+            </sc-if>
+          </div>
+          <div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1">{{ det.name }}</div>
+            <div style="font-size:12.5px;color:rgba(245,233,220,.8);margin-top:3px">{{ det.cls }} · {{ det.pos }}</div>
+            <div style="font-size:11.5px;color:rgba(245,233,220,.6)">{{ det.home }}</div>
+          </div>
         </div>
+        <sc-if value="{{ det.photoEditing }}" hint-placeholder-val="{{ false }}">
+          <div style="border-top:1px solid rgba(245,233,220,.2);padding-top:12px;display:flex;flex-direction:column;gap:10px">
+            <label for="mePhotoFile" style="align-self:flex-start;border:1.5px solid #F5E9DC;color:#F5E9DC;border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">Change photo</label>
+            <input id="mePhotoFile" type="file" accept="image/*" onChange="{{ det.onPhotoFileChange }}" style="display:none">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:11px;color:rgba(245,233,220,.7);white-space:nowrap">Zoom</span>
+              <input type="range" min="100" max="250" value="{{ det.zoomPct }}" onChange="{{ det.onZoomChange }}" style="flex:1;accent-color:#F5E9DC">
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+              <button onClick="{{ det.onPanLeft }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">◀</button>
+              <button onClick="{{ det.onPanUp }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">▲</button>
+              <button onClick="{{ det.onPanDown }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">▼</button>
+              <button onClick="{{ det.onPanRight }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">▶</button>
+              <button onClick="{{ det.onResetFraming }}" style="margin-left:8px;border:none;background:none;color:rgba(245,233,220,.7);font-size:11.5px;font-weight:700;cursor:pointer">Reset</button>
+            </div>
+          </div>
+        </sc-if>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -550,8 +644,26 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:13.5px;margin-top:2px">{{ det.weight }}</div>
             </sc-if>
           </div>
-          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ det.year }}</div></div>
-          <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ det.home }}</div></div>
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div>
+            <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
+              <select value="{{ det.clsValue }}" onChange="{{ det.onClsChange }}" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box;background:#fff">
+                <sc-for list="{{ det.clsOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+              </select>
+            </sc-if>
+            <sc-if value="{{ det.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13.5px;margin-top:2px">{{ det.year }}</div>
+            </sc-if>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div>
+            <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
+              <input value="{{ det.homeValue }}" onChange="{{ det.onHomeChange }}" placeholder="e.g. Alma, MI" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+            </sc-if>
+            <sc-if value="{{ det.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:13.5px;margin-top:2px">{{ det.home }}</div>
+            </sc-if>
+          </div>
           <div>
             <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div>
             <sc-if value="{{ det.statsEditing }}" hint-placeholder-val="{{ false }}">
@@ -578,6 +690,27 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </sc-if>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BADGES</div>
+        <sc-if value="{{ det.badgesEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No badges yet — these unlock as you hit real milestones once the season starts.</div>
+        </sc-if>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+          <sc-for list="{{ det.badges }}" as="b" hint-placeholder-count="4">
+            <div style="border:1px solid rgba(107,31,51,.22);border-radius:8px;padding:12px;background:#FDFBF7">
+              <div style="width:28px;height:28px;border-radius:50%;background:{{ b.c }};display:flex;align-items:center;justify-content:center;color:#F5E9DC;font-size:13px">★</div>
+              <div style="font-weight:700;font-size:13px;margin-top:8px">{{ b.n }}</div>
+              <div style="font-size:11px;color:rgba(42,18,24,.55);margin-top:2px;line-height:1.35">{{ b.d }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ PROGRESSION (athlete) ============ -->
+  <sc-if value="{{ vProgress }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PROGRESSION</div>
           <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }} this season</div>
@@ -591,7 +724,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <sc-for list="{{ det.chart.yTicks }}" as="g" hint-placeholder-count="5">
             <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
             <foreignObject x="0" y="{{ g.ly }}" width="{{ det.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ det.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
             </foreignObject>
           </sc-for>
           <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
@@ -627,7 +760,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </select>
         </div>
         <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the meet and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
         </sc-if>
         <sc-for list="{{ det.myEventRows }}" as="r" hint-placeholder-count="3">
           <div style="padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
@@ -635,34 +768,18 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
               <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
             </div>
-            <div style="margin-top:6px">
-              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">SWIM MEET NAME</div>
-              <input value="{{ r.meetValue }}" onChange="{{ r.onMeetChange }}" placeholder="Meet name" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
-            </div>
             <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px">
               <div style="flex:1;min-width:0">
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
                 <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
               </div>
-              <div style="flex:none">
+              <div style="flex:1;min-width:0">
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">TIME</div>
-                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:80px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
               </div>
             </div>
           </div>
         </sc-for>
-      </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BADGES</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
-          <sc-for list="{{ det.badges }}" as="b" hint-placeholder-count="4">
-            <div style="border:1px solid rgba(107,31,51,.22);border-radius:8px;padding:12px;background:#FDFBF7">
-              <div style="width:28px;height:28px;border-radius:50%;background:{{ b.c }};display:flex;align-items:center;justify-content:center;color:#F5E9DC;font-size:13px">★</div>
-              <div style="font-weight:700;font-size:13px;margin-top:8px">{{ b.n }}</div>
-              <div style="font-size:11px;color:rgba(42,18,24,.55);margin-top:2px;line-height:1.35">{{ b.d }}</div>
-            </div>
-          </sc-for>
-        </div>
       </div>
     </div>
   </sc-if>
@@ -879,9 +996,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- bottom nav -->
 <div style="flex:none;display:flex;background:#FFFFFF;border-top:1px solid rgba(42,18,24,.08);padding:8px 8px 24px">
   <sc-for list="{{ navItems }}" as="t" hint-placeholder-count="5">
-    <button onClick="{{ t.onTap }}" style="flex:1;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px">
+    <button onClick="{{ t.onTap }}" style="flex:1;min-width:0;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px">
       <div style="width:34px;height:3px;border-radius:2px;background:{{ t.bar }}"></div>
-      <div style="font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1.5px;color:{{ t.fg }}">{{ t.n }}</div>
+      <div style="font-family:'Barlow Condensed';font-weight:700;font-size:{{ t.sz }};letter-spacing:{{ t.ls }};color:{{ t.fg }};white-space:nowrap">{{ t.n }}</div>
     </button>
   </sc-for>
 </div>
@@ -982,8 +1099,26 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <div style="font-size:13.5px;margin-top:2px">{{ selDet.weight }}</div>
               </sc-if>
             </div>
-            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.year }}</div></div>
-            <div><div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div><div style="font-size:13.5px;margin-top:2px">{{ selDet.home }}</div></div>
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">YEAR</div>
+              <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
+                <select value="{{ selDet.clsValue }}" onChange="{{ selDet.onClsChange }}" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box;background:#fff">
+                  <sc-for list="{{ selDet.clsOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+                </select>
+              </sc-if>
+              <sc-if value="{{ selDet.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13.5px;margin-top:2px">{{ selDet.year }}</div>
+              </sc-if>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HOMETOWN</div>
+              <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
+                <input value="{{ selDet.homeValue }}" onChange="{{ selDet.onHomeChange }}" placeholder="e.g. Alma, MI" style="width:100%;margin-top:3px;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+              </sc-if>
+              <sc-if value="{{ selDet.statsReadOnly }}" hint-placeholder-val="{{ true }}">
+                <div style="font-size:13.5px;margin-top:2px">{{ selDet.home }}</div>
+              </sc-if>
+            </div>
             <div>
               <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">HIGH SCHOOL</div>
               <sc-if value="{{ selDet.statsEditing }}" hint-placeholder-val="{{ false }}">
@@ -1018,16 +1153,29 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
               <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
               <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:10px;font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ selDet.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
               </foreignObject>
             </sc-for>
             <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
             <polyline points="{{ selDet.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
             <sc-for list="{{ selDet.chart.dots }}" as="p" hint-placeholder-count="6">
               <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
+              <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
+                  <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
+                </div>
+              </foreignObject>
             </sc-for>
           </svg>
-          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:4px">
+          <div style="position:relative;height:28px;margin-top:2px">
+            <sc-for list="{{ selDet.chart.labs }}" as="l" hint-placeholder-count="6">
+              <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
+                <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
+                <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:10px">
             <span style="color:rgba(42,18,24,.6)">Best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.pb }}</span></span>
             <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.goal }}</span></span>
           </div>
@@ -1040,6 +1188,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </div>
           </sc-for>
         </div>
+        <sc-if value="{{ selDet.badgesEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:11.5px;color:rgba(42,18,24,.45)">No badges yet</div>
+        </sc-if>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <sc-for list="{{ selDet.badges }}" as="b" hint-placeholder-count="3">
             <div style="border:1px solid rgba(107,31,51,.3);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;color:#6B1F33;background:#fff">★ {{ b.n }}</div>
@@ -1091,7 +1242,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{}};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoEdit:null,diveTimesEv:'1M',diveTimesDives:'6'};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1113,6 +1264,13 @@ class Component extends DCLogic {
       const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEventEntries')||'null');
       if(savedMyEvents)this.state.myEvents=savedMyEvents;
     }catch(e){}
+    // Restore each athlete's own profile-photo replacement + framing
+    // (see saveMyPhotos) — self-uploaded, only ever touched by that
+    // athlete's own ME tab.
+    try{
+      const savedMyPhotos=JSON.parse(localStorage.getItem('scotswim.myPhotos')||'null');
+      if(savedMyPhotos)this.state.myPhotos=savedMyPhotos;
+    }catch(e){}
     // Restore any goals set in a previous session (see saveGoalPrefs) —
     // done here, before the first render, so a coach's earlier adjustment
     // is already visible the moment an athlete logs in, not just within
@@ -1124,8 +1282,23 @@ class Component extends DCLogic {
         if(savedGoals.selfGoals)this.state.selfGoals=savedGoals.selfGoals;
       }
     }catch(e){}
+    // Restore coach-taken practice attendance (see saveAttendance) — the
+    // day-by-day present/absent record the streak and attendance-% stats
+    // are computed from. Starts empty every season — practices haven't
+    // happened yet until a coach actually takes attendance for a real
+    // day. (Key bumped to .v2 to leave behind an earlier build's
+    // pre-seeded 14 fake "present" days, which shouldn't have existed —
+    // real users on that build get a clean reset here rather than
+    // carrying that fake history forward.)
+    try{
+      const savedAttendance=JSON.parse(localStorage.getItem('scotswim.attendance.v3')||'null');
+      if(savedAttendance)this.state.attendance=savedAttendance;
+    }catch(e){}
     this.EV=[
       {id:'50FR',n:'50 Free',g:'FR',b:{M:22.6,W:25.6}},
+      {id:'50BK',n:'50 Back',g:'BK',b:{M:24.9,W:28.2}},
+      {id:'50BR',n:'50 Breast',g:'BR',b:{M:28.1,W:31.9}},
+      {id:'50FL',n:'50 Fly',g:'FL',b:{M:24.3,W:27.3}},
       {id:'100FR',n:'100 Free',g:'FR',b:{M:50.9,W:56.4}},
       {id:'200FR',n:'200 Free',g:'FR',b:{M:112.5,W:124.0}},
       {id:'500FR',n:'500 Free',g:'FR',b:{M:312.0,W:337.0}},
@@ -1144,53 +1317,46 @@ class Component extends DCLogic {
     ];
     this.evMap={};this.EV.forEach(e=>this.evMap[e.id]=e);
     const MEN=[
-      ['Andrew Barrett','Sr.','Sprint Freestyle/Butterfly','Hartland, Mich.'],
-      ['Cody Benkovsky','So.','Breaststroke','Eaton Rapids, Mich.'],
-      ['Cooper Couch','So.','Diving','Alma, Mich.'],
-      ['Sam Couch','Sr.','Freestyle','Alma, Mich.'],
+      ['Andrew Barrett','Sr.','Sprint Freestyle/Butterfly','Hartland, MI'],
+      ['Cody Benkovsky','Jr.','Breaststroke','Eaton Rapids, MI'],
+      ['Karl Bray','Fr.','Breaststroke','Ferndale, MI'],
+      ['Ruairidh Davis','Fr.','Sprint Freestyle','Belfast, Ireland'],
       ['Rayane Debbarh','Sr.','Freestyle','Rabat, Morocco'],
-      ['Ryan Fowler','Jr.','Freestyle','Massillon, Ohio'],
-      ['Brett Gaff','So.','Freestyle/Butterfly','Houghton, Mich.'],
-      ['Nolan Kaiser','So.','Freestyle/Butterfly','Royal Oak, Mich.'],
-      ['Anthony Kulka','So.','Butterfly/Freestyle','Jackson, Mich.'],
-      ['Colin Moran','So.','Freestyle','Jackson, Mich.'],
-      ['Noah Newman','So.','Freestyle/Butterfly','Merrillville, Ind.'],
-      ['Max Nielsen','Sr.','Freestyle/Fly','Clinton Twp., Mich.'],
-      ['Colton Ralko','So.','Butterfly','Howell, Mich.'],
-      ['Morrison Wood','So.','Backstroke/Freestyle','Macomb, Mich.']
+      ['Ryan Fowler','Sr.','Freestyle','Massillon, OH'],
+      ['Brett Gaff','Jr.','Freestyle/Butterfly','Houghton, MI'],
+      ['Anthony Kulka','Jr.','Butterfly/Freestyle','Jackson, MI'],
+      ['Colin Moran','Jr.','Freestyle','Jackson, MI'],
+      ['Noah Newman','Jr.','Freestyle/Butterfly','Merrillville, IN'],
+      ['Max Nielsen','Sr.','Freestyle/Fly','Clinton Twp., MI'],
+      ['Colton Ralko','Jr.','Butterfly','Howell, MI'],
+      ['Morrison Wood','Jr.','Backstroke/Freestyle','Macomb, MI'],
+      ['Nate Yearkey','Fr.','Sprint Freestyle','Macomb, MI']
     ];
     const WOMEN=[
-      ['Zoe Barringer','Fr.','Freestyle','Flat Rock, Mich.'],
-      ['Anya Drewnicki','Sr.','Freestyle','Warren, Mich.'],
-      ['Abby Dumond','Fr.','Diving','Middleville, Mich.'],
-      ['Marie Halligan','Fr.','Breaststroke','Grand Blanc, Mich.'],
-      ['Aubrey Hawks','Fr.','Backstroke/Freestyle','Wayland, Mich.'],
-      ['Emma Hoy','Fr.','Freestyle','Port Sanilac, Mich.'],
-      ['Katelyn Lamphere','Fr.','Freestyle/Backstroke','Ionia, Mich.'],
-      ['Isabel Lyshol','So.','Sprint Freestyle','Seattle, Wash.'],
-      ['Maddie McGuire','Fr.','Diving','Dexter, Mich.'],
-      ['Sarah Rabbideau','Fr.','Breaststroke','Lachine, Mich.'],
-      ['Heidi Ragainis','Fr.','Freestyle','Kalamazoo, Mich.'],
-      ['Sierra Scott','Fr.','Freestyle/Butterfly','Iron Mountain, Mich.'],
-      ['Abi Spitzley','Fr.','Freestyle/Butterfly','DeWitt, Mich.'],
-      ['Hannah Sullivan','Fr.','Freestyle/Butterfly','Canton, Mich.'],
-      ['Valerie Vinci','Fr.','Freestyle','Lake Orion, Mich.'],
-      ['Petronella Wilson','So.','Freestyle','Traverse City, Mich.'],
-      ['Delilah Zingelewicz','Fr.','Freestyle/Breaststroke','Holt, Mich.']
+      ['Zoe Barringer','So.','Freestyle','Flat Rock, MI'],
+      ['Anya Drewnicki','Sr.','Freestyle','Warren, MI'],
+      ['Abby Dumond','So.','Diving','Middleville, MI'],
+      ['Kellie Fahey','Fr.','Freestyle/Individual Medley','Tecumseh, MI'],
+      ['Rowan Frost','Fr.','Sprint Freestyle','Mount Pleasant, MI'],
+      ['Marie Halligan','So.','Breaststroke','Grand Blanc, MI'],
+      ['Aubrey Hawks','So.','Backstroke/Freestyle','Wayland, MI'],
+      ['Emma Hoy','So.','Freestyle','Port Sanilac, MI'],
+      ['Katelyn Lamphere','So.','Freestyle/Backstroke','Ionia, MI'],
+      ['Isabel Lyshol','Jr.','Sprint Freestyle','Seattle, WA'],
+      ['Maddie McGuire','So.','Diving','Dexter, MI'],
+      ['Sarah Rabbideau','So.','Breaststroke','Lachine, MI'],
+      ['Heidi Ragainis','So.','Freestyle','Kalamazoo, MI'],
+      ['Sierra Scott','So.','Freestyle/Butterfly','Iron Mountain, MI'],
+      ['Abi Spitzley','So.','Freestyle/Butterfly','DeWitt, MI'],
+      ['Hannah Sullivan','So.','Freestyle/Butterfly','Canton, MI'],
+      ['Valerie Vinci','So.','Freestyle','Lake Orion, MI'],
+      ['Delilah Zingelewicz','So.','Freestyle/Breaststroke','Holt, MI']
     ];
     const hs=s=>{let h=0;for(let i=0;i<s.length;i++)h=((h*31+s.charCodeAt(i))>>>0)%100000;return h};
     const rnd=seed=>{const x=Math.sin(seed+1)*10000;return x-Math.floor(x)};
     this.hs=hs;this.rnd=rnd;
     const HM=[['Scots Relays','Oct','10/4'],['Olivet','Nov','11/1'],['Albion','Nov','11/15'],['Calvin Inv','Nov','11/22'],['Winter Inv','Jan','1/17'],['MIAA','Feb','2/21']];
     this.HM=HM;
-    const BADGES=[
-      ['PB Machine','Dropped time in 3+ events this season','#6B1F33'],
-      ['Taper Titan','Season best at MIAA Championships','#1B7A78'],
-      ['Iron Attendance','20 consecutive practices','#2A1218'],
-      ['First Splash','First collegiate race completed','#1B7A78'],
-      ['Podium','Top-3 finish in a dual meet','#6B1F33'],
-      ['Early Bird','10 morning practices this block','#2A1218']
-    ];
     const mkHist=(pbs,primary,seed)=>{
       const hist={};
       primary.forEach(ev=>{
@@ -1244,11 +1410,11 @@ class Component extends DCLogic {
         const prim=primary.includes(e.id);
         pbs[e.id]=Math.round(e.b[gender]*(prim?0.962+0.05*r:1.045+0.09*r)*100)/100;
       });
-      const bIdx=h%BADGES.length,bN=2+h%3;
-      const badges=[];for(let i=0;i<bN;i++){const b=BADGES[(bIdx+i*2)%BADGES.length];if(!badges.includes(b))badges.push(b);}
       return {id:name,name,cls,pos,home,gender,diver,sprint,primary,pbs,
         hist:mkHist(pbs,primary,h),goals:mkGoals(pbs,primary),
-        badges:badges.map(b=>({n:b[0],d:b[1],c:b[2]})),
+        // No badges are pre-assigned — the season hasn't started, so
+        // nobody's actually earned one yet.
+        badges:[],
         ini:name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(),
         avc:['#6B1F33','#1B7A78','#2A1218','#8a3247'][h%4]};
     };
@@ -1263,33 +1429,23 @@ class Component extends DCLogic {
     Object.assign(ray.pbs,{'50FR':27.48,'100FR':62.32,'100BR':75.12,'200BR':210.19,'100FL':86.81});
     ray.hist=mkHist(ray.pbs,ray.primary,hs(ray.id));
     ray.goals=mkGoals(ray.pbs,ray.primary);
-    ray.badges=[{n:'PB Machine',d:'Five lifetime bests in 2025-26',c:'#6B1F33'},{n:'Taper Titan',d:'Season bests at MIAA Championships',c:'#1B7A78'},{n:'Iron Attendance',d:'20 consecutive practices',c:'#2A1218'}];
-    // Cooper Couch — real 2025-26 diving results from SwimCloud meet pages.
-    // Six-dive dual/invite scores only; the Nov 20-22 Malone Invitational
-    // (268.90) is scored on an 11-dive format and isn't comparable to the
-    // rest, so it's left out of the progression rather than skewing it.
-    const cooper=this.byId['Cooper Couch'];
-    Object.assign(cooper.pbs,{DV1:191.95,DV3:132.95});
-    cooper.hist.DV1=[100.85,168.75,130.45,191.95];
-    cooper.hist.DV3=[132.95,114.65];
-    cooper.meetLogByEv={
-      DV1:[['Bethel Tri','Nov','11/1'],['Albion','Nov','11/15'],['Manchester','Jan','1/10'],['Manchester','Jan','1/10']],
-      DV3:[['Albion','Nov','11/15'],['MIAA Winter','Jan','1/24']]
-    };
-    cooper.goals=mkGoals(cooper.pbs,cooper.primary);
     // Apply any athlete-picked events/times restored from localStorage —
     // done last so a self-reported set of events (once an athlete has set
     // one up) takes over from the synthetic default, same as it would for
-    // Rayane/Cooper above.
+    // Rayane above.
     Object.keys(this.state.myEvents).forEach(id=>this.applyMyEvents(id,this.state.myEvents[id]));
     this.photos={
       'Rayane Debbarh':'https://almascots.com/images/2025/10/27/IMG_9865.JPG?width=300',
       'Chris Hamstra':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2024/7/16/IMG_4124.JPG?width=300',
       'Kodi Stone':'https://dbukjj6eu5tsf.cloudfront.net/sidearm.sites/alma.sidearmsports.com/images/2025/7/11/IMG_0705.jpg?width=300'
     };
-    this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Petronella Wilson','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Cooper Couch','Sam Couch','Anya Drewnicki','Ryan Fowler','Brett Gaff','Nolan Kaiser','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
+    this.localPhotos=['Abby Dumond','Zoe Barringer','Marie Halligan','Aubrey Hawks','Emma Hoy','Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau','Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan','Valerie Vinci','Delilah Zingelewicz','Andrew Barrett','Cody Benkovsky','Anya Drewnicki','Ryan Fowler','Brett Gaff','Anthony Kulka','Colin Moran','Noah Newman','Max Nielsen','Colton Ralko','Morrison Wood','Nick Nemeth','Erik Hartwell','Fletcher Roberts'];
     this.slotIdOf=n=>'photo-'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-    this.photoOf=n=>this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
+    this.photoOf=n=>{
+      const mine=this.state.myPhotos[n];
+      if(mine&&mine.data)return mine.data;
+      return this.localPhotos.includes(n)?('photos/'+n.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png'):(this.photos[n]||'');
+    };
     this.coaches=[
       {name:'Chris Hamstra',role:'Swimming Coach',ini:'CH'},
       {name:'Kodi Stone',role:'Diving Coach',ini:'KS'}
@@ -1326,11 +1482,33 @@ class Component extends DCLogic {
       {day:'SATURDAY',s:[{t:'8:00 AM',n:'Long course endurance',tag:'POOL'}]},
       {day:'SUNDAY',s:[{t:'—',n:'Rest & mobility on your own',tag:'REST'}]}
     ];
-    this.anns=[
-      {t:'Team photos before Saturday practice — bring both caps.',d:'Aug 2'},
-      {t:'Fall training block starts Sep 8. Full week is posted in Training.',d:'Aug 1'},
-      {t:'Goal-setting 1:1s with Coach Hamstra — sign up outside the pool office.',d:'Jul 29'}
-    ];
+    // No real announcements exist yet pre-season — show a clean "check
+    // back soon" state (see annsEmpty) rather than invented placeholder
+    // posts.
+    this.anns=[];
+    // All-time diving top times (1M/3M, 6-dive and 11-dive formats),
+    // per real SwimCloud program history — includes athletes no longer
+    // on the current roster, same as any all-time list. There's no
+    // separate diving "records" page (see showRecords), so this is the
+    // only historical-bests view diving coach gets. Women's isn't in
+    // hand yet — diveTimesEmpty covers that until it is.
+    this.diveTopTimes={
+      M:{
+        '1M':{
+          6:[{name:'Andrew O’Meara',meet:'Alma vs. Calvin',t:185.95},
+             {name:'Cooper Couch',meet:'Alma vs. Albion',t:168.75}],
+          11:[{name:'Spencer Johnson',meet:'MIAA Championships',t:520.40},
+              {name:'Andrew O’Meara',meet:'Calvin Invitational',t:339.45},
+              {name:'Eric Ferrara',meet:'Alma vs. Calvin',t:54.67}]
+        },
+        '3M':{
+          6:[{name:'Cooper Couch',meet:'Alma vs. Albion',t:132.95}],
+          11:[{name:'Spencer Johnson',meet:'MIAA Championships',t:524.15},
+              {name:'Andrew O’Meara',meet:'Calvin Invitational',t:290.15}]
+        }
+      },
+      W:{}
+    };
     this.opps=[
       {n:'Hope',f:0.985,teamId:'99',grp:'MIAA'},
       {n:'Calvin',f:0.99,teamId:'55',grp:'MIAA'},
@@ -1521,8 +1699,8 @@ class Component extends DCLogic {
   fmt(t){if(t>=60){const m=Math.floor(t/60);const s=t-m*60;return m+':'+s.toFixed(2).padStart(5,'0')}return t.toFixed(2)}
   ptsOf(s){
     // Real SwimCloud season points (2025-26)
-    const R={'Andrew Barrett':494.15,'Cody Benkovsky':496.25,'Sam Couch':465.96,'Rayane Debbarh':273.45,
-      'Ryan Fowler':452.55,'Brett Gaff':381.10,'Nolan Kaiser':523.35,'Anthony Kulka':415.95,'Colin Moran':552.20,
+    const R={'Andrew Barrett':494.15,'Cody Benkovsky':496.25,'Rayane Debbarh':273.45,
+      'Ryan Fowler':452.55,'Brett Gaff':381.10,'Anthony Kulka':415.95,'Colin Moran':552.20,
       'Noah Newman':452.20,'Max Nielsen':469.00,'Colton Ralko':433.85,'Morrison Wood':474.20,
       'Zoe Barringer':460.00,'Anya Drewnicki':371.35,'Sofia Floros':493.85,'Marie Halligan':320.85,
       'Aubrey Hawks':373.60,'Emma Hoy':466.60,'Katelyn Lamphere':378.90,'Grace Ludema':558.20,'Isabel Lyshol':213.00,
@@ -1567,35 +1745,56 @@ class Component extends DCLogic {
     const vals=[...hist,goal];
     let mn=Math.min(...vals),mx=Math.max(...vals);
     const pad=(mx-mn)*0.15||1;mn-=pad;mx+=pad;
-    const PL=54,PR=302,PT=68,PH=222;
-    const X=i=>PL+i*((PR-PL)/(hist.length-1||1));
+    const PR=302,PT=32,PH=258;
     const Y=t=>PT+((dive?(mx-t):(t-mn))/(mx-mn))*PH;
+    const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     // Gridline values are derived from this event's own mn/mx (already
     // padded around this athlete's actual entered times), not a fixed
-    // scale. Swim (non-dive) events force the same 0.5s step SwimCloud
-    // uses, unless that would put an unreasonable number of gridlines on
-    // a long-distance event's wide range — then it falls back to a
-    // dynamically-picked round step.
-    const halfStepTicks=dive?null:this.niceTicks(mn,mx,4,0.5);
-    const yTicks=(dive||!halfStepTicks||halfStepTicks.length>18?this.niceTicks(mn,mx,4):halfStepTicks)
-      .map(v=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:this.fmtEv(ev,v)}));
+    // scale. Both swim and dive force a fixed, evenly-spaced step — 0.5s
+    // for swim (matching SwimCloud) and 10pts for dive, its natural
+    // equivalent — instead of a dynamically-picked one, unless that would
+    // put an unreasonable number of gridlines on an unusually wide range,
+    // in which case it falls back to a dynamically-picked round step.
+    const forcedStepTicks=this.niceTicks(mn,mx,4,dive?5:0.5);
+    const tickVals=!forcedStepTicks||forcedStepTicks.length>45?this.niceTicks(mn,mx,4):forcedStepTicks;
+    // Dive gridlines are always round numbers already (niceTicks picks
+    // 1/2/2.5/5/10 steps), so they don't need the decimal + " pts" suffix
+    // the point-value labels use — that suffix alone was blowing up the
+    // axis column's width and making dive charts read as a completely
+    // different shape from swim charts. Plain integers keep dive's axis
+    // column the same width as swim's.
+    const tickLabels=tickVals.map(v=>dive?String(Math.round(v)):this.fmtEv(ev,v));
+    // The axis column stays tight — a small, fixed padding-right on the
+    // tick text (not stretched to fit the first point's label), so the
+    // gridlines start right after the numbers instead of leaving a big
+    // gap. The first point sits at PL by construction and its value
+    // label is centered on it, so it still needs to clear the axis
+    // text — handled by nudging just the first point rightward (INSET)
+    // by exactly as much as its own label's width requires, rather than
+    // widening the whole axis column to make room for it.
+    const axisPad=10;
+    const maxTickW=Math.max(30,...tickLabels.map(t=>Math.round(t.length*5.6)));
+    const PL=Math.max(54,axisPad+maxTickW+6);
+    const firstLabelHalf=hist.length?boxW(this.fmtEv(ev,hist[0]))/2:0;
+    const INSET=Math.max(0,Math.ceil(firstLabelHalf-axisPad+6));
+    const X=i=>PL+INSET+i*((PR-PL-INSET)/(hist.length-1||1));
+    const yTicks=tickVals.map((v,i)=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:tickLabels[i]}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Each label's box is sized to its own text (not a fixed worst-case
-    // width) and stays centered on its point — clamped only at the SVG's
-    // physical edges (so nothing gets clipped), never at the plot/axis
-    // bounds, so the point always sits under the label's middle. Its
-    // vertical offset is picked by walking the polyline's actual height
-    // across the box's real horizontal span and clearing the closest
-    // approach with a small fixed margin — exact for any slope, and no
-    // bigger than it needs to be, so labels sit close/snug above their
-    // point rather than floating far above it. A second left-to-right pass
-    // then checks each label's box against every already-placed label's
-    // box and, on any overlap, raises it above that label too — so
-    // close-together points (5+ entries in one event) stack their labels
-    // in clear rows instead of overlapping each other.
+    // Every label starts at the same baseline offset above its own point
+    // (centered on it, clamped only at the SVG's physical edges so nothing
+    // clips) — the common case reads as one consistent row of labels. It's
+    // only raised past that baseline when the line would actually pass
+    // through it there (walking the polyline's real height across the
+    // box's horizontal span), and only by the minimum amount that specific
+    // conflict needs — a steep segment genuinely does need more clearance
+    // than a flat one to keep the line from cutting through the label, so
+    // that much variation is unavoidable, but it's kept as small as it can
+    // safely be. A second left-to-right pass then checks each label's box
+    // against every already-placed label's box and, on any overlap, raises
+    // it above that label too — so close-together points (5+ entries in
+    // one event) stack their labels in clear rows instead of overlapping.
     const HH=8,LH=16,GAP=2;
-    const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     const lineYAt=xq=>{
       for(let k=0;k<hist.length-1;k++){
         const x0=X(k),x1=X(k+1);
@@ -1618,7 +1817,7 @@ class Component extends DCLogic {
       const lw=boxW(label);
       const fx=Math.min(318-lw,Math.max(2,x-lw/2));
       const minLineY=lineMinYInRange(fx,fx+lw);
-      const d=Math.max(14,(y-minLineY)+14);
+      const d=Math.max(14,(y-minLineY)+10);
       let fy=y-d-HH,moved=true;
       while(moved){
         moved=false;
@@ -1634,9 +1833,34 @@ class Component extends DCLogic {
         fx:fx.toFixed(1),fy:fy.toFixed(1),fw:lw,
         f:t===best?'#1B7A78':'#6B1F33',t:label};
     });
-    const meetLog=((s.meetLogByEv&&s.meetLogByEv[ev])||this.HM).slice(0,hist.length);
-    return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,goalY:Y(goal).toFixed(1),
-      labs:meetLog.map((m,i)=>({n:m[0].split(' ')[0].slice(0,6),d:m[2]||'',x:(X(i)/320*100).toFixed(2)+'%'})),
+    const hasRealLog=!!(s.meetLogByEv&&s.meetLogByEv[ev]);
+    const meetLog=(hasRealLog?s.meetLogByEv[ev]:this.HM).slice(0,hist.length);
+    // Every x-axis label shows only the date the time was set — never a
+    // meet name, for any athlete — formatted the same way (month+day on
+    // top, year below) regardless of source. Self-logged entries are
+    // already 2-element [month+day, year] tuples. The seeded placeholder
+    // history some demo athletes carry (this.HM, or a specific athlete's
+    // own hardcoded meetLogByEv override) is a 3-element
+    // [meet name, month, short "M/D" date] tuple with no year in it —
+    // detected by shape here rather than by hasRealLog, since a seeded
+    // override lives in the same s.meetLogByEv property real self-logged
+    // data does — so its year is inferred from the season the month
+    // falls in (Aug-Dec = first calendar year of the season, Jan-Jul =
+    // the second) and it's reformatted through the same date parts
+    // helper real entries use, for one consistent look everywhere.
+    const seasonYear=mo=>['Aug','Sep','Oct','Nov','Dec'].includes(mo)?2026:2027;
+    return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px',goalY:Y(goal).toFixed(1),
+      labs:meetLog.map((m,i)=>{
+        if(m.length>=3){
+          const parts=(m[2]||'').split('/').map(Number);
+          if(parts[0]&&parts[1]){
+            const dp=this.fmtEntryDateParts(new Date(seasonYear(m[1]),parts[0]-1,parts[1]));
+            return {n:dp[0],d:dp[1],x:(X(i)/320*100).toFixed(2)+'%'};
+          }
+          return {n:'',d:'',x:(X(i)/320*100).toFixed(2)+'%'};
+        }
+        return {n:m[0]||'',d:m[1]||'',x:(X(i)/320*100).toFixed(2)+'%'};
+      }),
       pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
@@ -1654,6 +1878,14 @@ class Component extends DCLogic {
     // fills it in, and it stays put until they change it again.
     const statVal=this.state.stats[s.id]||{};
     const statsEditing=canEditBio&&this.state.statsEdit===s.id;
+    // Class year and hometown start from the roster record but can be
+    // corrected by the athlete themselves — same override-on-top-of-
+    // roster pattern as height/weight/hs, stored in the same place, so
+    // every place that reads them (this profile header included) sees
+    // the correction immediately.
+    const effCls=statVal.cls||s.cls;
+    const effHome=statVal.home||s.home;
+    const clsOptions=[{id:'Fr.',n:'Freshman'},{id:'So.',n:'Sophomore'},{id:'Jr.',n:'Junior'},{id:'Sr.',n:'Senior'}];
     const setStat=(field,val)=>{
       const stats={...this.state.stats};
       stats[s.id]={...(stats[s.id]||{}),[field]:val};
@@ -1673,13 +1905,30 @@ class Component extends DCLogic {
       const myEvents={...this.state.myEvents,[s.id]:next};
       this.setState({myEvents});this.saveMyEvents(myEvents);
     };
+    // Profile-photo replace + frame — self-only (gated by canEditBio,
+    // same as bio/stats). Scale/x/y are a CSS transform on a plain
+    // object-fit:cover img: object-fit already does the "cover" math for
+    // any aspect ratio, so scale/translate on top of it needs no natural-
+    // dimension bookkeeping of our own.
+    const myPhoto=this.state.myPhotos[s.id]||{};
+    const photoScale=Number.isFinite(myPhoto.s)?myPhoto.s:1;
+    const photoX=Number.isFinite(myPhoto.x)?myPhoto.x:0;
+    const photoY=Number.isFinite(myPhoto.y)?myPhoto.y:0;
+    const photoEditing=canEditBio&&this.state.photoEdit===s.id;
+    const togglePhotoEdit=()=>this.setState({photoEdit:photoEditing?null:s.id});
+    const setMyPhoto=patch=>{
+      const myPhotos={...this.state.myPhotos};
+      myPhotos[s.id]={...myPhoto,...patch};
+      this.setState({myPhotos});this.saveMyPhotos(myPhotos);
+    };
+    const PAN_MAX=40,PAN_STEP=6;
+    const clampPan=v=>Math.max(-PAN_MAX,Math.min(PAN_MAX,v));
     const myEventRows=entryIds.map(entryId=>{
       const entry=myEntries[entryId];
       const e=this.evMap[entry.eventId];
       return {id:entryId,n:e?e.n:entry.eventId,
-        meetValue:entry.meet||'',timeValue:entry.time||'',dateValue:entry.date||'',
+        timeValue:entry.time||'',dateValue:entry.date||'',
         timePlaceholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
-        onMeetChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,meet:e2.target.value}}),
         onTimeChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,time:e2.target.value}}),
         onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
@@ -1687,16 +1936,31 @@ class Component extends DCLogic {
     const addEventSel=e2=>{
       const evId=e2.target.value;if(!evId)return;
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
-      setMyEvents({...myEntries,[entryId]:{eventId:evId,meet:'',time:'',date:''}});
+      setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
     };
-    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:s.cls,pos:s.pos,home:s.home,imp,
+    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:s.pos,home:effHome,imp,
       myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
-      year:YEAR[s.cls]||s.cls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
-      slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+      year:YEAR[effCls]||effCls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
+      clsValue:effCls,clsOptions,onClsChange:e=>setStat('cls',e.target.value),
+      homeValue:effHome,onHomeChange:e=>setStat('home',e.target.value),
+      slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),photoEmpty:!this.photoOf(s.id),
+      photoScale,photoX,photoY,zoomPct:String(Math.round(photoScale*100)),
+      photoEditing,togglePhotoEdit,photoEditIcon:photoEditing?'✓':'✎',
+      onPhotoFileChange:e=>{
+        const f=e.target.files&&e.target.files[0];
+        if(f)this.readPhotoFile(f,data=>setMyPhoto({data,s:1,x:0,y:0}));
+        e.target.value='';
+      },
+      onZoomChange:e=>setMyPhoto({s:Math.max(1,Math.min(2.5,Number(e.target.value)/100))}),
+      onPanUp:()=>setMyPhoto({y:clampPan(photoY-PAN_STEP)}),
+      onPanDown:()=>setMyPhoto({y:clampPan(photoY+PAN_STEP)}),
+      onPanLeft:()=>setMyPhoto({x:clampPan(photoX-PAN_STEP)}),
+      onPanRight:()=>setMyPhoto({x:clampPan(photoX+PAN_STEP)}),
+      onResetFraming:()=>setMyPhoto({s:1,x:0,y:0}),
       chart:this.chartFor(s,ev),
       evChips:s.primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
       pbs:s.primary.map(e=>({ev:this.evMap[e].n,t:this.fmtEv(e,s.diver?Math.max(...s.hist[e]):s.pbs[e]),where:'MIAA · Feb'})),
-      badges:s.badges,
+      badges:s.badges,badgesEmpty:(s.badges||[]).length===0,
       canEditBio,bioEditing,
       bioIcon:bioEditing?'✓':'✎',
       bioReadOnly:!bioEditing,
@@ -1720,6 +1984,76 @@ class Component extends DCLogic {
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
+  saveMyPhotos(myPhotos){try{localStorage.setItem('scotswim.myPhotos',JSON.stringify(myPhotos))}catch(e){}}
+  // Downscale + re-encode an uploaded photo through a canvas so a phone
+  // camera shot (several MB) doesn't blow up localStorage — 320px is
+  // plenty for an avatar shown at 60px with room to zoom.
+  readPhotoFile(file,cb){
+    if(!file||!/^image\//.test(file.type))return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const MAX=320;
+        const scale=Math.min(1,MAX/Math.max(img.width,img.height));
+        const w=Math.max(1,Math.round(img.width*scale)),h=Math.max(1,Math.round(img.height*scale));
+        const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        cb(canvas.toDataURL('image/jpeg',0.85));
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance.v3',JSON.stringify(attendance))}catch(e){}}
+  setAttendance(day,id,val){
+    const attendance={...this.state.attendance,[day]:{...(this.state.attendance[day]||{}),[id]:val}};
+    this.setState({attendance});this.saveAttendance(attendance);
+  }
+  markAllPresent(day,roster){
+    const dayRec={...(this.state.attendance[day]||{})};
+    roster.forEach(s=>{dayRec[s.id]=true;});
+    const attendance={...this.state.attendance,[day]:dayRec};
+    this.setState({attendance});this.saveAttendance(attendance);
+  }
+  // Current streak = consecutive present days walking back from today.
+  // An unmarked today doesn't break the streak (the coach just hasn't
+  // taken attendance yet) — it starts counting from yesterday instead;
+  // an explicit absence today (or any earlier gap) ends it at that point.
+  streakFor(id){
+    const attendance=this.state.attendance;
+    const d=new Date();
+    const todayVal=attendance[this.ymd(d)]&&attendance[this.ymd(d)][id];
+    if(todayVal===false)return 0;
+    if(todayVal!==true)d.setDate(d.getDate()-1);
+    let count=0;
+    while(true){
+      const rec=attendance[this.ymd(d)];
+      if(rec&&rec[id]===true){count++;d.setDate(d.getDate()-1);}
+      else break;
+    }
+    return count;
+  }
+  // Average present-rate across the last 30 days that actually have a
+  // recorded attendance entry (skips days nobody took attendance on).
+  attendancePct(roster){
+    const attendance=this.state.attendance;
+    let sum=0,days=0;
+    const d=new Date();
+    for(let i=0;i<30;i++){
+      const rec=attendance[this.ymd(d)];
+      if(rec&&roster.length){
+        // Same "missing = present" default the roster rows use, so a day
+        // where the coach only touched a couple of absentees isn't scored
+        // as if everyone else skipped practice too.
+        sum+=roster.filter(s=>rec[s.id]!==false).length/roster.length;
+        days++;
+      }
+      d.setDate(d.getDate()-1);
+    }
+    return days?Math.round(sum/days*100):null;
+  }
   // Overrides an athlete's primary/pbs/hist/goals/meetLogByEv in place with
   // their own logged entries (raw text -> parsed here), so every view that
   // already reads s.primary/s.pbs/s.hist off the shared roster object —
@@ -1748,6 +2082,16 @@ class Component extends DCLogic {
   fmtEntryDate(d){
     return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear();
   }
+  // Full "Mon D, YYYY" date, e.g. "Jan 31, 2026" — never abbreviated or
+  // truncated, no matter how long it runs. Split across the label's two
+  // existing stacked lines ("Jan 31," / "2026", comma included) rather
+  // than crammed onto one, so it stays centered under its point and
+  // readable instead of running into its neighbors — every point still
+  // gets its complete, real date, just wrapped instead of cut off.
+  fmtEntryDateParts(d){
+    const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return [MO[d.getMonth()]+' '+d.getDate()+',',String(d.getFullYear())];
+  }
   applyMyEvents(id,entries){
     const s=this.byId[id];if(!s)return;
     if(!s.__origPrimary){s.__origPrimary=s.primary;s.__origPbs=s.pbs;s.__origHist=s.hist;s.__origGoals=s.goals;s.__origMeetLogByEv=s.meetLogByEv;}
@@ -1763,7 +2107,7 @@ class Component extends DCLogic {
       if(isNaN(v)||v<=0)return;
       const dateObj=this.parseEntryDate(entry.date);
       (byEvent[entry.eventId]=byEvent[entry.eventId]||[]).push({
-        time:Math.round(v*100)/100,meet:(entry.meet||'').trim()||'Meet',dateObj});
+        time:Math.round(v*100)/100,dateObj});
     });
     const trackedIds=Object.keys(byEvent);
     if(trackedIds.length===0){
@@ -1785,7 +2129,9 @@ class Component extends DCLogic {
       });
       const dive=this.evMap[evId].dive;
       hist[evId]=list.map(x=>x.time);
-      meetLogByEv[evId]=list.map(x=>[x.meet,'',x.dateObj?this.fmtEntryDate(x.dateObj):'']);
+      // The full date — chartFor shows this in place of a meet name now,
+      // since there's no meet name collected anymore.
+      meetLogByEv[evId]=list.map(x=>x.dateObj?this.fmtEntryDateParts(x.dateObj):['','']);
       pbs[evId]=dive?Math.max(...hist[evId]):Math.min(...hist[evId]);
     });
     s.primary=primary;s.pbs=pbs;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(pbs,primary);
@@ -1869,7 +2215,14 @@ class Component extends DCLogic {
     const nextMeet=this.sched[0];
     const cdDays=Math.max(0,Math.ceil((new Date('2026-10-09T13:00:00')-Date.now())/86400000));
     const M='#6B1F33',C='#F5E9DC',T='#1B7A78',I='#2A1218';
-    const login=(r,uid)=>{this.armMusicOnLogin();this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false});};
+    const login=(r,uid)=>{
+      // The diving coach's GOALS tab only ever has divers to pick from —
+      // default to whichever gender actually has one (Men currently has
+      // none) instead of the app-wide 'M' default, which would otherwise
+      // land on an empty pool.
+      const goalSeg=r==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
+      this.armMusicOnLogin();this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false,goalSeg});
+    };
     const doLogin=()=>{
       const u=st.uname.toLowerCase();
       if(u.includes('stone')||u.includes('diving coach'))return login('dcoach','Rayane Debbarh');
@@ -1878,12 +2231,20 @@ class Component extends DCLogic {
       login('athlete',m?m.id:'Rayane Debbarh');
     };
     const navDef=isDivingCoach
-      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['goals','GOALS']]
+      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :isCoach
-      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['team','TEAM'],['goals','GOALS']]
-      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['team','TEAM'],['me','ME']];
-    const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
-    const TITLES={home:isCoach?'DASHBOARD':'HOME',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS'};
+      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
+      :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['progress','PROGRESS'],['team','TEAM'],['me','ME']];
+    // Equal-width tabs (min-width:0 in the markup) is what actually keeps
+    // every label centered between its neighbors — PROGRESS is the one
+    // label long enough that it doesn't fit its equal share at the
+    // standard 14px/1.5px used everywhere else, so it alone gets a
+    // slightly smaller size rather than resizing (or unevenly spacing)
+    // every tab to accommodate it.
+    const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
+      sz:id==='progress'?'11.5px':'14px',ls:id==='progress'?'0.8px':'1.5px',
+      onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
+    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
@@ -1891,14 +2252,29 @@ class Component extends DCLogic {
     const schedT=this.sched.map(m=>({...m,...tagOf(m)}));
     // athlete home
     const sig=user.primary[0];
-    const sigFullHist=user.hist[sig]||[];
-    const sigMeetLog=(user.meetLogByEv&&user.meetLogByEv[sig])||this.HM;
-    const sigOffset=Math.max(0,sigFullHist.length-3);
-    const myRecent=sigFullHist.slice(-3).map((t,i,arr)=>{
-      const prev=i>0?arr[i-1]:(sigOffset>0?sigFullHist[sigOffset-1]:t);
+    // One row per event the athlete tracks (not the same event 3 times) —
+    // each shows the event name and its most recent time, so "recent
+    // swims" actually reads as which events were swum, not just repeats
+    // of the signature one.
+    const myRecent=user.primary.slice(0,3).map(evId=>{
+      const h=user.hist[evId]||[];
+      const t=h[h.length-1];
+      const prev=h.length>1?h[h.length-2]:t;
       const d=t-prev;const better=user.diver?d>0:d<0;
-      const m=sigMeetLog[sigOffset+i]||sigMeetLog[sigMeetLog.length-1]||['Meet',''];
-      return {meet:m[0]+' · '+m[1],time:this.fmtEv(sig,t),
+      const meetLog=(user.meetLogByEv&&user.meetLogByEv[evId])||this.HM;
+      const m=meetLog[h.length-1]||meetLog[meetLog.length-1]||['',''];
+      let dateLabel='';
+      if(m.length>=3){
+        const parts=(m[2]||'').split('/').map(Number);
+        if(parts[0]&&parts[1]){
+          const seasonYear=['Aug','Sep','Oct','Nov','Dec'].includes(m[1])?2026:2027;
+          const dp=this.fmtEntryDateParts(new Date(seasonYear,parts[0]-1,parts[1]));
+          dateLabel=dp[0]+' '+dp[1];
+        }
+      }else{
+        dateLabel=m[0]+(m[1]?' '+m[1]:'');
+      }
+      return {ev:this.evMap[evId].n,meet:dateLabel,time:this.fmtEv(evId,t),
         delta:(d<0?'−':'+')+Math.abs(d).toFixed(2),col:better?T:'#a04545'};
     });
     const pbOf=ev=>{
@@ -1965,8 +2341,15 @@ class Component extends DCLogic {
     // team
     const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
-    const viewSegList=[['roster','ROSTER'],['records','RECORDS'],['times','TOP TIMES']];
+    // Diving has no records page — Alma doesn't keep program records for
+    // diving — so the diving coach never gets a RECORDS sub-tab at all.
+    const viewSegList=[['roster','ROSTER'],['records','RECORDS'],['times','TOP TIMES']]
+      .filter(([id])=>!(isDivingCoach&&id==='records'));
     const viewSegs=viewSegList.map(([id,n])=>({n,bg:st.teamView===id?T:'transparent',fg:st.teamView===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamView:id})}));
+    const diveTimesEvSel=e=>this.setState({diveTimesEv:e.target.value});
+    const diveTimesDivesSel=e=>this.setState({diveTimesDives:e.target.value});
+    const diveTimesRows=(((this.diveTopTimes[st.teamSeg]||{})[st.diveTimesEv]||{})[st.diveTimesDives]||[])
+      .map((r,i)=>({rank:String(i+1),name:r.name,meet:r.meet,t:r.t.toFixed(2)}));
     let rosterSrc=st.teamSeg==='W'?this.women:this.men;
     if(isDivingCoach)rosterSrc=rosterSrc.filter(s=>s.diver);
     let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
@@ -1991,6 +2374,35 @@ class Component extends DCLogic {
       slotId:this.slotIdOf(x.s.id),photo:this.photoOf(x.s.id),
       pb:this.fmt(x.s.pbs[x.s.primary[0]]),imp:(x.s.diver?'+':'−')+(x.imp*100).toFixed(1)+'%',
       onTap:()=>this.setState({sel:x.s.id,meEvent:null})}));
+    // Practice attendance — coach-only. Swim coach checks in swimmers,
+    // diving coach checks in divers, same split every other coach view
+    // already uses. Missing an entry for someone defaults the row to
+    // present (checked) so the common case — everyone showed up — is zero
+    // taps; the coach only has to touch the ones who didn't. Not locked to
+    // today — st.attDate lets a coach step back to catch up on a day they
+    // forgot, or forward again up to (but not past) today.
+    const todayDateObj=new Date();
+    const todayKey=this.ymd(todayDateObj);
+    const attDateObj=st.attDate?new Date(st.attDate+'T00:00:00'):todayDateObj;
+    const attDateKey=st.attDate||todayKey;
+    const attIsToday=attDateKey===todayKey;
+    const attDateLabel=attIsToday?'Today':attDateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const attPrevDay=()=>{const d=new Date(attDateObj);d.setDate(d.getDate()-1);this.setState({attDate:this.ymd(d)});};
+    const attNextDay=()=>{if(attIsToday)return;const d=new Date(attDateObj);d.setDate(d.getDate()+1);this.setState({attDate:this.ymd(d)});};
+    const attRoster=this.all.filter(s=>isDivingCoach?s.diver:!s.diver);
+    const attDateRec=this.state.attendance[attDateKey]||{};
+    const attRows=attRoster.map(s=>{
+      const present=attDateRec[s.id]!==false;
+      return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
+        slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+        present,pillBg:present?'#1B7A78':'transparent',pillFg:present?C:'rgba(42,18,24,.5)',
+        pillBd:present?'#1B7A78':'rgba(42,18,24,.25)',pillLabel:present?'Present':'Absent',
+        onToggle:()=>this.setAttendance(attDateKey,s.id,!present)};
+    });
+    const attPresentCount=attRows.filter(r=>r.present).length;
+    const attPct=this.attendancePct(attRoster);
+    const attPctDisplay=attPct==null?'—':attPct+'%';
+    const onMarkAllPresent=()=>this.markAllPresent(attDateKey,attRoster);
     const sim=this.simCalc();
     const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
     const oppGroups=[['MIAA','MIAA'],['D3','NATIONAL D3']].map(([id,n])=>({n,bg:st.oppGroup===id?'#2A1218':'#fff',fg:st.oppGroup===id?C:'rgba(42,18,24,.6)',
@@ -2032,9 +2444,19 @@ class Component extends DCLogic {
       return {ev:e.n,aT:this.fmt(a.t),aN:a.s.name,oT:this.fmt(oT),
         diff:(d>=0?'+':'−')+Math.abs(d).toFixed(2),col:d>=0?T:'#a04545'};
     }).filter(Boolean);
-    const goalSegs=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.goalSeg===id?M:'transparent',fg:st.goalSeg===id?C:M,onTap:()=>this.setState({goalSeg:id,goalSel:null})}));
+    // Diving coach only ever has divers to manage — a gender with none
+    // (Men, currently) isn't a real tab for them.
+    const goalSegs=[['M','MEN'],['W','WOMEN']]
+      .filter(([id])=>!isDivingCoach||this.all.some(s=>s.diver&&s.gender===id))
+      .map(([id,n])=>({n,bg:st.goalSeg===id?M:'transparent',fg:st.goalSeg===id?C:M,onTap:()=>this.setState({goalSeg:id,goalSel:null})}));
     let gPool=st.goalSeg==='M'?this.men:this.women;
-    if(isDivingCoach)gPool=gPool.filter(s=>s.diver);
+    if(isDivingCoach){
+      gPool=gPool.filter(s=>s.diver);
+      // Guard against a pool with no divers at all for the picked gender
+      // (an empty roster segment) so this never crashes — fall back to
+      // whichever gender actually has divers.
+      if(gPool.length===0)gPool=this.all.filter(s=>s.diver);
+    }
     const gSel=this.byId[st.goalSel]&&this.byId[st.goalSel].gender===st.goalSeg&&(!isDivingCoach||this.byId[st.goalSel].diver)?this.byId[st.goalSel]:gPool[0];
     const goalChips=gPool.map(s=>({n:s.name.split(' ')[0]+' '+s.name.split(' ')[1][0]+'.',bg:gSel.id===s.id?I:'#fff',fg:gSel.id===s.id?C:'rgba(42,18,24,.7)',onTap:()=>this.setState({goalSel:s.id})}));
     const NOTES=['Hold your streamline off every wall.','Negative-split the back half.','Attack the third 25.','Clean entry — keep the rip.','Faster turns buy you a body length.'];
@@ -2059,12 +2481,13 @@ class Component extends DCLogic {
       isLogin,isApp,isCoach,
       coachWelcome:isDivingCoach?'Welcome, Coach Stone':'Welcome, Coach Hamstra',
       coachSubtitle:isDivingCoach?'Alma Scots · Diving · Diving Coach':'Alma Scots · Swimming · Head Coach',
+      heroIsCoachDiver:isDivingCoach,heroIsCoachMen:!isDivingCoach,
       uname:st.uname,pass:st.pass,
       onU:e=>this.setState({uname:e.target.value}),
       onP:e=>this.setState({pass:e.target.value}),
       doLogin,
       quickA:()=>login('athlete','Rayane Debbarh'),
-      quickB:()=>login('athlete','Cooper Couch'),
+      quickB:()=>login('athlete','Abby Dumond'),
       quickC:()=>login('coach','Rayane Debbarh'),
       quickD:()=>login('dcoach','Rayane Debbarh'),
       logout:()=>{this.pauseMusicForSignOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
@@ -2076,6 +2499,8 @@ class Component extends DCLogic {
       vTrain:isApp&&tab==='train',
       vTeam:isApp&&tab==='team',
       vMe:isApp&&!isCoach&&tab==='me',
+      vProgress:isApp&&!isCoach&&tab==='progress',
+      vAttendance:isApp&&isCoach&&tab==='attendance',
       vSim:isApp&&isCoach&&tab==='sim',
       vGoals:isApp&&isCoach&&tab==='goals',
       vDive:isApp&&tab==='dive',
@@ -2121,10 +2546,10 @@ class Component extends DCLogic {
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
       menuItems:(isDivingCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
         :isCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
-        :[['home','Home'],['meets','Meets'],['train','Training'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
+        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving Well']]
+        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving Well'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
@@ -2174,13 +2599,19 @@ class Component extends DCLogic {
       allLabel:user.diver?'All dives':'All swims',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
       todayName:this.trainWeek[dayIdx].day,todaySessions:this.trainWeek[dayIdx].s,
-      anns:this.anns,week,
+      anns:this.anns,annsEmpty:this.anns.length===0,week,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
+      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
+      attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
+      practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
-      showRecords:st.teamSeg!=='S'&&st.teamView==='records',
-      showTimes:st.teamSeg!=='S'&&st.teamView==='times',
+      showRecords:st.teamSeg!=='S'&&st.teamView==='records'&&!isDivingCoach,
+      showTimes:st.teamSeg!=='S'&&st.teamView==='times'&&!isDivingCoach,
+      showDiveTimes:st.teamSeg!=='S'&&st.teamView==='times'&&isDivingCoach,
+      diveTimesEv:st.diveTimesEv,diveTimesEvSel,diveTimesDives:st.diveTimesDives,diveTimesDivesSel,
+      diveTimesRows,diveTimesEmpty:diveTimesRows.length===0,
       showStaff:st.teamSeg==='S',
       teamSort:st.teamSort,teamSortSel:e=>this.setState({teamSort:e.target.value}),
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
