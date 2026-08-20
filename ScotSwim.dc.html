@@ -528,6 +528,35 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <iframe src="{{ swimcloudTimesUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
         </div>
       </sc-if>
+      <sc-if value="{{ showDiveTimes }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TOP TIMES</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 12px">All-time best scores by an Alma diver · via SwimCloud</div>
+          <div style="display:flex;gap:8px;margin-bottom:6px">
+            <select value="{{ diveTimesEv }}" onChange="{{ diveTimesEvSel }}" style="flex:1;background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
+              <option value="1M">1M Diving</option>
+              <option value="3M">3M Diving</option>
+            </select>
+            <select value="{{ diveTimesDives }}" onChange="{{ diveTimesDivesSel }}" style="flex:1;background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 10px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
+              <option value="6">6 Dives</option>
+              <option value="11">11 Dives</option>
+            </select>
+          </div>
+          <sc-if value="{{ diveTimesEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0">No times recorded yet for this event.</div>
+          </sc-if>
+          <sc-for list="{{ diveTimesRows }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+              <div style="min-width:18px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:rgba(42,18,24,.4);flex:none">{{ r.rank }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:13.5px">{{ r.name }}</div>
+                <div style="font-size:11px;color:rgba(42,18,24,.5)">{{ r.meet }}</div>
+              </div>
+              <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:13.5px;color:#6B1F33;flex:none">{{ r.t }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
       <sc-if value="{{ showStaff }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#6B1F33">COACHING STAFF</div>
@@ -1213,7 +1242,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoEdit:null};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoEdit:null,diveTimesEv:'1M',diveTimesDives:'6'};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1457,6 +1486,29 @@ class Component extends DCLogic {
     // back soon" state (see annsEmpty) rather than invented placeholder
     // posts.
     this.anns=[];
+    // All-time diving top times (1M/3M, 6-dive and 11-dive formats),
+    // per real SwimCloud program history — includes athletes no longer
+    // on the current roster, same as any all-time list. There's no
+    // separate diving "records" page (see showRecords), so this is the
+    // only historical-bests view diving coach gets. Women's isn't in
+    // hand yet — diveTimesEmpty covers that until it is.
+    this.diveTopTimes={
+      M:{
+        '1M':{
+          6:[{name:'Andrew O’Meara',meet:'Alma vs. Calvin',t:185.95},
+             {name:'Cooper Couch',meet:'Alma vs. Albion',t:168.75}],
+          11:[{name:'Spencer Johnson',meet:'MIAA Championships',t:520.40},
+              {name:'Andrew O’Meara',meet:'Calvin Invitational',t:339.45},
+              {name:'Eric Ferrara',meet:'Alma vs. Calvin',t:54.67}]
+        },
+        '3M':{
+          6:[{name:'Cooper Couch',meet:'Alma vs. Albion',t:132.95}],
+          11:[{name:'Spencer Johnson',meet:'MIAA Championships',t:524.15},
+              {name:'Andrew O’Meara',meet:'Calvin Invitational',t:290.15}]
+        }
+      },
+      W:{}
+    };
     this.opps=[
       {n:'Hope',f:0.985,teamId:'99',grp:'MIAA'},
       {n:'Calvin',f:0.99,teamId:'55',grp:'MIAA'},
@@ -2281,8 +2333,15 @@ class Component extends DCLogic {
     // team
     const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
-    const viewSegList=[['roster','ROSTER'],['records','RECORDS'],['times','TOP TIMES']];
+    // Diving has no records page — Alma doesn't keep program records for
+    // diving — so the diving coach never gets a RECORDS sub-tab at all.
+    const viewSegList=[['roster','ROSTER'],['records','RECORDS'],['times','TOP TIMES']]
+      .filter(([id])=>!(isDivingCoach&&id==='records'));
     const viewSegs=viewSegList.map(([id,n])=>({n,bg:st.teamView===id?T:'transparent',fg:st.teamView===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamView:id})}));
+    const diveTimesEvSel=e=>this.setState({diveTimesEv:e.target.value});
+    const diveTimesDivesSel=e=>this.setState({diveTimesDives:e.target.value});
+    const diveTimesRows=(((this.diveTopTimes[st.teamSeg]||{})[st.diveTimesEv]||{})[st.diveTimesDives]||[])
+      .map((r,i)=>({rank:String(i+1),name:r.name,meet:r.meet,t:r.t.toFixed(2)}));
     let rosterSrc=st.teamSeg==='W'?this.women:this.men;
     if(isDivingCoach)rosterSrc=rosterSrc.filter(s=>s.diver);
     let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
@@ -2540,8 +2599,11 @@ class Component extends DCLogic {
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
-      showRecords:st.teamSeg!=='S'&&st.teamView==='records',
-      showTimes:st.teamSeg!=='S'&&st.teamView==='times',
+      showRecords:st.teamSeg!=='S'&&st.teamView==='records'&&!isDivingCoach,
+      showTimes:st.teamSeg!=='S'&&st.teamView==='times'&&!isDivingCoach,
+      showDiveTimes:st.teamSeg!=='S'&&st.teamView==='times'&&isDivingCoach,
+      diveTimesEv:st.diveTimesEv,diveTimesEvSel,diveTimesDives:st.diveTimesDives,diveTimesDivesSel,
+      diveTimesRows,diveTimesEmpty:diveTimesRows.length===0,
       showStaff:st.teamSeg==='S',
       teamSort:st.teamSort,teamSortSel:e=>this.setState({teamSort:e.target.value}),
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
