@@ -996,7 +996,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- bottom nav -->
 <div style="flex:none;display:flex;background:#FFFFFF;border-top:1px solid rgba(42,18,24,.08);padding:8px 8px 24px">
   <sc-for list="{{ navItems }}" as="t" hint-placeholder-count="5">
-    <button onClick="{{ t.onTap }}" style="flex:1;min-width:0;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px">
+    <button onClick="{{ t.onTap }}" style="flex:1;min-width:0;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;transform:translateX({{ t.off }}px)">
       <div style="width:34px;height:3px;border-radius:2px;background:{{ t.bar }}"></div>
       <div style="font-family:'Barlow Condensed';font-weight:700;font-size:{{ t.sz }};letter-spacing:{{ t.ls }};color:{{ t.fg }};white-space:nowrap">{{ t.n }}</div>
     </button>
@@ -2235,8 +2235,13 @@ class Component extends DCLogic {
       :isCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['progress','PROGRESS'],['team','TEAM'],['me','ME']];
+    // Bottom-nav X-position nudge, per tab id, in px. Positive = right,
+    // negative = left, 0 = untouched. Shifts the whole tab (bar + label
+    // + tap target) as one unit, on every nav row that has that id
+    // (so this is a single edit for every role/user, not just athletes).
+    const NAV_X_OFFSET={progress:0,team:0};
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
-      sz:'14px',ls:'1.5px',
+      sz:'14px',ls:'1.5px',off:NAV_X_OFFSET[id]||0,
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
