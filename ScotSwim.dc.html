@@ -2428,7 +2428,15 @@ class Component extends DCLogic {
       const d=new Date(+m[1],+m[2]-1,+m[3]);
       return isNaN(d.getTime())?null:d;
     }
-    return null;
+    // Falls back to the browser's own date parser for anything typed (or
+    // auto-filled) in a recognizable but non-slash form — a phone
+    // keyboard's date-suggestion chip inserts text like "Oct 25, 2025"
+    // instead of the mm/dd/yyyy the placeholder asks for, and the strict
+    // patterns above don't match that, which was silently leaving the
+    // progression chart's x-axis blank for anyone who typed a date that
+    // way instead of with slashes.
+    const fallback=new Date(s);
+    return isNaN(fallback.getTime())?null:fallback;
   }
   fmtEntryDate(d){
     return String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear();
