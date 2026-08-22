@@ -384,11 +384,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
-          <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}">
+          <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}">
             <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
-          </sc-if>
+          </sc-if></sc-if>
         </div>
-        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} present — tap anyone who's out</div>
           <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
             <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
@@ -397,8 +397,14 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border:1.5px solid {{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
             </div>
           </sc-for>
+        </sc-if></sc-if>
+        <sc-if value="{{ attRosterEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:22px 8px 6px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:rgba(42,18,24,.4)">NONE</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">No {{ attRosterEmptyLabel }} right now.</div>
+          </div>
         </sc-if>
-        <sc-if value="{{ attSeasonNotStarted }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ attSeasonNotStarted }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}">
           <div style="text-align:center;padding:14px 8px 4px">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#1B7A78">SEASON STARTS SOON</div>
             <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Attendance opens once practices begin.</div>
@@ -409,7 +415,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
             </div>
           </sc-for>
-        </sc-if>
+        </sc-if></sc-if>
       </div>
     </div>
   </sc-if>
@@ -2419,12 +2425,14 @@ class Component extends DCLogic {
     // other changes needed.
     const SEASON_STARTED=false;
     const attRosterRole=this.all.filter(s=>isDivingCoach?s.diver:!s.diver);
-    // Men/Women split, same pattern as GOALS — a gender with nobody in
-    // this coach's role (e.g. Men has no divers) doesn't get a dead tab.
-    const attGenders=['M','W'].filter(id=>attRosterRole.some(s=>s.gender===id));
-    const attSegActive=attGenders.includes(st.attSeg)?st.attSeg:attGenders[0];
-    const attSegs=attGenders.map(id=>({n:id==='M'?'MEN':'WOMEN',bg:attSegActive===id?M:'transparent',fg:attSegActive===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({attSeg:id})}));
+    // Men/Women split — both tabs always show (unlike GOALS), since a
+    // coach with nobody on one side of the roster (e.g. no men's divers
+    // right now) still wants to see that confirmed rather than have the
+    // tab disappear.
+    const attSegActive=st.attSeg==='W'?'W':'M';
+    const attSegs=['M','W'].map(id=>({n:id==='M'?'MEN':'WOMEN',bg:attSegActive===id?M:'transparent',fg:attSegActive===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({attSeg:id})}));
     const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
+    const attRosterEmptyLabel=(isDivingCoach?'divers':'swimmers')+' on the '+(attSegActive==='M'?"men's":"women's")+' roster';
     const attDateRec=this.state.attendance[attDateKey]||{};
     const attRows=attRoster.map(s=>{
       const present=attDateRec[s.id]!==false;
@@ -2640,6 +2648,7 @@ class Component extends DCLogic {
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
+      attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
