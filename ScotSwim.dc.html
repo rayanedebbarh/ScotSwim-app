@@ -2041,31 +2041,20 @@ class Component extends DCLogic {
     // against every already-placed label's box and, on any overlap, raises
     // it above that label too — so close-together points (5+ entries in
     // one event) stack their labels in clear rows instead of overlapping.
-    const HH=8,LH=16,GAP=2;
-    const lineYAt=xq=>{
-      for(let k=0;k<hist.length-1;k++){
-        const x0=X(k),x1=X(k+1);
-        if(xq>=x0-0.01&&xq<=x1+0.01){
-          const y0=Y(hist[k]),y1=Y(hist[k+1]);
-          return y0+(y1-y0)*((x1-x0)?(xq-x0)/(x1-x0):0);
-        }
-      }
-      return xq<X(0)?Y(hist[0]):Y(hist[hist.length-1]);
-    };
-    const lineMinYInRange=(xa,xb)=>{
-      const cand=[xa,xb];
-      for(let k=0;k<hist.length;k++){const xk=X(k);if(xk>xa&&xk<xb)cand.push(xk);}
-      return Math.min(...cand.map(lineYAt));
-    };
+    // Every label sits at the same fixed, tight distance above its own
+    // point — no longer stretched further away on steep segments to dodge
+    // the polyline, so the gap reads identically everywhere, on every
+    // event's chart. Labels can still get pushed to a higher row, but
+    // only to clear another label's box (see the placement loop below),
+    // never to clear the line itself.
+    const HH=8,LH=16,GAP=2,D=14;
     const placed=[];
     const dots=hist.map((t,i)=>{
       const x=X(i),y=Y(t);
       const label=this.fmtEv(ev,t);
       const lw=boxW(label);
       const fx=Math.min(318-lw,Math.max(2,x-lw/2));
-      const minLineY=lineMinYInRange(fx,fx+lw);
-      const d=Math.max(14,(y-minLineY)+10);
-      let fy=y-d-HH,moved=true;
+      let fy=y-D-HH,moved=true;
       while(moved){
         moved=false;
         for(const b of placed){
@@ -2096,19 +2085,50 @@ class Component extends DCLogic {
     // the second) and it's reformatted through the same date parts
     // helper real entries use, for one consistent look everywhere.
     const seasonYear=mo=>['Aug','Sep','Oct','Nov','Dec'].includes(mo)?2026:2027;
-    return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px',goalY:Y(goal).toFixed(1),
-      labs:meetLog.map((m,i)=>{
-        if(m.length>=3){
-          const parts=(m[2]||'').split('/').map(Number);
-          if(parts[0]&&parts[1]){
-            const dp=this.fmtEntryDateParts(new Date(seasonYear(m[1]),parts[0]-1,parts[1]));
-            return {n:dp[0],d:dp[1],x:(X(i)/320*100).toFixed(2)+'%'};
-          }
-          return {n:'',d:'',x:(X(i)/320*100).toFixed(2)+'%'};
+    const allLabs=meetLog.map((m,i)=>{
+      if(m.length>=3){
+        const parts=(m[2]||'').split('/').map(Number);
+        if(parts[0]&&parts[1]){
+          const dp=this.fmtEntryDateParts(new Date(seasonYear(m[1]),parts[0]-1,parts[1]));
+          return {n:dp[0],d:dp[1],x:(X(i)/320*100).toFixed(2)+'%'};
         }
-        return {n:m[0]||'',d:m[1]||'',x:(X(i)/320*100).toFixed(2)+'%'};
-      }),
-      pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
+        return {n:'',d:'',x:(X(i)/320*100).toFixed(2)+'%'};
+      }
+      return {n:m[0]||'',d:m[1]||'',x:(X(i)/320*100).toFixed(2)+'%'};
+    });
+    // A self-logged event can carry far more points than the 6-meet
+    // synthetic history ever did, and every x-axis slot is evenly spaced
+    // regardless of count — past a certain number of points, a label at
+    // every slot runs into its neighbors. Each label is centered on its
+    // point, so two neighbors only actually collide when their gap is
+    // less than the AVERAGE of their two widths, not the width of
+    // whichever's widest overall — a uniform "widest label" threshold
+    // over-thins pairs of short labels next to each other. So this walks
+    // left to right, keeping a label only once it clears that real
+    // pairwise half-width test against the last one kept, using each
+    // label's own actual measured width (browser canvas metrics, not a
+    // hand-tuned per-character guess) — first and last point are always
+    // kept so the visible range's start/end stay readable, even if that
+    // means dropping whichever kept label sits closest to the end.
+    if(!this._labelMeasureCtx)this._labelMeasureCtx=document.createElement('canvas').getContext('2d');
+    this._labelMeasureCtx.font="600 10px 'Barlow',sans-serif";
+    const measureLab=str=>this._labelMeasureCtx.measureText(str||'').width;
+    const labW=allLabs.map(l=>Math.max(measureLab(l.n),measureLab(l.d)));
+    const BUF=3;
+    const fits=(i,j)=>(X(j)-X(i))>=(labW[i]+labW[j])/2+BUF;
+    const showIdx=hist.length?[0]:[];
+    for(let i=1;i<hist.length-1;i++){
+      if(fits(showIdx[showIdx.length-1],i))showIdx.push(i);
+    }
+    if(hist.length>1){
+      const last=hist.length-1;
+      if(showIdx.length&&!fits(showIdx[showIdx.length-1],last))showIdx.pop();
+      showIdx.push(last);
+    }
+    const showSet=new Set(showIdx);
+    const labs=allLabs.filter((_,i)=>showSet.has(i));
+    return {ev:this.evMap[ev].n,pts,dots,yTicks,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px',goalY:Y(goal).toFixed(1),
+      labs,pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
     const ev=(evSel&&s.primary.includes(evSel))?evSel:s.primary[0];
