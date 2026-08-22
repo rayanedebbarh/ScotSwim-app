@@ -437,15 +437,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
           <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6)">DAYS</div>
         </div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:0">
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">SEASON OPENER</div>
           <div style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;line-height:1.15">{{ nextMeet.n }}</div>
           <div style="font-size:12px;color:rgba(245,233,220,.7)">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
         </div>
+        <button onClick="{{ openNextLineup }}" style="border:1px solid rgba(127,208,205,.5);background:rgba(127,208,205,.12);color:#7fd0cd;border-radius:8px;padding:9px 12px;font-family:'Barlow Condensed';font-weight:800;font-size:12.5px;letter-spacing:1px;cursor:pointer;flex:none;white-space:nowrap">LINEUP</button>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 18px">
         <sc-for list="{{ sched }}" as="m" hint-placeholder-count="8">
-          <div onClick="{{ m.onTap }}" style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="min-width:48px;text-align:center">
               <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
               <div style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
@@ -2491,7 +2492,11 @@ class Component extends DCLogic {
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
       :{tag:'AWAY',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'};
-    const schedT=this.sched.map(m=>({...m,...tagOf(m),onTap:()=>this.setState({lineupMeet:m.id})}));
+    const schedT=this.sched.map(m=>({...m,...tagOf(m)}));
+    // Lineups only ever get posted a day or two before a meet, so there's
+    // no point offering one per row on the whole season's schedule — just
+    // a single button on the next/closest meet banner up top.
+    const openNextLineup=()=>this.setState({lineupMeet:nextMeet.id});
     const lineup=st.lineupMeet?this.lineupFor(st.lineupMeet,user):null;
     const closeLineup=()=>this.setState({lineupMeet:null});
     // athlete home
@@ -2877,7 +2882,7 @@ class Component extends DCLogic {
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       sched:schedT,results:this.results,
-      hasLineup:!!lineup,lineup,closeLineup,
+      hasLineup:!!lineup,lineup,closeLineup,openNextLineup,
       swimcloudResultsUrl:'https://www.swimcloud.com/results/iframe/?team=213',
       // SwimCloud's gender param is F for women (not W) — this was wrong
       // before and would have silently shown men's records under Women.
