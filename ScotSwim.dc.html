@@ -64,7 +64,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}">
         <div style="font-size:12.5px;color:#ff9d9d;font-weight:600">{{ authErr }}</div>
       </sc-if>
+      <sc-if value="{{ hasAuthMsg }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12.5px;color:#7fd0cd;font-weight:600">{{ authMsg }}</div>
+      </sc-if>
       <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
+      <button onClick="{{ doForgotPassword }}" style="background:none;border:none;color:rgba(245,233,220,.7);font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0;text-align:center;text-decoration:underline">Forgot password?</button>
     </div>
   </div>
 </sc-if>
@@ -1464,7 +1468,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      authChecking:true,authUser:null,authErr:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
+      authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
@@ -2600,8 +2604,23 @@ class Component extends DCLogic {
       if(!this.fbReady){this.setState({authErr:"Sign-in isn't available right now — try again in a moment."});return;}
       const email=st.uname.trim();
       if(!email||!st.pass){this.setState({authErr:'Enter your email and password.'});return;}
-      this.setState({authBusy:true,authErr:''});
+      this.setState({authBusy:true,authErr:'',authMsg:''});
       this.auth.signInWithEmailAndPassword(email,st.pass).catch(err=>{
+        this.setState({authBusy:false,authErr:this.authErrMsg(err)});
+      });
+    };
+    // Firebase's own "forgot password" flow — emails a reset link straight
+    // from Firebase, no backend of ours involved. Uses whatever's already
+    // typed in the email field above it.
+    const doForgotPassword=()=>{
+      if(st.authBusy)return;
+      if(!this.fbReady){this.setState({authErr:"That isn't available right now — try again in a moment."});return;}
+      const email=st.uname.trim();
+      if(!email){this.setState({authErr:'Enter your email above first, then tap "Forgot password?" again.'});return;}
+      this.setState({authBusy:true,authErr:'',authMsg:''});
+      this.auth.sendPasswordResetEmail(email).then(()=>{
+        this.setState({authBusy:false,authMsg:'Check your email for a link to reset your password.'});
+      }).catch(err=>{
         this.setState({authBusy:false,authErr:this.authErrMsg(err)});
       });
     };
@@ -2923,10 +2942,12 @@ class Component extends DCLogic {
       coachSubtitle:isDivingCoach?'Alma Scots · Diving · Diving Coach':'Alma Scots · Swimming · Head Coach',
       heroIsCoachDiver:isDivingCoach,heroIsCoachMen:!isDivingCoach,
       uname:st.uname,pass:st.pass,
-      onU:e=>this.setState({uname:e.target.value,authErr:''}),
-      onP:e=>this.setState({pass:e.target.value,authErr:''}),
+      onU:e=>this.setState({uname:e.target.value,authErr:'',authMsg:''}),
+      onP:e=>this.setState({pass:e.target.value,authErr:'',authMsg:''}),
+      doForgotPassword,
       doLogin,
       authErr:st.authErr,hasAuthErr:!!st.authErr,authBusy:st.authBusy,
+      authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
       logout:()=>{this.pauseMusicForSignOut();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
