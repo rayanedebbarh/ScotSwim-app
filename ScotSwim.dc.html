@@ -445,7 +445,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 18px">
         <sc-for list="{{ sched }}" as="m" hint-placeholder-count="8">
-          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+          <div onClick="{{ m.onTap }}" style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
             <div style="min-width:48px;text-align:center">
               <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
               <div style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
@@ -1264,6 +1264,68 @@ input::placeholder{color:rgba(245,233,220,.5)}
   </div>
 </sc-if>
 
+<!-- meet lineup overlay -->
+<sc-if value="{{ hasLineup }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:35">
+    <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
+      <div style="background:#2A1218;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:14px;position:sticky;top:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">MEET LINEUP</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:19px;line-height:1.2;margin-top:2px">{{ lineup.name }}</div>
+          <div style="font-size:11.5px;color:rgba(245,233,220,.7);margin-top:2px">{{ lineup.date }} · {{ lineup.loc }}</div>
+        </div>
+        <button onClick="{{ closeLineup }}" style="border:none;background:rgba(245,233,220,.15);color:#F5E9DC;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none">✕</button>
+      </div>
+      <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:12px">
+        <sc-if value="{{ lineup.noData }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:26px 18px;text-align:center">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1px;color:#6B1F33">LINEUP NOT POSTED YET</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.55);margin-top:6px;line-height:1.5">Heat sheets usually go up closer to the meet. Check back, or ask your coach.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ lineup.hasMine }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#6B1F33;border-radius:8px;padding:14px 16px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#F5E9DC">YOUR EVENTS</div>
+            <sc-for list="{{ lineup.mine }}" as="r" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid rgba(245,233,220,.15)">
+                <div style="min-width:26px;text-align:center;font-family:'Barlow Condensed';font-weight:800;font-size:16px;color:#7fd0cd">{{ r.evNum }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:700;font-size:13.5px;color:#F5E9DC">{{ r.evName }}</div>
+                  <div style="font-size:11px;color:rgba(245,233,220,.65)">Heat {{ r.heat }}</div>
+                </div>
+                <div style="text-align:center;flex:none">
+                  <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;color:#F5E9DC">{{ r.lane }}</div>
+                  <div style="font-size:8.5px;font-weight:700;letter-spacing:1px;color:rgba(245,233,220,.55)">LANE</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ lineup.hasData }}" hint-placeholder-val="{{ false }}">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#2A1218">FULL HEAT SHEET</div>
+          <sc-for list="{{ lineup.events }}" as="e" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:12px 16px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13.5px;letter-spacing:.5px;color:#6B1F33">EVENT {{ e.evNum }} — {{ e.evName }}</div>
+              <sc-for list="{{ e.heats }}" as="h" hint-placeholder-count="2">
+                <div style="margin-top:8px">
+                  <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45)">HEAT {{ h.heat }}</div>
+                  <sc-for list="{{ h.lanes }}" as="ln" hint-placeholder-count="4">
+                    <div style="display:flex;align-items:center;gap:10px;padding:5px 6px;border-top:1px solid rgba(42,18,24,.06);background:{{ ln.rowBg }};border-radius:4px">
+                      <div style="min-width:16px;text-align:center;font-size:11.5px;font-weight:800;color:{{ ln.laneColor }}">{{ ln.lane }}</div>
+                      <div style="flex:1;min-width:0;font-size:12.5px;font-weight:{{ ln.nameWeight }};color:#2A1218">{{ ln.name }}</div>
+                      <div style="font-size:10.5px;color:rgba(42,18,24,.4);flex:none">{{ ln.team }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
 <!-- toast -->
 <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;bottom:96px;left:24px;right:24px;background:#2A1218;color:#F5E9DC;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.3)">{{ toast }}</div>
@@ -1331,7 +1393,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6'};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1545,16 +1607,24 @@ class Component extends DCLogic {
     ];
     // ACSD Competition Schedule — 2026-27 season.
     this.sched=[
-      {d1:'OCT',d2:'9',d:'Fri, Oct 9, 2026',n:'Alma at SVSU & LSSU',loc:'University Center, MI'},
-      {d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Alma at Albion',loc:'Albion, MI'},
-      {d1:'OCT',d2:'24',d:'Sat, Oct 24, 2026',n:'MIAA Invite',loc:'Holland, MI or Grand Rapids, MI (site TBD) · 11:30 AM',inv:true},
-      {d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'NOV',d2:'19–21',d:'Nov 19–21, 2026',n:'Cardinal Invitational',loc:'University Center, MI',inv:true},
-      {d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Invite',loc:'Grand Rapids, MI or Holland, MI (site TBD) · 11:30 AM',inv:true},
-      {d1:'JAN',d2:'30',d:'Sat, Jan 30, 2027',n:'Alma vs. Kalamazoo',loc:'McClure Natatorium, Alma',home:true},
-      {d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Grand Rapids, MI',champ:true},
-      {d1:'MAR',d2:'18–21',d:'Mar 18–21, 2027',n:'D3 National Championships',loc:'Greensboro, NC',champ:true}
+      {id:'2026-10-09',d1:'OCT',d2:'9',d:'Fri, Oct 9, 2026',n:'Alma at SVSU & LSSU',loc:'University Center, MI'},
+      {id:'2026-10-17',d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Alma at Albion',loc:'Albion, MI'},
+      {id:'2026-10-24',d1:'OCT',d2:'24',d:'Sat, Oct 24, 2026',n:'MIAA Invite',loc:'Holland, MI or Grand Rapids, MI (site TBD) · 11:30 AM',inv:true},
+      {id:'2026-11-07',d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
+      {id:'2026-11-19',d1:'NOV',d2:'19–21',d:'Nov 19–21, 2026',n:'Cardinal Invitational',loc:'University Center, MI',inv:true},
+      {id:'2027-01-23',d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Invite',loc:'Grand Rapids, MI or Holland, MI (site TBD) · 11:30 AM',inv:true},
+      {id:'2027-01-30',d1:'JAN',d2:'30',d:'Sat, Jan 30, 2027',n:'Alma vs. Kalamazoo',loc:'McClure Natatorium, Alma',home:true},
+      {id:'2027-02-17',d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Grand Rapids, MI',champ:true},
+      {id:'2027-03-18',d1:'MAR',d2:'18–21',d:'Mar 18–21, 2027',n:'D3 National Championships',loc:'Greensboro, NC',champ:true}
     ];
+    // Meet-day lineups (heat sheet replacement) — real data only, entered
+    // per meet from the official heat sheet once it's posted. Keyed by
+    // this.sched[i].id. Each row is one lane entry: evNum/evName/heat/lane
+    // plus either athleteId (one of our own roster ids, so name/photo/team
+    // stay live) or name+team for a swimmer from the opposing school(s).
+    // Empty until a real meet's heat sheet is transcribed in — see
+    // lineupFor() below for the "not posted yet" empty state.
+    this.lineups={};
     this.results=[
       {tag:'W',bg:'#1B7A78',n:'Alma vs. Manchester',d:'Jan 10, 2026 · North Manchester, IN',score:'156 – 104'},
       {tag:'4',bg:'#2A1218',n:'MIAA Winter Invite',d:'Jan 24, 2026 · Grand Rapids, MI',score:'4th of 7'},
@@ -2116,6 +2186,40 @@ class Component extends DCLogic {
       onWeightChange:e=>setStat('weight',e.target.value),
       onHsChange:e=>setStat('hs',e.target.value)};
   }
+  // Meet-day lineup (heat sheet) for one meet — replaces the paper
+  // "event/heat/lane" sheet that used to get photographed and passed
+  // around a group chat. Each raw row in this.lineups[meetId] is one
+  // lane entry; this groups them by event number then heat for display,
+  // and pulls a live name/photo for our own roster via athleteId (an
+  // opposing swimmer is just the name+team text that was on the sheet).
+  lineupFor(meetId,user){
+    const meet=this.sched.find(m=>m.id===meetId);
+    if(!meet)return null;
+    const rows=(this.lineups[meetId]||[]).map(r=>{
+      const athlete=r.athleteId?this.byId[r.athleteId]:null;
+      const isMine=!!(athlete&&user&&athlete.id===user.id);
+      return {evNum:r.evNum,evName:r.evName,heat:r.heat,lane:r.lane,
+        name:athlete?athlete.name:(r.name||''),
+        team:athlete?'Alma':(r.team||''),
+        isMine,isOurs:!!athlete,
+        laneColor:isMine?'#1B7A78':(athlete?'#2A1218':'rgba(42,18,24,.4)'),
+        nameWeight:isMine?'800':(athlete?'600':'500'),
+        rowBg:isMine?'rgba(27,122,120,.08)':'transparent'};
+    });
+    const evNums=[...new Set(rows.map(r=>r.evNum))].sort((a,b)=>a-b);
+    const events=evNums.map(evNum=>{
+      const evRows=rows.filter(r=>r.evNum===evNum);
+      const heatNums=[...new Set(evRows.map(r=>r.heat))].sort((a,b)=>a-b);
+      return {evNum:String(evNum),evName:evRows[0].evName,
+        heats:heatNums.map(heat=>({heat:String(heat),
+          lanes:evRows.filter(r=>r.heat===heat).sort((a,b)=>a.lane-b.lane).map(r=>({...r,lane:String(r.lane)}))}))};
+    });
+    const mine=rows.filter(r=>r.isMine).sort((a,b)=>a.evNum-b.evNum)
+      .map(r=>({...r,evNum:String(r.evNum),heat:String(r.heat),lane:String(r.lane)}));
+    return {id:meetId,name:meet.n,date:meet.d,loc:meet.loc,
+      hasData:rows.length>0,noData:rows.length===0,events,
+      mine,hasMine:this.state.role==='athlete'&&mine.length>0};
+  }
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
@@ -2387,7 +2491,9 @@ class Component extends DCLogic {
       :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
       :{tag:'AWAY',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'};
-    const schedT=this.sched.map(m=>({...m,...tagOf(m)}));
+    const schedT=this.sched.map(m=>({...m,...tagOf(m),onTap:()=>this.setState({lineupMeet:m.id})}));
+    const lineup=st.lineupMeet?this.lineupFor(st.lineupMeet,user):null;
+    const closeLineup=()=>this.setState({lineupMeet:null});
     // athlete home
     const sig=user.primary[0];
     // One row per event the athlete tracks (not the same event 3 times) —
@@ -2771,6 +2877,7 @@ class Component extends DCLogic {
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       sched:schedT,results:this.results,
+      hasLineup:!!lineup,lineup,closeLineup,
       swimcloudResultsUrl:'https://www.swimcloud.com/results/iframe/?team=213',
       // SwimCloud's gender param is F for women (not W) — this was wrong
       // before and would have silently shown men's records under Women.
