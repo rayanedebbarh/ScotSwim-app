@@ -1997,13 +1997,16 @@ class Component extends DCLogic {
     const boxW=str=>Math.max(30,Math.round(str.length*6.2+10));
     // Gridline values are derived from this event's own mn/mx (already
     // padded around this athlete's actual entered times), not a fixed
-    // scale. Both swim and dive force a fixed, evenly-spaced step — 0.5s
-    // for swim (matching SwimCloud) and 10pts for dive, its natural
-    // equivalent — instead of a dynamically-picked one, unless that would
-    // put an unreasonable number of gridlines on an unusually wide range,
-    // in which case it falls back to a dynamically-picked round step.
-    const forcedStepTicks=this.niceTicks(mn,mx,4,dive?5:0.5);
-    const tickVals=!forcedStepTicks||forcedStepTicks.length>45?this.niceTicks(mn,mx,4):forcedStepTicks;
+    // scale — and the STEP itself now scales with that range too, always
+    // targeting roughly the same number of gridlines (~14-15) regardless
+    // of how wide or narrow the event's own time swing is. A flat forced
+    // step (0.5s for swim, 10pts for dive) used to mean a big swing
+    // (e.g. an ambitious goal set well below the actual times, or a
+    // dramatic season improvement) stretched that event's chart to 3-4x
+    // as many gridlines as a tighter one — same step size, wildly
+    // different visual density. This is what actually keeps every
+    // event's chart looking the same shape.
+    const tickVals=this.niceTicks(mn,mx,14);
     // Dive gridlines are always round numbers already (niceTicks picks
     // 1/2/2.5/5/10 steps), so they don't need the decimal + " pts" suffix
     // the point-value labels use — that suffix alone was blowing up the
