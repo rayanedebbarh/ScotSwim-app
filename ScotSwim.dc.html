@@ -1252,12 +1252,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <div onClick="{{ det.closePhotoSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:70"></div>
   <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:16px 20px 26px;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <sc-if value="{{ det.inFramingMode }}" hint-placeholder-val="{{ false }}">
-        <button onClick="{{ det.backToPreview }}" style="border:none;background:none;color:#6B1F33;font-size:22px;cursor:pointer;padding:0;line-height:1;min-width:24px;text-align:left">‹</button>
-      </sc-if>
-      <sc-if value="{{ det.inPreviewMode }}" hint-placeholder-val="{{ true }}">
-        <div style="width:24px"></div>
-      </sc-if>
+      <button onClick="{{ det.cancelPhotoSheet }}" style="border:none;background:none;color:rgba(42,18,24,.55);font-size:13.5px;font-weight:800;cursor:pointer;padding:0">Cancel</button>
       <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#2A1218">PROFILE PHOTO</div>
       <button onClick="{{ det.closePhotoSheet }}" style="border:none;background:none;color:#1B7A78;font-size:13.5px;font-weight:800;cursor:pointer;padding:0">Save</button>
     </div>
@@ -1984,26 +1979,42 @@ class Component extends DCLogic {
     // dimension bookkeeping of our own.
     const myPhoto=this.state.myPhotos[s.id]||{};
     const photoScale=Number.isFinite(myPhoto.s)?myPhoto.s:1;
-    const photoX=Number.isFinite(myPhoto.x)?myPhoto.x:0;
-    const photoY=Number.isFinite(myPhoto.y)?myPhoto.y:0;
+    // object-fit:cover has zero pan margin at scale 1 — any nonzero x/y
+    // there exposes background outside the img. panMax grows with zoom so
+    // a pan that was safe at high zoom gets pulled back in as the photo
+    // is zoomed out, instead of leaving a gap.
+    const panMax=Math.max(0,(photoScale-1)*50);
+    const clampPan=v=>Math.max(-panMax,Math.min(panMax,v));
+    const photoX=clampPan(Number.isFinite(myPhoto.x)?myPhoto.x:0);
+    const photoY=clampPan(Number.isFinite(myPhoto.y)?myPhoto.y:0);
     // Photo sheet — a bottom sheet (not an inline panel) opened by tapping
     // the profile photo itself, self-only (canEditBio). 'preview' shows
     // the photo + Framing/Change Photo actions; 'framing' shows the big
     // drag-to-pan circle + zoom slider. Sheet state lives in
     // this.state.photoSheet (null when closed) — same slot for every
     // viewer, but it's only ever opened from the ME tab's own photo.
+    // this._photoSnapshot holds the pre-open myPhotos[s.id] entry so
+    // Cancel can restore it; it's an instance field, not React state,
+    // since it never needs to trigger a render on its own.
     const photoSheetMode=canEditBio?this.state.photoSheet:null;
-    const openPhotoSheet=()=>this.setState({photoSheet:'preview'});
+    const openPhotoSheet=()=>{
+      this._photoSnapshot=this.state.myPhotos[s.id];
+      this.setState({photoSheet:'preview'});
+    };
     const closePhotoSheet=()=>this.setState({photoSheet:null});
+    const cancelPhotoSheet=()=>{
+      const myPhotos={...this.state.myPhotos};
+      if(this._photoSnapshot===undefined)delete myPhotos[s.id];
+      else myPhotos[s.id]=this._photoSnapshot;
+      this.setState({myPhotos,photoSheet:null});
+      this.saveMyPhotos(myPhotos);
+    };
     const openFraming=()=>this.setState({photoSheet:'framing'});
-    const backToPreview=()=>this.setState({photoSheet:'preview'});
     const setMyPhoto=patch=>{
       const myPhotos={...this.state.myPhotos};
       myPhotos[s.id]={...myPhoto,...patch};
       this.setState({myPhotos});this.saveMyPhotos(myPhotos);
     };
-    const PAN_MAX=40;
-    const clampPan=v=>Math.max(-PAN_MAX,Math.min(PAN_MAX,v));
     // Drag-to-pan on the framing circle. FRAME_PX matches that circle's
     // fixed on-screen size, so a pointer delta in px converts directly to
     // the transform's %-of-frame units without a live DOM measurement.
@@ -2045,13 +2056,18 @@ class Component extends DCLogic {
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),photoEmpty:!this.photoOf(s.id),
       photoScale,photoX,photoY,zoomPct:String(Math.round(photoScale*100)),
       hasPhotoSheet:!!photoSheetMode,inPreviewMode:photoSheetMode==='preview',inFramingMode:photoSheetMode==='framing',
-      openPhotoSheet,closePhotoSheet,openFraming,backToPreview,
+      openPhotoSheet,closePhotoSheet,cancelPhotoSheet,openFraming,
       onPhotoFileChange:e=>{
         const f=e.target.files&&e.target.files[0];
         if(f)this.readPhotoFile(f,data=>setMyPhoto({data,s:1,x:0,y:0}));
         e.target.value='';
       },
-      onZoomChange:e=>setMyPhoto({s:Math.max(1,Math.min(2.5,Number(e.target.value)/100))}),
+      onZoomChange:e=>{
+        const s2=Math.max(1,Math.min(2.5,Number(e.target.value)/100));
+        const panMax2=Math.max(0,(s2-1)*50);
+        const clampPan2=v=>Math.max(-panMax2,Math.min(panMax2,v));
+        setMyPhoto({s:s2,x:clampPan2(photoX),y:clampPan2(photoY)});
+      },
       onPhotoPanStart,onPhotoPanMove,onPhotoPanEnd,
       onResetFraming:()=>setMyPhoto({s:1,x:0,y:0}),
       chart:this.chartFor(s,ev),
