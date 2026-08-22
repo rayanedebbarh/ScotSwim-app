@@ -2239,7 +2239,7 @@ class Component extends DCLogic {
     // negative = left, 0 = untouched. Shifts the whole tab (bar + label
     // + tap target) as one unit, on every nav row that has that id
     // (so this is a single edit for every role/user, not just athletes).
-    const NAV_X_OFFSET={progress:18,team:18};
+    const NAV_X_OFFSET={progress:100,team:100};
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
       sz:'14px',ls:'1.5px',off:NAV_X_OFFSET[id]||0,
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
