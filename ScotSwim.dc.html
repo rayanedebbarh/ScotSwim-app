@@ -620,7 +620,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="background:#6B1F33;color:#F5E9DC;border-radius:10px;padding:18px;display:flex;align-items:center;gap:14px">
         <div onClick="{{ det.openPhotoSheet }}" style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none;position:relative;cursor:pointer">
           <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
-            <img src="{{ det.photo }}" style="display:block;width:100%;height:100%;object-fit:cover;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+            <img src="{{ det.photo }}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:{{ det.photoObjPos }};transform:scale({{ det.photoScale }})">
           </sc-if>
           <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:20px">{{ det.ini }}</div>
@@ -1260,7 +1260,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:6px 0 4px">
         <div style="width:150px;height:150px;border-radius:50%;overflow:hidden;border:3px solid #F5E9DC;background:#2A1218;box-shadow:0 2px 10px rgba(0,0,0,.2)">
           <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
-            <img src="{{ det.photo }}" style="display:block;width:100%;height:100%;object-fit:cover;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+            <img src="{{ det.photo }}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:{{ det.photoObjPos }};transform:scale({{ det.photoScale }})">
           </sc-if>
           <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:44px">{{ det.ini }}</div>
@@ -1277,7 +1277,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="display:flex;align-items:center;justify-content:center;gap:22px;padding:6px 0 4px">
         <div onPointerDown="{{ det.onPhotoPanStart }}" onPointerMove="{{ det.onPhotoPanMove }}" onPointerUp="{{ det.onPhotoPanEnd }}" onPointerLeave="{{ det.onPhotoPanEnd }}" style="width:220px;height:220px;border-radius:50%;overflow:hidden;border:3px solid #F5E9DC;background:#2A1218;touch-action:none;cursor:grab;flex:none;box-shadow:0 2px 10px rgba(0,0,0,.2)">
           <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
-            <img src="{{ det.photo }}" draggable="false" style="display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+            <img src="{{ det.photo }}" draggable="false" style="display:block;width:100%;height:100%;object-fit:cover;object-position:{{ det.photoObjPos }};pointer-events:none;transform:scale({{ det.photoScale }})">
           </sc-if>
           <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:60px;pointer-events:none">{{ det.ini }}</div>
@@ -1972,14 +1972,21 @@ class Component extends DCLogic {
       this.setState({myEvents});this.saveMyEvents(myEvents);
     };
     // Profile-photo replace + frame — self-only (gated by canEditBio,
-    // same as bio/stats). Scale/x/y are a CSS transform on a plain
-    // object-fit:cover img: object-fit already does the "cover" math for
-    // any aspect ratio, so scale/translate on top of it needs no natural-
-    // dimension bookkeeping of our own.
+    // same as bio/stats). Scale is a CSS transform (zoom, always safe —
+    // it only ever grows the box). Pan is CSS object-position rather than
+    // a transform:translate: object-position's 0%-100% range is defined
+    // by the browser as exactly the image's available cover-overflow for
+    // whatever its natural aspect ratio is, so clamping x/y to ±50 (i.e.
+    // object-position staying within 0%-100% of center) can never expose
+    // background outside the image, at any zoom, for any photo shape —
+    // no natural-dimension bookkeeping of our own required.
     const myPhoto=this.state.myPhotos[s.id]||{};
     const photoScale=Number.isFinite(myPhoto.s)?myPhoto.s:1;
-    const photoX=Number.isFinite(myPhoto.x)?myPhoto.x:0;
-    const photoY=Number.isFinite(myPhoto.y)?myPhoto.y:0;
+    const PAN_MAX=50;
+    const clampPan=v=>Math.max(-PAN_MAX,Math.min(PAN_MAX,v));
+    const photoX=clampPan(Number.isFinite(myPhoto.x)?myPhoto.x:0);
+    const photoY=clampPan(Number.isFinite(myPhoto.y)?myPhoto.y:0);
+    const photoObjPos=(50+photoX)+'% '+(50+photoY)+'%';
     // Photo sheet — a bottom sheet (not an inline panel) opened by tapping
     // the profile photo itself, self-only (canEditBio). 'preview' shows
     // the photo + Framing/Change Photo actions; 'framing' shows the big
@@ -2015,8 +2022,6 @@ class Component extends DCLogic {
     // state) so every pointermove doesn't have to round-trip through
     // setMyPhoto's localStorage write — only the committed position does.
     const FRAME_PX=220;
-    const PAN_MAX=40;
-    const clampPan=v=>Math.max(-PAN_MAX,Math.min(PAN_MAX,v));
     const onPhotoPanStart=e=>{
       try{e.currentTarget.setPointerCapture(e.pointerId);}catch(err){}
       this._panStart={x:e.clientX,y:e.clientY,ox:photoX,oy:photoY};
@@ -2049,7 +2054,7 @@ class Component extends DCLogic {
       clsValue:effCls,clsOptions,onClsChange:e=>setStat('cls',e.target.value),
       homeValue:effHome,onHomeChange:e=>setStat('home',e.target.value),
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),photoEmpty:!this.photoOf(s.id),
-      photoScale,photoX,photoY,zoomPct:String(Math.round(photoScale*100)),
+      photoScale,photoObjPos,zoomPct:String(Math.round(photoScale*100)),
       hasPhotoSheet:!!photoSheetMode,inPreviewMode:photoSheetMode==='preview',inFramingMode:photoSheetMode==='framing',
       openPhotoSheet,closePhotoSheet,cancelPhotoSheet,openFraming,
       onPhotoFileChange:e=>{
