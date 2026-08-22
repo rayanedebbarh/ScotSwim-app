@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script src="./support.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 <x-dc>
@@ -56,9 +59,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="font-size:10.5px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;line-height:1.05;color:#F5E9DC;margin-top:4px">Welcome to ScotSwim</div>
       </div>
-      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="username / email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
       <input value="{{ pass }}" onChange="{{ onP }}" type="password" placeholder="password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
-      <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">LOG IN</button>
+      <sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12.5px;color:#ff9d9d;font-weight:600">{{ authErr }}</div>
+      </sc-if>
+      <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
       <div style="display:flex;gap:10px;justify-content:center">
         <div style="display:flex;flex-direction:column;gap:8px">
           <button onClick="{{ quickA }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: swimmer</button>
@@ -69,6 +75,40 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ quickD }}" style="padding:8px 14px;border-radius:999px;border:1px solid rgba(245,233,220,.35);background:transparent;color:rgba(245,233,220,.8);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap">Demo: diving coach</button>
         </div>
       </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- invite / sign-up screen — opened via a ?invite=TOKEN link -->
+<sc-if value="{{ isInvite }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background-image:url('uploads/ss1.png');background-size:contain;background-position:center top;background-repeat:no-repeat;background-color:#2A1218"></div>
+  <div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end">
+    <div style="position:absolute;left:0;right:0;bottom:0;height:56%;background:linear-gradient(180deg,rgba(42,18,24,0),rgba(42,18,24,.18) 40%,rgba(42,18,24,.4) 70%,rgba(42,18,24,.6) 100%)"></div>
+    <div style="position:relative;flex:none;padding:10px 24px 82px;display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="font-size:10.5px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;line-height:1.05;color:#F5E9DC;margin-top:4px">Set up your account</div>
+      </div>
+      <sc-if value="{{ inviteLoading }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:13.5px;color:rgba(245,233,220,.75)">Checking your invite…</div>
+      </sc-if>
+      <sc-if value="{{ inviteInvalid }}" hint-placeholder-val="{{ false }}">
+        <div style="background:rgba(0,0,0,.25);border-radius:10px;padding:16px;font-size:13.5px;color:rgba(245,233,220,.85);line-height:1.5">This invite link isn't valid anymore — it may have already been used, or the link's out of date. Ask your coach for a new one.</div>
+        <button onClick="{{ backToLogin }}" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">BACK TO SIGN IN</button>
+      </sc-if>
+      <sc-if value="{{ inviteValid }}" hint-placeholder-val="{{ false }}">
+        <div style="background:rgba(127,208,205,.12);border:1px solid rgba(127,208,205,.4);border-radius:10px;padding:12px 14px">
+          <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#7fd0cd">JOINING AS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;color:#F5E9DC;margin-top:2px">{{ inviteForName }} · {{ inviteForRole }}</div>
+          <div style="font-size:12px;color:rgba(245,233,220,.65);margin-top:2px">{{ inviteForEmail }}</div>
+        </div>
+        <input value="{{ signupPass }}" onChange="{{ onSignupPass }}" type="password" placeholder="choose a password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+        <input value="{{ signupPass2 }}" onChange="{{ onSignupPass2 }}" type="password" placeholder="confirm password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+        <sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:#ff9d9d;font-weight:600">{{ authErr }}</div>
+        </sc-if>
+        <button onClick="{{ doSignup }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ signupBtnLabel }}</button>
+      </sc-if>
     </div>
   </div>
 </sc-if>
@@ -1079,6 +1119,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <input type="range" min="0" max="1" step="0.05" value="{{ musicVolume }}" onChange="{{ musicVolumeChange }}" aria-label="Music volume" style="width:100%;margin-top:5px;accent-color:#1B7A78">
           </div>
         </div>
+        <sc-if value="{{ canInvite }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ openInvitePanel }}" style="width:100%;border:1px solid rgba(127,208,205,.4);background:rgba(127,208,205,.1);color:#7fd0cd;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">INVITE TEAMMATE</button>
+        </sc-if>
         <button onClick="{{ menuSignOut }}" style="width:100%;border:1px solid rgba(245,233,220,.35);background:none;color:rgba(245,233,220,.85);border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">SIGN OUT</button>
       </div>
     </div>
@@ -1327,6 +1370,42 @@ input::placeholder{color:rgba(245,233,220,.5)}
   </div>
 </sc-if>
 
+<!-- invite teammate panel -->
+<sc-if value="{{ showInvitePanel }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeInvitePanel }}" style="position:absolute;inset:0;background:rgba(42,18,24,.55);z-index:70"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:16px 20px 26px;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="width:24px"></div>
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#2A1218">INVITE TEAMMATE</div>
+      <button onClick="{{ closeInvitePanel }}" style="border:none;background:none;color:rgba(42,18,24,.55);font-size:13.5px;font-weight:800;cursor:pointer;padding:0">Done</button>
+    </div>
+    <sc-if value="{{ hasInviteResult }}" hint-placeholder-val="{{ false }}">
+      <div style="background:rgba(27,122,120,.08);border:1px solid rgba(27,122,120,.3);border-radius:8px;padding:14px;margin-bottom:14px">
+        <div style="font-size:11.5px;color:rgba(42,18,24,.6);margin-bottom:6px">Send this link to them — it only works once:</div>
+        <div style="font-size:11.5px;word-break:break-all;font-family:monospace;color:#2A1218;background:#fff;border:1px solid rgba(42,18,24,.15);border-radius:6px;padding:8px 10px">{{ inviteResult }}</div>
+        <button onClick="{{ copyInviteLink }}" style="margin-top:10px;width:100%;border:1.5px solid #1B7A78;background:#1B7A78;color:#fff;border-radius:8px;padding:10px;font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1px;cursor:pointer">COPY LINK</button>
+      </div>
+    </sc-if>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">WHO'S THIS FOR</div>
+        <select value="{{ inviteRosterId }}" onChange="{{ onInviteRosterSel }}" style="width:100%;margin-top:4px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13.5px;outline:none;background:#fff;box-sizing:border-box">
+          <option value="">Choose a name…</option>
+          <sc-for list="{{ inviteOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">THEIR EMAIL</div>
+        <input value="{{ inviteEmail }}" onChange="{{ onInviteEmailChange }}" placeholder="name@example.com" style="width:100%;margin-top:4px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13.5px;outline:none;box-sizing:border-box">
+      </div>
+      <sc-if value="{{ hasInviteErr }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12px;color:#b23b3b;font-weight:600">{{ inviteErr }}</div>
+      </sc-if>
+      <button onClick="{{ submitInvite }}" style="width:100%;border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:12px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">{{ inviteBtnLabel }}</button>
+    </div>
+  </div>
+</sc-if>
+
 <!-- toast -->
 <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;bottom:96px;left:24px;right:24px;background:#2A1218;color:#F5E9DC;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.3)">{{ toast }}</div>
@@ -1394,7 +1473,22 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
+      authChecking:true,authUser:null,authErr:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
+      showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
+    // Firebase — real accounts (Auth) + a shared database (Firestore),
+    // replacing the old per-browser localStorage-only self-service data
+    // and the fake name-matching login below. Config values are safe to
+    // keep in client code (not secret) — the actual access control is
+    // the Firestore security rules, not hiding these.
+    this.BASE_URL='https://rayanedebbarh.github.io/ScotSwim-app/ScotSwim.dc.html';
+    this.fbConfig={apiKey:'AIzaSyB0sIGGQ216cEgZBDAHPjvnk3_BWphXSaI',authDomain:'scotswim-app.firebaseapp.com',projectId:'scotswim-app',storageBucket:'scotswim-app.firebasestorage.app',messagingSenderId:'1030021616865',appId:'1:1030021616865:web:8140fa07b3f1e15f93d3a0'};
+    this.fbReady=!!(window.firebase&&window.firebase.initializeApp);
+    if(this.fbReady){
+      window.firebase.initializeApp(this.fbConfig);
+      this.auth=window.firebase.auth();
+      this.db=window.firebase.firestore();
+    }
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -2439,8 +2533,60 @@ class Component extends DCLogic {
     }
     lu[ev]=arr;this.setState({lineup:lu});
   }
-  componentDidMount(){this._ct=setInterval(()=>this.forceUpdate(),60000)}
+  componentDidMount(){
+    this._ct=setInterval(()=>this.forceUpdate(),60000);
+    const inviteToken=new URLSearchParams(location.search).get('invite');
+    if(inviteToken){
+      this.setState({screen:'invite',inviteToken,authChecking:false});
+      this.loadInvite(inviteToken);
+    }
+    if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
+    else this.setState({authChecking:false});
+  }
   componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}}
+  // Firestore lookup for a not-yet-used invite (by its unguessable token —
+  // the doc's own id is the capability, security rules only allow a get
+  // by exact id, never listing the collection). inviteInfo stays
+  // undefined while loading, null once we know it's missing/used/invalid.
+  loadInvite(token){
+    if(!this.fbReady){this.setState({inviteInfo:null});return;}
+    this.db.collection('invites').doc(token).get().then(doc=>{
+      if(!doc.exists||doc.data().used){this.setState({inviteInfo:null});return;}
+      this.setState({inviteInfo:{...doc.data(),token}});
+    }).catch(()=>this.setState({inviteInfo:null}));
+  }
+  // Fires on every sign-in/sign-out, including the persisted session
+  // Firebase restores on reload. The invite/signup screen drives its own
+  // transition into the app (see doSignup) so this steps aside while
+  // that's in progress, rather than racing it.
+  onAuthChange(user){
+    if(this.state.screen==='invite')return;
+    if(!user){this.setState({authUser:null,authChecking:false,screen:'login'});return;}
+    this.db.collection('users').doc(user.uid).get().then(doc=>{
+      if(!doc.exists){
+        this.auth.signOut();
+        this.setState({authChecking:false,authErr:'Account not fully set up — ask your coach for a new invite link.'});
+        return;
+      }
+      const profile=doc.data();
+      const goalSeg=profile.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
+      this.armMusicOnLogin();
+      this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
+    }).catch(()=>this.setState({authChecking:false}));
+  }
+  authErrMsg(err){
+    const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.'};
+    return m[err.code]||'Something went wrong — try again.';
+  }
+  // Coach-only: mint a one-time invite doc. The token is the doc id, so
+  // knowing the resulting link IS the access grant — nothing to guess.
+  createInvite(rosterId,role,email){
+    const token=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():Math.random().toString(36).slice(2)+Date.now().toString(36);
+    this.setState({inviteBusy:true,inviteErr:''});
+    this.db.collection('invites').doc(token).set({email,role,rosterId,used:false,createdAt:Date.now(),invitedBy:this.state.userId})
+      .then(()=>this.setState({inviteBusy:false,inviteResult:this.BASE_URL+'?invite='+token}))
+      .catch(()=>this.setState({inviteBusy:false,inviteErr:'Could not create the invite — try again.'}));
+  }
   renderVals(){
     const st=this.state;
     const start=this.props.startRole??'login';
@@ -2463,12 +2609,62 @@ class Component extends DCLogic {
       const goalSeg=r==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
       this.armMusicOnLogin();this.setState({screen:'app',role:r,userId:uid,tab:'home',sel:null,menuOpen:false,goalSeg});
     };
+    // Real sign-in — replaces the old fake name-matching login. Success
+    // is handled by onAuthChange (the Firebase auth listener), not here,
+    // since that's the single place that already knows how to load the
+    // signed-in person's role/roster id from Firestore.
     const doLogin=()=>{
-      const u=st.uname.toLowerCase();
-      if(u.includes('stone')||u.includes('diving coach'))return login('dcoach','Rayane Debbarh');
-      if(u.includes('hamstra')||u.includes('coach'))return login('coach','Rayane Debbarh');
-      const m=this.all.find(s=>u&&s.name.toLowerCase().includes(u.trim()));
-      login('athlete',m?m.id:'Rayane Debbarh');
+      if(st.authBusy)return;
+      if(!this.fbReady){this.setState({authErr:"Sign-in isn't available right now — try again in a moment."});return;}
+      const email=st.uname.trim();
+      if(!email||!st.pass){this.setState({authErr:'Enter your email and password.'});return;}
+      this.setState({authBusy:true,authErr:''});
+      this.auth.signInWithEmailAndPassword(email,st.pass).catch(err=>{
+        this.setState({authBusy:false,authErr:this.authErrMsg(err)});
+      });
+    };
+    const onSignupPass=e=>this.setState({signupPass:e.target.value,authErr:''});
+    const onSignupPass2=e=>this.setState({signupPass2:e.target.value,authErr:''});
+    const doSignup=()=>{
+      if(st.authBusy)return;
+      const info=st.inviteInfo;
+      if(!info)return;
+      if(st.signupPass.length<6){this.setState({authErr:'Password needs to be at least 6 characters.'});return;}
+      if(st.signupPass!==st.signupPass2){this.setState({authErr:"Passwords don't match."});return;}
+      this.setState({authBusy:true,authErr:''});
+      this.auth.createUserWithEmailAndPassword(info.email,st.signupPass).then(cred=>
+        this.db.collection('users').doc(cred.user.uid).set({email:info.email,role:info.role,rosterId:info.rosterId,createdAt:Date.now()})
+          .then(()=>this.db.collection('invites').doc(info.token).update({used:true}))
+          .then(()=>{
+            const goalSeg=info.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
+            this.armMusicOnLogin();
+            history.replaceState(null,'',location.pathname+location.hash);
+            this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
+          })
+      ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
+    };
+    // Coach-only invite panel — one person picked from the roster (plus
+    // the two coach slots), an email for them, Generate makes the link.
+    const inviteOptions=[
+      {id:'Chris Hamstra',n:'Chris Hamstra — Swim Coach',role:'coach'},
+      {id:'Kodi Stone',n:'Kodi Stone — Diving Coach',role:'dcoach'},
+      ...this.all.map(s=>({id:s.id,n:s.name,role:'athlete'}))
+    ];
+    const openInvitePanel=()=>this.setState({showInvitePanel:true,menuOpen:false,inviteRosterId:'',inviteEmail:'',inviteErr:'',inviteResult:''});
+    const closeInvitePanel=()=>this.setState({showInvitePanel:false});
+    const onInviteRosterSel=e=>this.setState({inviteRosterId:e.target.value,inviteErr:''});
+    const onInviteEmailChange=e=>this.setState({inviteEmail:e.target.value,inviteErr:''});
+    const submitInvite=()=>{
+      if(st.inviteBusy)return;
+      const picked=inviteOptions.find(o=>o.id===st.inviteRosterId);
+      const email=st.inviteEmail.trim().toLowerCase();
+      if(!picked){this.setState({inviteErr:'Pick who this invite is for.'});return;}
+      if(!email||!email.includes('@')){this.setState({inviteErr:'Enter a real email address.'});return;}
+      this.createInvite(picked.id,picked.role,email);
+    };
+    const copyInviteLink=()=>{
+      if(navigator.clipboard)navigator.clipboard.writeText(st.inviteResult).catch(()=>{});
+      this.toastMsg('Link copied');
     };
     const navDef=isDivingCoach
       ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
@@ -2745,14 +2941,40 @@ class Component extends DCLogic {
       coachSubtitle:isDivingCoach?'Alma Scots · Diving · Diving Coach':'Alma Scots · Swimming · Head Coach',
       heroIsCoachDiver:isDivingCoach,heroIsCoachMen:!isDivingCoach,
       uname:st.uname,pass:st.pass,
-      onU:e=>this.setState({uname:e.target.value}),
-      onP:e=>this.setState({pass:e.target.value}),
+      onU:e=>this.setState({uname:e.target.value,authErr:''}),
+      onP:e=>this.setState({pass:e.target.value,authErr:''}),
       doLogin,
+      authErr:st.authErr,hasAuthErr:!!st.authErr,authBusy:st.authBusy,
+      loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
+      signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
       quickA:()=>login('athlete','Rayane Debbarh'),
       quickB:()=>login('athlete','Abby Dumond'),
       quickC:()=>login('coach','Rayane Debbarh'),
       quickD:()=>login('dcoach','Rayane Debbarh'),
-      logout:()=>{this.pauseMusicForSignOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      logout:()=>{this.pauseMusicForSignOut();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      // Invite/sign-up screen (replaces the login screen when the URL
+      // carries ?invite=TOKEN). inviteInfo is undefined while the token
+      // is being looked up in Firestore, null once we know it's bad.
+      isInvite:screen==='invite',
+      inviteLoading:st.inviteInfo===undefined,
+      inviteInvalid:st.inviteInfo===null,
+      inviteValid:!!(st.inviteInfo&&st.inviteInfo.email),
+      inviteForName:st.inviteInfo?st.inviteInfo.rosterId:'',
+      inviteForRole:st.inviteInfo?({athlete:'Athlete',coach:'Swim Coach',dcoach:'Diving Coach'}[st.inviteInfo.role]||''):'',
+      inviteForEmail:st.inviteInfo?st.inviteInfo.email:'',
+      signupPass:st.signupPass,signupPass2:st.signupPass2,onSignupPass,onSignupPass2,doSignup,
+      backToLogin:()=>{history.replaceState(null,'',location.pathname+location.hash);this.setState({screen:'login',inviteToken:null,inviteInfo:undefined,authErr:''});},
+      // Coach-only "invite a teammate" panel — lives in the hamburger menu.
+      canInvite:isCoach,
+      openInvitePanel,closeInvitePanel,
+      showInvitePanel:st.showInvitePanel,
+      inviteOptions:inviteOptions.map(o=>({...o})),
+      inviteRosterId:st.inviteRosterId,onInviteRosterSel,
+      inviteEmail:st.inviteEmail,onInviteEmailChange,
+      inviteBusy:st.inviteBusy,inviteErr:st.inviteErr,hasInviteErr:!!st.inviteErr,
+      inviteBtnLabel:st.inviteBusy?'GENERATING…':'GENERATE INVITE LINK',
+      inviteResult:st.inviteResult,hasInviteResult:!!st.inviteResult,
+      submitInvite,copyInviteLink,
       barTitle:TITLES[tab]||'HOME',
       vHome:isApp&&tab==='home',
       vAHome:isApp&&!isCoach&&tab==='home',
@@ -2792,7 +3014,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.pauseMusicForSignOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      menuSignOut:()=>{this.pauseMusicForSignOut();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       musicPlaying:this.musicPrefs.playing,
       musicIcon:this.musicPrefs.playing?'❚❚':'▶',
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
