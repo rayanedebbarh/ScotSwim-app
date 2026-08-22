@@ -299,7 +299,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ attPctDisplay }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">last 30 days</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ attStatSubtitle }}</div>
          </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DIVERS</div>
@@ -376,19 +376,40 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ attNextDay }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">›</button>
         </sc-if>
       </div>
+      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+        <sc-for list="{{ attSegs }}" as="g" hint-placeholder-count="2">
+          <button onClick="{{ g.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ g.bg }};color:{{ g.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">{{ g.n }}</button>
+        </sc-for>
+      </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
-          <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
+          <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
+          </sc-if>
         </div>
-        <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} present — tap anyone who's out</div>
-        <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
-          <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
-            <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
-            <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
-            <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border:1.5px solid {{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
+        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} present — tap anyone who's out</div>
+          <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
+            <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+              <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
+              <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
+              <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border:1.5px solid {{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ attSeasonNotStarted }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:14px 8px 4px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#1B7A78">SEASON STARTS SOON</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Attendance opens once practices begin.</div>
           </div>
-        </sc-for>
+          <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+              <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
+              <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
       </div>
     </div>
   </sc-if>
@@ -1241,7 +1262,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 class Component extends DCLogic {
   constructor(p){
     super(p);
-    this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',sel:null,
+    this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoEdit:null,diveTimesEv:'1M',diveTimesDives:'6'};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
@@ -2392,7 +2413,18 @@ class Component extends DCLogic {
     const attDateLabel=attIsToday?'Today':attDateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const attPrevDay=()=>{const d=new Date(attDateObj);d.setDate(d.getDate()-1);this.setState({attDate:this.ymd(d)});};
     const attNextDay=()=>{if(attIsToday)return;const d=new Date(attDateObj);d.setDate(d.getDate()+1);this.setState({attDate:this.ymd(d)});};
-    const attRoster=this.all.filter(s=>isDivingCoach?s.diver:!s.diver);
+    // Practices haven't started yet (still in the off-season) — attendance
+    // is read-only until this flips true, at which point the roster
+    // rows/Mark-all-present button below become interactive again with no
+    // other changes needed.
+    const SEASON_STARTED=false;
+    const attRosterRole=this.all.filter(s=>isDivingCoach?s.diver:!s.diver);
+    // Men/Women split, same pattern as GOALS — a gender with nobody in
+    // this coach's role (e.g. Men has no divers) doesn't get a dead tab.
+    const attGenders=['M','W'].filter(id=>attRosterRole.some(s=>s.gender===id));
+    const attSegActive=attGenders.includes(st.attSeg)?st.attSeg:attGenders[0];
+    const attSegs=attGenders.map(id=>({n:id==='M'?'MEN':'WOMEN',bg:attSegActive===id?M:'transparent',fg:attSegActive===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({attSeg:id})}));
+    const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
     const attDateRec=this.state.attendance[attDateKey]||{};
     const attRows=attRoster.map(s=>{
       const present=attDateRec[s.id]!==false;
@@ -2400,12 +2432,12 @@ class Component extends DCLogic {
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
         present,pillBg:present?'#1B7A78':'transparent',pillFg:present?C:'rgba(42,18,24,.5)',
         pillBd:present?'#1B7A78':'rgba(42,18,24,.25)',pillLabel:present?'Present':'Absent',
-        onToggle:()=>this.setAttendance(attDateKey,s.id,!present)};
+        onToggle:SEASON_STARTED?()=>this.setAttendance(attDateKey,s.id,!present):null};
     });
     const attPresentCount=attRows.filter(r=>r.present).length;
-    const attPct=this.attendancePct(attRoster);
+    const attPct=SEASON_STARTED?this.attendancePct(attRosterRole):null;
     const attPctDisplay=attPct==null?'—':attPct+'%';
-    const onMarkAllPresent=()=>this.markAllPresent(attDateKey,attRoster);
+    const onMarkAllPresent=SEASON_STARTED?()=>this.markAllPresent(attDateKey,attRoster):null;
     const sim=this.simCalc();
     const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
     const oppGroups=[['MIAA','MIAA'],['D3','NATIONAL D3']].map(([id,n])=>({n,bg:st.oppGroup===id?'#2A1218':'#fff',fg:st.oppGroup===id?C:'rgba(42,18,24,.6)',
@@ -2607,6 +2639,8 @@ class Component extends DCLogic {
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
+      attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
+      attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
