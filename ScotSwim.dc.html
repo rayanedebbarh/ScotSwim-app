@@ -1120,7 +1120,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </div>
         <sc-if value="{{ canInvite }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ openInvitePanel }}" style="width:100%;border:1px solid rgba(127,208,205,.4);background:rgba(127,208,205,.1);color:#7fd0cd;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">INVITE TEAMMATE</button>
+          <button onClick="{{ openInvitePanel }}" style="width:100%;border:1px solid rgba(127,208,205,.4);background:rgba(127,208,205,.1);color:#7fd0cd;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">INVITE ATHLETE</button>
         </sc-if>
         <button onClick="{{ menuSignOut }}" style="width:100%;border:1px solid rgba(245,233,220,.35);background:none;color:rgba(245,233,220,.85);border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">SIGN OUT</button>
       </div>
@@ -1376,7 +1376,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:16px 20px 26px;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="width:24px"></div>
-      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#2A1218">INVITE TEAMMATE</div>
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#2A1218">INVITE ATHLETE</div>
       <button onClick="{{ closeInvitePanel }}" style="border:none;background:none;color:rgba(42,18,24,.55);font-size:13.5px;font-weight:800;cursor:pointer;padding:0">Done</button>
     </div>
     <sc-if value="{{ hasInviteResult }}" hint-placeholder-val="{{ false }}">
