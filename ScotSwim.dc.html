@@ -32,6 +32,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
    show the same translucent white on every row, active or not. */
 .menuItemBtn{transition:background .12s ease}
 .menuItemBtn:hover,.menuItemBtn:active{background:rgba(245,233,220,.14) !important}
+/* Vertical zoom slider (profile-photo framing): a plain horizontal
+   range rotated -90deg puts min at the bottom and max at the top,
+   matching "zoom in on top, zoom out on bottom" without any reversed
+   min/max bookkeeping in the value itself. */
+.zoomRange{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer}
+.zoomRange::-webkit-slider-runnable-track{height:6px;border-radius:999px;background:#1a1a1a}
+.zoomRange::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #1a1a1a;margin-top:-8px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.zoomRange::-moz-range-track{height:6px;border-radius:999px;background:#1a1a1a}
+.zoomRange::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 </style>
 </helmet>
 <div style="display:flex;justify-content:center;min-height:100vh;align-items:flex-start;background:#2A1218">
@@ -608,42 +617,20 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ ME (athlete) ============ -->
   <sc-if value="{{ vMe }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#6B1F33;color:#F5E9DC;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:12px">
-        <div style="display:flex;align-items:center;gap:14px">
-          <div style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none;position:relative">
-            <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
-              <img src="{{ det.photo }}" style="width:100%;height:100%;object-fit:cover;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
-            </sc-if>
-            <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
-              <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:20px">{{ det.ini }}</div>
-            </sc-if>
-            <sc-if value="{{ det.canEditBio }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ det.togglePhotoEdit }}" style="position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;border:2px solid #6B1F33;background:#F5E9DC;color:#6B1F33;font-size:11px;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">{{ det.photoEditIcon }}</button>
-            </sc-if>
-          </div>
-          <div>
-            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1">{{ det.name }}</div>
-            <div style="font-size:12.5px;color:rgba(245,233,220,.8);margin-top:3px">{{ det.cls }} · {{ det.pos }}</div>
-            <div style="font-size:11.5px;color:rgba(245,233,220,.6)">{{ det.home }}</div>
-          </div>
+      <div style="background:#6B1F33;color:#F5E9DC;border-radius:10px;padding:18px;display:flex;align-items:center;gap:14px">
+        <div onClick="{{ det.openPhotoSheet }}" style="width:60px;height:60px;border-radius:50%;overflow:hidden;border:2px solid #F5E9DC;background:#2A1218;flex:none;position:relative;cursor:pointer">
+          <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
+            <img src="{{ det.photo }}" style="width:100%;height:100%;object-fit:cover;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+          </sc-if>
+          <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:20px">{{ det.ini }}</div>
+          </sc-if>
         </div>
-        <sc-if value="{{ det.photoEditing }}" hint-placeholder-val="{{ false }}">
-          <div style="border-top:1px solid rgba(245,233,220,.2);padding-top:12px;display:flex;flex-direction:column;gap:10px">
-            <label for="mePhotoFile" style="align-self:flex-start;border:1.5px solid #F5E9DC;color:#F5E9DC;border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">Change photo</label>
-            <input id="mePhotoFile" type="file" accept="image/*" onChange="{{ det.onPhotoFileChange }}" style="display:none">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="font-size:11px;color:rgba(245,233,220,.7);white-space:nowrap">Zoom</span>
-              <input type="range" min="100" max="250" value="{{ det.zoomPct }}" onChange="{{ det.onZoomChange }}" style="flex:1;accent-color:#F5E9DC">
-            </div>
-            <div style="display:flex;align-items:center;justify-content:center;gap:8px">
-              <button onClick="{{ det.onPanLeft }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">◀</button>
-              <button onClick="{{ det.onPanUp }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">▲</button>
-              <button onClick="{{ det.onPanDown }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">▼</button>
-              <button onClick="{{ det.onPanRight }}" style="width:26px;height:26px;border-radius:50%;border:1.5px solid #F5E9DC;background:none;color:#F5E9DC;font-size:11px;cursor:pointer;line-height:1">▶</button>
-              <button onClick="{{ det.onResetFraming }}" style="margin-left:8px;border:none;background:none;color:rgba(245,233,220,.7);font-size:11.5px;font-weight:700;cursor:pointer">Reset</button>
-            </div>
-          </div>
-        </sc-if>
+        <div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;line-height:1">{{ det.name }}</div>
+          <div style="font-size:12.5px;color:rgba(245,233,220,.8);margin-top:3px">{{ det.cls }} · {{ det.pos }}</div>
+          <div style="font-size:11.5px;color:rgba(245,233,220,.6)">{{ det.home }}</div>
+        </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -1260,6 +1247,64 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <div style="position:absolute;bottom:96px;left:24px;right:24px;background:#2A1218;color:#F5E9DC;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.3)">{{ toast }}</div>
 </sc-if>
 
+<!-- profile photo sheet -->
+<sc-if value="{{ det.hasPhotoSheet }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ det.closePhotoSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:70"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:16px 20px 26px;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <sc-if value="{{ det.inFramingMode }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ det.backToPreview }}" style="border:none;background:none;color:#6B1F33;font-size:22px;cursor:pointer;padding:0;line-height:1;min-width:24px;text-align:left">‹</button>
+      </sc-if>
+      <sc-if value="{{ det.inPreviewMode }}" hint-placeholder-val="{{ true }}">
+        <div style="width:24px"></div>
+      </sc-if>
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#2A1218">PROFILE PHOTO</div>
+      <button onClick="{{ det.closePhotoSheet }}" style="border:none;background:none;color:#1B7A78;font-size:13.5px;font-weight:800;cursor:pointer;padding:0">Save</button>
+    </div>
+    <sc-if value="{{ det.inPreviewMode }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:6px 0 4px">
+        <div style="width:150px;height:150px;border-radius:50%;overflow:hidden;border:3px solid #F5E9DC;background:#2A1218;box-shadow:0 2px 10px rgba(0,0,0,.2)">
+          <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
+            <img src="{{ det.photo }}" style="width:100%;height:100%;object-fit:cover;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+          </sc-if>
+          <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:44px">{{ det.ini }}</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;gap:10px;width:100%;max-width:280px">
+          <button onClick="{{ det.openFraming }}" style="flex:1;border:1.5px solid #6B1F33;background:none;color:#6B1F33;border-radius:999px;padding:11px 4px;font-size:13px;font-weight:700;cursor:pointer">Framing</button>
+          <label for="mePhotoFile" style="flex:1;text-align:center;border:1.5px solid #6B1F33;background:#6B1F33;color:#F5E9DC;border-radius:999px;padding:11px 4px;font-size:13px;font-weight:700;cursor:pointer">Change Photo</label>
+          <input id="mePhotoFile" type="file" accept="image/*" onChange="{{ det.onPhotoFileChange }}" style="display:none">
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ det.inFramingMode }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;justify-content:center;gap:22px;padding:6px 0 4px">
+        <div onPointerDown="{{ det.onPhotoPanStart }}" onPointerMove="{{ det.onPhotoPanMove }}" onPointerUp="{{ det.onPhotoPanEnd }}" onPointerLeave="{{ det.onPhotoPanEnd }}" style="width:220px;height:220px;border-radius:50%;overflow:hidden;border:3px solid #F5E9DC;background:#2A1218;touch-action:none;cursor:grab;flex:none;box-shadow:0 2px 10px rgba(0,0,0,.2)">
+          <sc-if value="{{ det.photo }}" hint-placeholder-val="{{ true }}">
+            <img src="{{ det.photo }}" draggable="false" style="width:100%;height:100%;object-fit:cover;pointer-events:none;transform:scale({{ det.photoScale }}) translate({{ det.photoX }}%,{{ det.photoY }}%)">
+          </sc-if>
+          <sc-if value="{{ det.photoEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;color:#F5E9DC;font-size:60px;pointer-events:none">{{ det.ini }}</div>
+          </sc-if>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+          <span style="font-size:9.5px;color:rgba(42,18,24,.5);font-weight:700;letter-spacing:.5px">ZOOM IN</span>
+          <div style="height:150px;width:32px;display:flex;align-items:center;justify-content:center">
+            <input class="zoomRange" type="range" min="100" max="250" value="{{ det.zoomPct }}" onChange="{{ det.onZoomChange }}" style="width:150px;transform:rotate(-90deg)">
+          </div>
+          <span style="font-size:9.5px;color:rgba(42,18,24,.5);font-weight:700;letter-spacing:.5px">ZOOM OUT</span>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:10px">
+        <span style="font-size:11.5px;color:rgba(42,18,24,.4)">Drag the photo to reposition it</span>
+        <span style="margin:0 8px;color:rgba(42,18,24,.25)">·</span>
+        <button onClick="{{ det.onResetFraming }}" style="border:none;background:none;color:rgba(42,18,24,.5);font-size:11.5px;font-weight:700;cursor:pointer;padding:0">Reset</button>
+      </div>
+    </sc-if>
+  </div>
+</sc-if>
+
 </div>
 </x-import>
 </div>
@@ -1269,7 +1314,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoEdit:null,diveTimesEv:'1M',diveTimesDives:'6'};
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6'};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -1941,15 +1986,42 @@ class Component extends DCLogic {
     const photoScale=Number.isFinite(myPhoto.s)?myPhoto.s:1;
     const photoX=Number.isFinite(myPhoto.x)?myPhoto.x:0;
     const photoY=Number.isFinite(myPhoto.y)?myPhoto.y:0;
-    const photoEditing=canEditBio&&this.state.photoEdit===s.id;
-    const togglePhotoEdit=()=>this.setState({photoEdit:photoEditing?null:s.id});
+    // Photo sheet — a bottom sheet (not an inline panel) opened by tapping
+    // the profile photo itself, self-only (canEditBio). 'preview' shows
+    // the photo + Framing/Change Photo actions; 'framing' shows the big
+    // drag-to-pan circle + zoom slider. Sheet state lives in
+    // this.state.photoSheet (null when closed) — same slot for every
+    // viewer, but it's only ever opened from the ME tab's own photo.
+    const photoSheetMode=canEditBio?this.state.photoSheet:null;
+    const openPhotoSheet=()=>this.setState({photoSheet:'preview'});
+    const closePhotoSheet=()=>this.setState({photoSheet:null});
+    const openFraming=()=>this.setState({photoSheet:'framing'});
+    const backToPreview=()=>this.setState({photoSheet:'preview'});
     const setMyPhoto=patch=>{
       const myPhotos={...this.state.myPhotos};
       myPhotos[s.id]={...myPhoto,...patch};
       this.setState({myPhotos});this.saveMyPhotos(myPhotos);
     };
-    const PAN_MAX=40,PAN_STEP=6;
+    const PAN_MAX=40;
     const clampPan=v=>Math.max(-PAN_MAX,Math.min(PAN_MAX,v));
+    // Drag-to-pan on the framing circle. FRAME_PX matches that circle's
+    // fixed on-screen size, so a pointer delta in px converts directly to
+    // the transform's %-of-frame units without a live DOM measurement.
+    // The running x/y during a drag lives on the instance (not React
+    // state) so every pointermove doesn't have to round-trip through
+    // setMyPhoto's localStorage write — only the committed position does.
+    const FRAME_PX=220;
+    const onPhotoPanStart=e=>{
+      try{e.currentTarget.setPointerCapture(e.pointerId);}catch(err){}
+      this._panStart={x:e.clientX,y:e.clientY,ox:photoX,oy:photoY};
+    };
+    const onPhotoPanMove=e=>{
+      if(!this._panStart)return;
+      const dx=(e.clientX-this._panStart.x)/FRAME_PX*100;
+      const dy=(e.clientY-this._panStart.y)/FRAME_PX*100;
+      setMyPhoto({x:clampPan(this._panStart.ox+dx),y:clampPan(this._panStart.oy+dy)});
+    };
+    const onPhotoPanEnd=()=>{this._panStart=null;};
     const myEventRows=entryIds.map(entryId=>{
       const entry=myEntries[entryId];
       const e=this.evMap[entry.eventId];
@@ -1972,17 +2044,15 @@ class Component extends DCLogic {
       homeValue:effHome,onHomeChange:e=>setStat('home',e.target.value),
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),photoEmpty:!this.photoOf(s.id),
       photoScale,photoX,photoY,zoomPct:String(Math.round(photoScale*100)),
-      photoEditing,togglePhotoEdit,photoEditIcon:photoEditing?'✓':'✎',
+      hasPhotoSheet:!!photoSheetMode,inPreviewMode:photoSheetMode==='preview',inFramingMode:photoSheetMode==='framing',
+      openPhotoSheet,closePhotoSheet,openFraming,backToPreview,
       onPhotoFileChange:e=>{
         const f=e.target.files&&e.target.files[0];
         if(f)this.readPhotoFile(f,data=>setMyPhoto({data,s:1,x:0,y:0}));
         e.target.value='';
       },
       onZoomChange:e=>setMyPhoto({s:Math.max(1,Math.min(2.5,Number(e.target.value)/100))}),
-      onPanUp:()=>setMyPhoto({y:clampPan(photoY-PAN_STEP)}),
-      onPanDown:()=>setMyPhoto({y:clampPan(photoY+PAN_STEP)}),
-      onPanLeft:()=>setMyPhoto({x:clampPan(photoX-PAN_STEP)}),
-      onPanRight:()=>setMyPhoto({x:clampPan(photoX+PAN_STEP)}),
+      onPhotoPanStart,onPhotoPanMove,onPhotoPanEnd,
       onResetFraming:()=>setMyPhoto({s:1,x:0,y:0}),
       chart:this.chartFor(s,ev),
       evChips:s.primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
