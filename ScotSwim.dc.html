@@ -2028,9 +2028,12 @@ class Component extends DCLogic {
     };
     const onPhotoPanMove=e=>{
       if(!this._panStart)return;
+      // Inverted: object-position's x/y move the crop window, which is
+      // the opposite of how the visible photo should track the finger
+      // (drag down should make the photo follow down, not the window).
       const dx=(e.clientX-this._panStart.x)/FRAME_PX*100;
       const dy=(e.clientY-this._panStart.y)/FRAME_PX*100;
-      setMyPhoto({x:clampPan(this._panStart.ox+dx),y:clampPan(this._panStart.oy+dy)});
+      setMyPhoto({x:clampPan(this._panStart.ox-dx),y:clampPan(this._panStart.oy-dy)});
     };
     const onPhotoPanEnd=()=>{this._panStart=null;};
     const myEventRows=entryIds.map(entryId=>{
