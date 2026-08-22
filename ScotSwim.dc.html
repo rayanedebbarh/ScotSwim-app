@@ -2237,11 +2237,13 @@ class Component extends DCLogic {
       :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['progress','PROGRESS'],['team','TEAM'],['me','ME']];
     // Bottom-nav X-position nudge, per tab id, in px. Positive = right,
     // negative = left, 0 = untouched. Shifts the whole tab (bar + label
-    // + tap target) as one unit, on every nav row that has that id
-    // (so this is a single edit for every role/user, not just athletes).
+    // + tap target) as one unit. Athlete-only by design (!isCoach) — the
+    // 'team' id is shared with the coach nav rows, which don't want this
+    // nudge, so it's gated off there rather than applying everywhere a
+    // matching id shows up.
     const NAV_X_OFFSET={progress:8,team:15};
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
-      sz:'14px',ls:'1.5px',off:NAV_X_OFFSET[id]||0,
+      sz:'14px',ls:'1.5px',off:!isCoach?(NAV_X_OFFSET[id]||0):0,
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING WELL',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
     const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
