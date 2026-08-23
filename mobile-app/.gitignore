@@ -1,5 +1,9 @@
 node_modules/
 www/
+# The repo root's .gitignore blanket-excludes package-lock.json (added
+# for an unrelated earlier npm experiment at the repo root) — this one
+# is needed so CI's `npm ci` gets a real, reproducible lockfile.
+!package-lock.json
 android/app/build/
 android/build/
 android/.gradle/
