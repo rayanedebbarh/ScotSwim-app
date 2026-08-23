@@ -1220,10 +1220,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION — {{ selDet.chart.ev }}</div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION</div>
             <div style="font-size:14px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ selDet.imp }}</div>
           </div>
-          <svg width="100%" viewBox="0 0 320 300">
+          <div style="display:flex;gap:8px;margin-top:10px;overflow-x:auto">
+            <sc-for list="{{ selDet.evChips }}" as="c" hint-placeholder-count="3">
+              <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
+            </sc-for>
+          </div>
+          <svg width="100%" viewBox="0 0 320 300" style="margin-top:8px">
             <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
               <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
               <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
