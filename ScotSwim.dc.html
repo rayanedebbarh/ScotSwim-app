@@ -2164,7 +2164,12 @@ class Component extends DCLogic {
     };
     // Athlete-picked events/times (see applyMyEvents) — every event that
     // exists is offered, the athlete only tracks the ones they actually
-    // swim/dive, and enters their own time for each.
+    // swim/dive, and enters their own time for each. Viewing someone
+    // ELSE's profile (a coach on the Team tab, say) fetches their latest
+    // logged times from Firestore once per session — self-viewing
+    // doesn't need this, that's kept live the whole session by the
+    // onSnapshot listener started at login (see startMyEventsSync).
+    if(!canEditBio)this.fetchOthersMyEvents(s.id);
     const myEntries=this.state.myEvents[s.id]||{};
     const entryIds=Object.keys(myEntries);
     // Always the full event list — the same event can be logged any
@@ -2175,6 +2180,7 @@ class Component extends DCLogic {
       this.applyMyEvents(s.id,next);
       const myEvents={...this.state.myEvents,[s.id]:next};
       this.setState({myEvents});this.saveMyEvents(myEvents);
+      this.syncMyEventsToCloud(s.id,next);
     };
     // Profile-photo replace + frame — self-only (gated by canEditBio,
     // same as bio/stats). Scale is a CSS transform (zoom, always safe —
@@ -2568,7 +2574,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -2597,7 +2603,66 @@ class Component extends DCLogic {
       const goalSeg=profile.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
       this.armMusicOnLogin();
       this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
+      if(profile.role==='athlete')this.startMyEventsSync(profile.rosterId);
     }).catch(()=>this.setState({authChecking:false}));
+  }
+  // Keeps this athlete's own logged times/dates live across every device
+  // they're signed in on — a snapshot listener, not a one-time fetch, so
+  // an edit made on one device shows up here without a reload. First
+  // snapshot with nothing in Firestore yet means this account hasn't
+  // synced before; if this device already has locally-entered times
+  // (from before this migration, or offline), push them up once so nothing
+  // already logged gets lost — after that, Firestore is the source of
+  // truth and local storage is just a warm cache of it.
+  startMyEventsSync(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(this._myEventsUnsub)this._myEventsUnsub();
+    const ref=this.db.collection('myEvents').doc(rosterId);
+    let migrated=false;
+    this._myEventsUnsub=ref.onSnapshot(doc=>{
+      if(doc.exists){
+        const entries=doc.data().entries||{};
+        this.applyMyEvents(rosterId,entries);
+        const myEvents={...this.state.myEvents,[rosterId]:entries};
+        this.setState({myEvents});
+        this.saveMyEvents(myEvents);
+      }else if(!migrated){
+        migrated=true;
+        const local=this.state.myEvents[rosterId];
+        if(local&&Object.keys(local).length)ref.set({entries:local});
+      }
+    });
+  }
+  stopMyEventsSync(){
+    if(this._myEventsUnsub){this._myEventsUnsub();this._myEventsUnsub=null;}
+  }
+  // One-time fetch (not a live listener — avoids a growing pile of open
+  // subscriptions for every teammate a coach happens to click through)
+  // for viewing someone ELSE's logged times, e.g. from the Team tab.
+  // Cached per session so re-rendering the same profile doesn't re-fetch.
+  fetchOthersMyEvents(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._fetchedMyEvents)this._fetchedMyEvents=new Set();
+    if(this._fetchedMyEvents.has(rosterId))return;
+    this._fetchedMyEvents.add(rosterId);
+    this.db.collection('myEvents').doc(rosterId).get().then(doc=>{
+      if(!doc.exists)return;
+      const entries=doc.data().entries||{};
+      this.applyMyEvents(rosterId,entries);
+      const myEvents={...this.state.myEvents,[rosterId]:entries};
+      this.setState({myEvents});
+    }).catch(()=>{});
+  }
+  // Debounced — a keystroke-by-keystroke Firestore write would be both
+  // wasteful and laggy; the local state + localStorage update in
+  // setMyEvents is what keeps typing itself instant.
+  syncMyEventsToCloud(rosterId,entries){
+    if(!this.fbReady)return;
+    if(!this._myEventsSaveTimers)this._myEventsSaveTimers={};
+    clearTimeout(this._myEventsSaveTimers[rosterId]);
+    this._myEventsSaveTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('myEvents').doc(rosterId).set({entries}).catch(()=>{});
+    },700);
   }
   authErrMsg(err){
     const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.'};
@@ -2672,6 +2737,7 @@ class Component extends DCLogic {
             this.armMusicOnLogin();
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
+            if(info.role==='athlete')this.startMyEventsSync(info.rosterId);
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
     };
@@ -2981,7 +3047,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.pauseMusicForSignOut();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -3044,7 +3110,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.pauseMusicForSignOut();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       musicPlaying:this.musicPrefs.playing,
       musicIcon:this.musicPrefs.playing?'❚❚':'▶',
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
