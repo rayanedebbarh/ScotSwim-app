@@ -203,39 +203,61 @@ function IOSDevice({
   children, width = 402, height = 874, dark = false,
   title, keyboard = false, hideStatusBar = false,
 }) {
+  // On an actual phone (native app or a real mobile browser — anything
+  // under the 560px breakpoint below) this fills the real screen: no fake
+  // bezel, no fake status bar/dynamic island/home-indicator, since a real
+  // device already draws all of that itself — this only ever used to draw
+  // a tiny floating phone-shaped box in a black void on a real screen.
+  // Real notch/home-indicator spacing comes from env(safe-area-inset-*)
+  // instead. Above 560px (viewing the design on a desktop browser, e.g.
+  // inside Claude's Design Canvas) it keeps the original framed-mockup
+  // look at its authored size, fake status bar and all, since that's
+  // exactly what's useful there.
   return (
     // data-om-starter: inert presence marker — Claude Design's starter-usage
     // probe reads it; it renders nothing. Keep it on this root element.
-    <div data-om-starter="ios-frame" style={{
-      width, height, borderRadius: 48, overflow: 'hidden',
-      position: 'relative', background: dark ? '#000' : '#F2F2F7',
-      boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',
+    <div data-om-starter="ios-frame" className="iosdev-root" style={{
+      '--iosdev-w': width + 'px', '--iosdev-h': height + 'px',
+      background: dark ? '#000' : '#F2F2F7',
       fontFamily: '-apple-system, system-ui, sans-serif',
       WebkitFontSmoothing: 'antialiased',
     }}>
-      {/* dynamic island */}
+      <style>{`
+        .iosdev-root{position:relative;overflow:hidden;width:100%;height:100dvh}
+        .iosdev-content{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+        .iosdev-island,.iosdev-statusbar,.iosdev-home{display:none}
+        @media (min-width:560px){
+          .iosdev-root{width:var(--iosdev-w);height:var(--iosdev-h);border-radius:48px;
+            box-shadow:0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12);margin:40px auto}
+          .iosdev-content{padding-top:0;padding-bottom:0}
+          .iosdev-island,.iosdev-statusbar{display:block}
+          .iosdev-home{display:flex}
+        }
+      `}</style>
+      {/* dynamic island — framed/desktop preview only, see media query above */}
       {!hideStatusBar && (
-        <div style={{
+        <div className="iosdev-island" style={{
           position: 'absolute', top: 11, left: '50%', transform: 'translateX(-50%)',
           width: 126, height: 37, borderRadius: 24, background: '#000', zIndex: 50,
         }} />
       )}
-      {/* status bar (absolute) */}
+      {/* status bar (absolute) — framed/desktop preview only */}
       {!hideStatusBar && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
+        <div className="iosdev-statusbar" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
           <IOSStatusBar dark={dark} />
         </div>
       )}
       {/* nav + content */}
-      <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="iosdev-content" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
         {title !== undefined && <IOSNavBar title={title} dark={dark} />}
         <div style={{ flex: 1, overflow: 'auto' }}>{children}</div>
         {keyboard && <IOSKeyboard dark={dark} />}
       </div>
-      {/* home indicator — always on top */}
-      <div style={{
+      {/* home indicator — framed/desktop preview only; a real device
+          already draws its own on top of every app */}
+      <div className="iosdev-home" style={{
         position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 60,
-        height: 34, display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+        height: 34, justifyContent: 'center', alignItems: 'flex-end',
         paddingBottom: 8, pointerEvents: 'none',
       }}>
         <div style={{
