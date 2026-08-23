@@ -27,10 +27,11 @@ jobs:
       - name: Sync web assets and Capacitor iOS project
         run: npm run sync-web && npx cap sync ios
 
-      - name: Install CocoaPods dependencies
-        working-directory: mobile-app/ios/App
-        run: pod install
-
+      # This Capacitor version wires plugins in via Swift Package Manager
+      # (CapApp-SPM), not CocoaPods — there's no Podfile at all, so no pod
+      # install step is needed, and the project is a plain .xcodeproj with
+      # no .xcworkspace to build against.
+      #
       # Builds for the iOS Simulator, not a real device — this needs no
       # signing certificate or provisioning profile, so it works before a
       # paid Apple Developer account exists. It proves the native project
@@ -40,6 +41,6 @@ jobs:
       - name: Build for iOS Simulator (no signing)
         working-directory: mobile-app/ios/App
         run: |
-          xcodebuild -workspace App.xcworkspace -scheme App \
+          xcodebuild -project App.xcodeproj -scheme App \
             -configuration Debug -sdk iphonesimulator \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
