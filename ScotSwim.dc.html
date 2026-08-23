@@ -2007,6 +2007,17 @@ class Component extends DCLogic {
     // different visual density. This is what actually keeps every
     // event's chart looking the same shape.
     const tickVals=this.niceTicks(mn,mx,14);
+    // Snap the plotted range to the actual first/last gridline instead of
+    // the independently-computed 15%-padded mn/mx. niceTicks rounds OUT
+    // to the nearest step, so the tick range is always >= the padded one
+    // — the padding is preserved (often slightly roomier), but now the
+    // top and bottom gridlines land exactly on the plot's own edges by
+    // construction. Before this, a tick past the padded mx could compute
+    // a Y position beyond the plot area entirely, clipping its label off
+    // the bottom of the chart — most visible on a narrow-range chart
+    // (e.g. a single logged point) where that overshoot is largest
+    // relative to the whole range.
+    mn=tickVals[0];mx=tickVals[tickVals.length-1];
     // Dive gridlines are always round numbers already (niceTicks picks
     // 1/2/2.5/5/10 steps), so they don't need the decimal + " pts" suffix
     // the point-value labels use — that suffix alone was blowing up the
@@ -2031,42 +2042,54 @@ class Component extends DCLogic {
     const yTicks=tickVals.map((v,i)=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:tickLabels[i]}));
     const pts=hist.map((t,i)=>X(i).toFixed(1)+','+Y(t).toFixed(1)).join(' ');
     const best=dive?Math.max(...hist):Math.min(...hist);
-    // Every label starts at the same baseline offset above its own point
-    // (centered on it, clamped only at the SVG's physical edges so nothing
-    // clips) — the common case reads as one consistent row of labels. It's
-    // only raised past that baseline when the line would actually pass
-    // through it there (walking the polyline's real height across the
-    // box's horizontal span), and only by the minimum amount that specific
-    // conflict needs — a steep segment genuinely does need more clearance
-    // than a flat one to keep the line from cutting through the label, so
-    // that much variation is unavoidable, but it's kept as small as it can
-    // safely be. A second left-to-right pass then checks each label's box
-    // against every already-placed label's box and, on any overlap, raises
-    // it above that label too — so close-together points (5+ entries in
-    // one event) stack their labels in clear rows instead of overlapping.
-    // Every label sits at the same fixed, tight distance above its own
-    // point — no longer stretched further away on steep segments to dodge
-    // the polyline, so the gap reads identically everywhere, on every
-    // event's chart. Labels can still get pushed to a higher row, but
-    // only to clear another label's box (see the placement loop below),
-    // never to clear the line itself.
-    const HH=8,LH=16,GAP=2,D=14;
+    // Every label sits at the same fixed, tight distance from its own
+    // point — never stretched further away to dodge the polyline, so the
+    // gap reads identically everywhere, on every event's chart. Which
+    // SIDE it sits on isn't fixed to "always above" any more: a point
+    // that's a local peak (better than both neighbors — visually higher,
+    // since a faster/better swim sits higher on the chart) labels above,
+    // where the open space actually is; a local valley (worse than both
+    // neighbors) labels below, for the same reason; an end point compares
+    // to its one neighbor. That alone keeps almost every label clear of
+    // the line without needing to measure the line's path at all — a
+    // peak's connecting segments both stay below it, so a label placed
+    // above never reaches down far enough to cross them, and the mirror
+    // holds for valleys. When two labels still collide (close-together
+    // points, 5+ entries in one event), the loser gets pushed one more
+    // row further in its OWN chosen direction — away from its point,
+    // never flipped to the other side, so it can't end up crossing the
+    // line as a side effect of dodging another label.
+    if(!this._pointLabelCtx)this._pointLabelCtx=document.createElement('canvas').getContext('2d');
+    this._pointLabelCtx.font="700 9px 'Barlow',sans-serif";
+    const measurePt=str=>this._pointLabelCtx.measureText(str).width;
+    const boxWReal=str=>Math.max(20,Math.ceil(measurePt(str))+8);
+    const CLR=6,LH=16,GAP=2;
+    const ys=hist.map(t=>Y(t));
+    const sideOf=i=>{
+      const y=ys[i],L=ys[i-1],R=ys[i+1];
+      if(L===undefined)return y<=R?'above':'below';
+      if(R===undefined)return y<=L?'above':'below';
+      if(y<=Math.min(L,R))return 'above';
+      if(y>=Math.max(L,R))return 'below';
+      return 'above';
+    };
     const placed=[];
     const dots=hist.map((t,i)=>{
       const x=X(i),y=Y(t);
       const label=this.fmtEv(ev,t);
-      const lw=boxW(label);
+      const lw=boxWReal(label);
       const fx=Math.min(318-lw,Math.max(2,x-lw/2));
-      let fy=y-D-HH,moved=true;
+      const side=sideOf(i);
+      let fy=side==='above'?y-CLR-LH:y+CLR,moved=true;
       while(moved){
         moved=false;
         for(const b of placed){
           const xOverlap=fx<b.fx+b.lw+GAP&&b.fx<fx+lw+GAP;
           const yOverlap=fy<b.fy+LH+GAP&&b.fy<fy+LH+GAP;
-          if(xOverlap&&yOverlap){fy=b.fy-LH-GAP;moved=true;}
+          if(xOverlap&&yOverlap){fy=side==='above'?b.fy-LH-GAP:b.fy+LH+GAP;moved=true;}
         }
       }
-      fy=Math.max(4,fy);
+      fy=Math.max(4,Math.min(280,fy));
       placed.push({fx,fy,lw});
       return {x:x.toFixed(1),y:y.toFixed(1),
         fx:fx.toFixed(1),fy:fy.toFixed(1),fw:lw,
