@@ -192,6 +192,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ recentLabel }}</div>
           <button onClick="{{ goSwims }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ allLabel }} ›</button>
         </div>
+        <sc-if value="{{ myRecentEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times logged yet — log one in My Events and it'll show up here.</div>
+        </sc-if>
         <sc-for list="{{ myRecent }}" as="r" hint-placeholder-count="3">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div>
@@ -207,32 +210,40 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#2A1218;border-radius:8px;padding:16px 18px;color:#F5E9DC">
         <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">{{ rivalryLabel }}</div>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <select value="{{ rivalEv }}" onChange="{{ rivalEvSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
-            <sc-for list="{{ rivalEvOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
-          </select>
-          <select value="{{ rivalId }}" onChange="{{ rivalSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
-            <sc-for list="{{ rivalOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
-          <div style="flex:1;text-align:center">
-            <div style="width:48px;height:48px;border-radius:50%;background:#6B1F33;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
-              <image-slot id="rival-a" src="{{ chal.aPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.aIni }}"></image-slot>
-            </div>
-            <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.aName }}</div>
-            <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.aTime }}</div>
+        <sc-if value="{{ rivalNoEvent }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">Log a time in My Events to unlock rivalries.</div>
+        </sc-if>
+        <sc-if value="{{ rivalNoOpponent }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">No one else has logged a time in this event yet — check back once a teammate does.</div>
+        </sc-if>
+        <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <select value="{{ rivalEv }}" onChange="{{ rivalEvSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
+              <sc-for list="{{ rivalEvOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+            </select>
+            <select value="{{ rivalId }}" onChange="{{ rivalSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
+              <sc-for list="{{ rivalOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+            </select>
           </div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:20px;color:rgba(245,233,220,.5)">VS</div>
-          <div style="flex:1;text-align:center">
-            <div style="width:48px;height:48px;border-radius:50%;background:#1B7A78;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
-              <image-slot id="rival-b" src="{{ chal.bPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.bIni }}"></image-slot>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
+            <div style="flex:1;text-align:center">
+              <div style="width:48px;height:48px;border-radius:50%;background:#6B1F33;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
+                <image-slot id="rival-a" src="{{ chal.aPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.aIni }}"></image-slot>
+              </div>
+              <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.aName }}</div>
+              <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.aTime }}</div>
             </div>
-            <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.bName }}</div>
-            <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.bTime }}</div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:20px;color:rgba(245,233,220,.5)">VS</div>
+            <div style="flex:1;text-align:center">
+              <div style="width:48px;height:48px;border-radius:50%;background:#1B7A78;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
+                <image-slot id="rival-b" src="{{ chal.bPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.bIni }}"></image-slot>
+              </div>
+              <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.bName }}</div>
+              <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.bTime }}</div>
+            </div>
           </div>
-        </div>
-        <div style="text-align:center;font-size:12px;color:rgba(245,233,220,.7);margin-top:10px">{{ chal.note }}</div>
+          <div style="text-align:center;font-size:12px;color:rgba(245,233,220,.7);margin-top:10px">{{ chal.note }}</div>
+        </sc-if>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -268,6 +279,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">COACH'S GOALS FOR YOU</div>
           <button onClick="{{ allCoachBtn }}" style="border:none;background:none;color:#1B7A78;font-size:12px;font-weight:700;cursor:pointer;padding:0">{{ allCoachLabel }}</button>
         </div>
+        <sc-if value="{{ myGoalsEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log a time in My Events to see goal progress here.</div>
+        </sc-if>
         <sc-for list="{{ myGoals }}" as="g" hint-placeholder-count="2">
           <div style="margin-top:12px">
             <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600">
@@ -375,6 +389,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TOP IMPROVERS</div>
+        <sc-if value="{{ improversEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times logged yet — this fills in once athletes start entering times in My Events.</div>
+        </sc-if>
         <sc-for list="{{ improvers }}" as="p" hint-placeholder-count="3">
           <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
             <div style="width:38px;height:38px;border-radius:50%;overflow:hidden;background:{{ p.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ p.slotId }}" src="{{ p.photo }}" minimal="true" shape="circle" placeholder="{{ p.ini }}"></image-slot></div>
@@ -773,43 +790,51 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PROGRESSION</div>
-          <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }} last season</div>
+          <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }}</div>
         </div>
-        <div style="display:flex;gap:8px;margin-top:10px;overflow-x:auto">
-          <sc-for list="{{ det.evChips }}" as="c" hint-placeholder-count="3">
-            <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
-          </sc-for>
-        </div>
-        <svg width="100%" viewBox="0 0 320 300" style="margin-top:8px">
-          <sc-for list="{{ det.chart.yTicks }}" as="g" hint-placeholder-count="5">
-            <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
-            <foreignObject x="0" y="{{ g.ly }}" width="{{ det.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ det.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
-            </foreignObject>
-          </sc-for>
-          <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
-          <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
-          <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
-            <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
-            <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
-                <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
+        <sc-if value="{{ det.chartEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:32px 8px 8px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">NO TIMES YET</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Log a time in My Events below and your progression chart will build itself from there.</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ det.hasChart }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px;margin-top:10px;overflow-x:auto">
+            <sc-for list="{{ det.evChips }}" as="c" hint-placeholder-count="3">
+              <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
+            </sc-for>
+          </div>
+          <svg width="100%" viewBox="0 0 320 300" style="margin-top:8px">
+            <sc-for list="{{ det.chart.yTicks }}" as="g" hint-placeholder-count="5">
+              <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
+              <foreignObject x="0" y="{{ g.ly }}" width="{{ det.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ det.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+              </foreignObject>
+            </sc-for>
+            <line x1="{{ det.chart.plotLeft }}" x2="{{ det.chart.plotRight }}" y1="{{ det.chart.goalY }}" y2="{{ det.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
+            <polyline points="{{ det.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
+            <sc-for list="{{ det.chart.dots }}" as="p" hint-placeholder-count="6">
+              <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
+              <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
+                  <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
+                </div>
+              </foreignObject>
+            </sc-for>
+          </svg>
+          <div style="position:relative;height:28px;margin-top:2px">
+            <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6">
+              <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
+                <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
+                <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
               </div>
-            </foreignObject>
-          </sc-for>
-        </svg>
-        <div style="position:relative;height:28px;margin-top:2px">
-          <sc-for list="{{ det.chart.labs }}" as="l" hint-placeholder-count="6">
-            <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
-              <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
-              <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
-            </div>
-          </sc-for>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;font-weight:600">
-          <span style="color:rgba(42,18,24,.6)">Season best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ det.chart.pb }}</span></span>
-          <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ det.chart.goal }}</span></span>
-        </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;font-weight:600">
+            <span style="color:rgba(42,18,24,.6)">Season best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ det.chart.pb }}</span></span>
+            <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ det.chart.goal }}</span></span>
+          </div>
+        </sc-if>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
@@ -1223,47 +1248,63 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">PROGRESSION</div>
             <div style="font-size:14px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ selDet.imp }}</div>
           </div>
-          <div style="display:flex;gap:8px;margin-top:10px;overflow-x:auto">
-            <sc-for list="{{ selDet.evChips }}" as="c" hint-placeholder-count="3">
-              <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
-            </sc-for>
-          </div>
-          <svg width="100%" viewBox="0 0 320 300" style="margin-top:8px">
-            <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
-              <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
-              <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ selDet.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
-              </foreignObject>
-            </sc-for>
-            <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
-            <polyline points="{{ selDet.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
-            <sc-for list="{{ selDet.chart.dots }}" as="p" hint-placeholder-count="6">
-              <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
-              <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
-                <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
-                  <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
+          <sc-if value="{{ selDet.chartEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:32px 8px 8px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">NO TIMES YET</div>
+              <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Once they log a time in My Events, their progression chart will show up here.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ selDet.hasChart }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:8px;margin-top:10px;overflow-x:auto">
+              <sc-for list="{{ selDet.evChips }}" as="c" hint-placeholder-count="3">
+                <button onClick="{{ c.onTap }}" style="border:1.5px solid #6B1F33;background:{{ c.bg }};color:{{ c.fg }};border-radius:999px;padding:6px 13px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">{{ c.n }}</button>
+              </sc-for>
+            </div>
+            <svg width="100%" viewBox="0 0 320 300" style="margin-top:8px">
+              <sc-for list="{{ selDet.chart.yTicks }}" as="g" hint-placeholder-count="5">
+                <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
+                <foreignObject x="0" y="{{ g.ly }}" width="{{ selDet.chart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
+                  <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ selDet.chart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+                </foreignObject>
+              </sc-for>
+              <line x1="{{ selDet.chart.plotLeft }}" x2="{{ selDet.chart.plotRight }}" y1="{{ selDet.chart.goalY }}" y2="{{ selDet.chart.goalY }}" style="stroke:#1B7A78;stroke-width:1.5;stroke-dasharray:5 4"></line>
+              <polyline points="{{ selDet.chart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
+              <sc-for list="{{ selDet.chart.dots }}" as="p" hint-placeholder-count="6">
+                <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:{{ p.f }};stroke:#FFFDF9;stroke-width:2"></circle>
+                <foreignObject x="{{ p.fx }}" y="{{ p.fy }}" width="{{ p.fw }}" height="16" style="overflow:visible;pointer-events:none">
+                  <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center">
+                    <div style="font-size:9px;font-weight:700;color:{{ p.f }};background:#FFFDF9;padding:1px 3px;border-radius:3px;white-space:nowrap;font-variant-numeric:tabular-nums">{{ p.t }}</div>
+                  </div>
+                </foreignObject>
+              </sc-for>
+            </svg>
+            <div style="position:relative;height:28px;margin-top:2px">
+              <sc-for list="{{ selDet.chart.labs }}" as="l" hint-placeholder-count="6">
+                <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
+                  <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
+                  <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
                 </div>
-              </foreignObject>
-            </sc-for>
-          </svg>
-          <div style="position:relative;height:28px;margin-top:2px">
-            <sc-for list="{{ selDet.chart.labs }}" as="l" hint-placeholder-count="6">
-              <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;line-height:1.35;white-space:nowrap">
-                <div style="font-size:10px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
-                <div style="font-size:8.5px;font-weight:500;color:rgba(42,18,24,.35)">{{ l.d }}</div>
-              </div>
-            </sc-for>
-          </div>
-          <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:10px">
-            <span style="color:rgba(42,18,24,.6)">Best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.pb }}</span></span>
-            <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.goal }}</span></span>
-          </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:10px">
+              <span style="color:rgba(42,18,24,.6)">Best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.pb }}</span></span>
+              <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.goal }}</span></span>
+            </div>
+          </sc-if>
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:8px 16px">
+          <sc-if value="{{ selDet.pbsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0;line-height:1.45">No times entered yet — once they log one, it'll show up here.</div>
+          </sc-if>
           <sc-for list="{{ selDet.pbs }}" as="b" hint-placeholder-count="3">
-            <div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);font-size:13px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);font-size:13px">
               <span style="font-weight:600">{{ b.ev }}</span>
-              <span style="font-variant-numeric:tabular-nums;font-weight:800;color:#6B1F33">{{ b.t }}</span>
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <sc-if value="{{ b.hasPct }}" hint-placeholder-val="{{ true }}">
+                  <span style="font-size:11px;font-weight:700;color:#1B7A78">{{ b.pct }}</span>
+                </sc-if>
+                <span style="font-variant-numeric:tabular-nums;font-weight:800;color:#6B1F33">{{ b.t }}</span>
+              </div>
             </div>
           </sc-for>
         </div>
@@ -2197,11 +2238,23 @@ class Component extends DCLogic {
       labs,pb:this.fmtEv(ev,best),goal:this.fmtEv(ev,goal)};
   }
   detailFor(s,evSel){
-    const ev=(evSel&&s.primary.includes(evSel))?evSel:s.primary[0];
-    const h=s.hist[s.primary[0]];
+    // Every athlete on the roster starts with real bio info (name, class,
+    // hometown, position) but no real times — those only exist once the
+    // athlete themselves logs one in My Events. s.primary/pbs/hist stay
+    // populated with a synthetic placeholder set under the hood (still
+    // used internally by Goal Setting/Rival Challenge/the Simulator as
+    // scaffolding), but nothing synthetic is ever shown here — the whole
+    // profile + chart gates on hasReal instead, so a viewer only ever sees
+    // times an athlete actually entered themselves. Rayane Debbarh is the
+    // one exception: her profile ships with her real lifetime bests from
+    // her actual team bio, not a placeholder, so she's exempt.
+    const hasReal=s.id==='Rayane Debbarh'||!!s.hasLogged;
+    const primary=hasReal?s.primary:[];
+    const ev=(evSel&&primary.includes(evSel))?evSel:(primary[0]||null);
     const dive=s.diver;
-    const hLast=h[h.length-1];
-    const imp=dive?'+'+(((hLast-h[0])/h[0])*100).toFixed(1)+'%':'−'+(((h[0]-hLast)/h[0])*100).toFixed(1)+'%';
+    const imp=hasReal?this.athleteImp(s):null;
+    const impText=imp?this.fmtImp(s,imp)+' '+(imp.thisSeason?'this season':'last season'):
+      (hasReal?'Log another time to see your trend':'');
     const YEAR={'Fr.':'Freshman','So.':'Sophomore','Jr.':'Junior','Sr.':'Senior'};
     const canEditBio=this.state.role==='athlete'&&this.state.userId===s.id;
     const bioEditing=canEditBio&&this.state.bioEdit===s.id;
@@ -2325,7 +2378,7 @@ class Component extends DCLogic {
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
       setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
     };
-    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp,
+    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,
       myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
       year:YEAR[effCls]||effCls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
       clsValue:effCls,clsOptions,onClsChange:e=>setStat('cls',e.target.value),
@@ -2343,9 +2396,14 @@ class Component extends DCLogic {
       onZoomChange:e=>setMyPhoto({s:Math.max(1,Math.min(2.5,Number(e.target.value)/100))}),
       onPhotoPanStart,onPhotoPanMove,onPhotoPanEnd,
       onResetFraming:()=>setMyPhoto({s:1,x:0,y:0}),
-      chart:this.chartFor(s,ev),
-      evChips:s.primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
-      pbs:s.primary.map(e=>({ev:this.evMap[e].n,t:this.fmtEv(e,s.diver?Math.max(...s.hist[e]):s.pbs[e]),where:'MIAA · Feb'})),
+      chart:ev?this.chartFor(s,ev):null,hasChart:!!ev,chartEmpty:!ev,
+      evChips:primary.map(e=>({n:this.evMap[e].n,bg:e===ev?'#6B1F33':'transparent',fg:e===ev?'#F5E9DC':'#6B1F33',onTap:()=>this.setState({meEvent:e})})),
+      pbs:primary.map(e=>{
+        const evImp=this.eventImp(s,e);
+        return {ev:this.evMap[e].n,t:this.fmtEv(e,s.diver?Math.max(...s.hist[e]):s.pbs[e]),where:'MIAA · Feb',
+          pct:evImp?this.fmtImp(s,evImp):'',hasPct:!!evImp};
+      }),
+      pbsEmpty:primary.length===0,
       badges:s.badges,badgesEmpty:(s.badges||[]).length===0,
       canEditBio,bioEditing,
       bioIcon:bioEditing?'✓':'✎',
@@ -2538,12 +2596,20 @@ class Component extends DCLogic {
         time:Math.round(v*100)/100,dateObj});
     });
     const trackedIds=Object.keys(byEvent);
+    // Whether this athlete has ever logged a real time — the one flag that
+    // decides whether their profile/chart show real data or the "no times
+    // yet" empty state (see detailFor). Rayane Debbarh is the only athlete
+    // with real times pre-loaded from her actual bio (see the override
+    // right after roster construction), so she's exempt from this check
+    // wherever it's read — everyone else starts out with nothing to show
+    // until they log their own first time, same as this flag does.
+    s.hasLogged=trackedIds.length>0;
     if(trackedIds.length===0){
       s.primary=s.__origPrimary;s.pbs=s.__origPbs;s.hist=s.__origHist;s.goals=s.__origGoals;s.meetLogByEv=s.__origMeetLogByEv;
       return;
     }
     const primary=this.EV.filter(e=>byEvent[e.id]!=null).map(e=>e.id);
-    const pbs={},hist={},meetLogByEv={};
+    const pbs={},hist={},meetLogByEv={},dateLogByEv={};
     primary.forEach(evId=>{
       // Chronological by the date the athlete entered — undated entries
       // keep their original relative order and sort after every dated one
@@ -2560,9 +2626,71 @@ class Component extends DCLogic {
       // The full date — chartFor shows this in place of a meet name now,
       // since there's no meet name collected anymore.
       meetLogByEv[evId]=list.map(x=>x.dateObj?this.fmtEntryDateParts(x.dateObj):['','']);
+      // Raw dates, parallel to hist[evId] — kept separately from the
+      // display-formatted meetLogByEv above so the season-improvement calc
+      // (athleteImp/eventImp) can bucket entries by season without having
+      // to re-parse a formatted label back into a date.
+      dateLogByEv[evId]=list.map(x=>x.dateObj);
       pbs[evId]=dive?Math.max(...hist[evId]):Math.min(...hist[evId]);
     });
-    s.primary=primary;s.pbs=pbs;s.hist=hist;s.meetLogByEv=meetLogByEv;s.goals=this.mkGoals(pbs,primary);
+    s.primary=primary;s.pbs=pbs;s.hist=hist;s.meetLogByEv=meetLogByEv;s.dateLogByEv=dateLogByEv;s.goals=this.mkGoals(pbs,primary);
+  }
+  // Which real swim season a date falls in, expressed as the season's
+  // starting calendar year (Aug 2026 - Jul 2027 is season 2026, and so
+  // on) — Aug through Dec belongs to the season that just started; Jan
+  // through Jul belongs to the one that started the previous Aug. Always
+  // computed off the real clock, not a hardcoded year, so "this season"
+  // rolls over on its own once August actually arrives.
+  seasonStartYear(dateObj){
+    const mo=dateObj.getMonth();
+    return mo>=7?dateObj.getFullYear():dateObj.getFullYear()-1;
+  }
+  // One event's improvement, as a fraction where positive always means
+  // "got better" (a faster time or a higher dive score) — kept in this one
+  // consistent direction so athleteImp can just average fractions across
+  // events without caring which are swim and which are dive; the "−2.1%
+  // reads as an improvement for swimmers, +2.1% does for divers" DISPLAY
+  // convention only gets applied at the very end, in fmtImp.
+  // Once an athlete has logged times in both last season and this one for
+  // this event, it compares where they left off last season to their most
+  // recent time this season — a real season-over-season read. Until then
+  // (the current real-world state, before this season's first meet) it
+  // falls back to their trend within whichever season they do have times
+  // in: first time logged vs most recent. Returns null if there isn't
+  // enough logged history yet (fewer than 2 times) to show a trend at all.
+  eventImp(s,evId){
+    const hist=s.hist[evId]||[];
+    if(hist.length<2)return null;
+    const dates=(s.dateLogByEv&&s.dateLogByEv[evId])||[];
+    const curStart=this.seasonStartYear(new Date());
+    const lastIdx=[],curIdx=[];
+    hist.forEach((t,i)=>{
+      const d=dates[i];
+      if(d&&this.seasonStartYear(d)>=curStart)curIdx.push(i);
+      else lastIdx.push(i);
+    });
+    const dive=this.evMap[evId].dive;
+    const better=(from,to)=>dive?(to-from)/from:(from-to)/from;
+    if(curIdx.length&&lastIdx.length){
+      return {frac:better(hist[lastIdx[lastIdx.length-1]],hist[curIdx[curIdx.length-1]]),thisSeason:true};
+    }
+    return {frac:better(hist[0],hist[hist.length-1]),thisSeason:curIdx.length>0};
+  }
+  // Every tracked event's own improvement, averaged into one number — how
+  // this athlete is trending overall, not any single event's swing.
+  // Events with fewer than 2 logged times don't have a trend yet, so they
+  // don't count toward the average; null means nothing does yet.
+  athleteImp(s){
+    const events=(s.primary||[]).map(ev=>this.eventImp(s,ev)).filter(Boolean);
+    if(events.length===0)return null;
+    return {frac:events.reduce((sum,e)=>sum+e.frac,0)/events.length,
+      thisSeason:events.some(e=>e.thisSeason)};
+  }
+  // Applies the swim/dive display convention (see eventImp) to a raw
+  // improvement fraction and formats it as a signed percentage.
+  fmtImp(s,imp){
+    const pct=(s.diver?imp.frac:-imp.frac)*100;
+    return (pct>=0?'+':'−')+Math.abs(pct).toFixed(1)+'%';
   }
   oppTimes(oppN,f,ev,n){
     const e=this.evMap[ev];const out=[];
@@ -2858,11 +2986,15 @@ class Component extends DCLogic {
     const closeLineup=()=>this.setState({lineupMeet:null});
     // athlete home
     const sig=user.primary[0];
+    // Same real-data-only rule as the profile/progression chart (see
+    // detailFor) — an athlete who hasn't logged a time yet sees an empty
+    // "recent swims" list on their own dashboard, never a made-up one.
+    const hasRealHome=user.id==='Rayane Debbarh'||!!user.hasLogged;
     // One row per event the athlete tracks (not the same event 3 times) —
     // each shows the event name and its most recent time, so "recent
     // swims" actually reads as which events were swum, not just repeats
     // of the signature one.
-    const myRecent=user.primary.slice(0,3).map(evId=>{
+    const myRecent=(hasRealHome?user.primary:[]).slice(0,3).map(evId=>{
       const h=user.hist[evId]||[];
       const t=h[h.length-1];
       const prev=h.length>1?h[h.length-2]:t;
@@ -2913,35 +3045,49 @@ class Component extends DCLogic {
       this.saveGoalPrefs(this.state.goalDelta,sg);
       this.toastMsg(em.n+' goal added — tune it with − / +');
     };
-    const myGoals=(st.showAllCoach?user.primary:user.primary.slice(0,3)).map(ev=>{
+    // Same real-data-only rule as everywhere else — a goal target measured
+    // against a made-up PB isn't a real goal, so this stays empty until
+    // the athlete has logged a real time to measure progress against.
+    const myGoals=(hasRealHome?(st.showAllCoach?user.primary:user.primary.slice(0,3)):[]).map(ev=>{
       const pb=user.diver?Math.max(...user.hist[ev]):user.pbs[ev];
       const goal=this.goalOf(user,ev);
       const start_=user.hist[ev]?user.hist[ev][0]:pb*1.05;
       const pct=user.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
       return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0)};
     });
-    const rEv=(st.rivalEv&&user.pbs[st.rivalEv]!=null)?st.rivalEv:sig;
-    const isDiveEv=!!this.evMap[rEv].dive;
-    const rivals=user.diver
-      ?this.all.filter(s=>s.diver&&s.id!==user.id&&s.pbs[rEv]!=null)
-      :this.all.filter(s=>s.gender===user.gender&&s.id!==user.id&&s.pbs[rEv]!=null);
+    const myGoalsEmpty=myGoals.length===0;
+    // A rivalry needs a real time on both sides — comparing a made-up PB
+    // against another made-up PB isn't a real rivalry. So this only ever
+    // offers events the athlete has actually logged (hasRealPrimary), and
+    // only matches them against other athletes who've logged a real time
+    // in that same event (or Rayane Debbarh, whose bests are real).
+    const hasRealPrimary=hasRealHome?user.primary:[];
+    const rEv=(st.rivalEv&&hasRealPrimary.includes(st.rivalEv))?st.rivalEv:(hasRealPrimary[0]||null);
+    const isDiveEv=rEv?!!this.evMap[rEv].dive:false;
+    const rivalReal=s=>s.id!==user.id&&(s.id==='Rayane Debbarh'||s.hasLogged)&&s.primary.includes(rEv)&&s.pbs[rEv]!=null;
+    const rivals=rEv?(user.diver
+      ?this.all.filter(s=>s.diver&&rivalReal(s))
+      :this.all.filter(s=>s.gender===user.gender&&rivalReal(s))):[];
     rivals.sort((a,b)=>Math.abs(a.pbs[rEv]-user.pbs[rEv])-Math.abs(b.pbs[rEv]-user.pbs[rEv]));
-    const rvPick=st.rivalId&&this.byId[st.rivalId]&&st.rivalId!==user.id?this.byId[st.rivalId]:null;
-    const rv=(rvPick&&rvPick.pbs[rEv]!=null?rvPick:rivals[0])||user;
+    const rvPick=st.rivalId&&this.byId[st.rivalId]&&rivals.some(r=>r.id===st.rivalId)?this.byId[st.rivalId]:null;
+    const rv=rvPick||rivals[0]||null;
     const rivalOpts=rivals.map(s=>({id:s.id,n:s.name+(user.diver&&s.gender!==user.gender?' ('+(s.gender==='M'?'M':'W')+')':'')}));
-    const rivalId=rv.id;
+    const rivalId=rv?rv.id:null;
     const rivalSel=e=>this.setState({rivalId:e.target.value});
-    const rivalEvOpts=evPool.filter(e=>user.pbs[e.id]!=null).map(e=>({id:e.id,n:e.n}));
+    const rivalEvOpts=hasRealPrimary.map(e=>({id:e,n:this.evMap[e].n}));
     const rivalEvSel=e=>this.setState({rivalEv:e.target.value,rivalId:null});
-    const lead=isDiveEv?(user.pbs[rEv]>rv.pbs[rEv]):(user.pbs[rEv]<rv.pbs[rEv]);
-    const gap=Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2);
-    const aP=this.photoOf(user.id),bP=this.photoOf(rv.id);
+    const hasRival=!!rv;
+    const rivalNoEvent=hasRealPrimary.length===0;
+    const rivalNoOpponent=!hasRival&&!rivalNoEvent;
+    const lead=hasRival&&(isDiveEv?(user.pbs[rEv]>rv.pbs[rEv]):(user.pbs[rEv]<rv.pbs[rEv]));
+    const gap=hasRival?Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2):'';
+    const aP=this.photoOf(user.id),bP=hasRival?this.photoOf(rv.id):'';
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
     const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the next meet';
-    const chal={ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
+    const chal=hasRival?{ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
       bIni:rv.ini,bName:rv.name.split(' ')[0],bTime:this.fmtEv(rEv,rv.pbs[rEv]),
       aPhoto:aP,aHasP:!!aP,aNoP:!aP,bPhoto:bP,bHasP:!!bP,bNoP:!bP,
-      note:lead?defendLine:rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'};
+      note:lead?defendLine:rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'}:null;
     const dayIdx=(new Date().getDay()+6)%7;
     const week=this.trainWeek.map((d,i)=>({...d,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)'}));
     // team
@@ -2971,15 +3117,19 @@ class Component extends DCLogic {
     const det=this.detailFor(user,st.meEvent);
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
-    const improvers=this.all.filter(s=>isDivingCoach?s.diver:!s.diver).map(s=>{
-      const h=s.hist[s.primary[0]];
-      const imp=s.diver?(h[h.length-1]-h[0])/h[0]:(h[0]-h[h.length-1])/h[0];
-      return {s,imp};
-    }).sort((a,b)=>b.imp-a.imp).slice(0,3).map(x=>({
-      name:x.s.name,ini:x.s.ini,avc:x.s.avc,ev:this.evMap[x.s.primary[0]].n,
-      slotId:this.slotIdOf(x.s.id),photo:this.photoOf(x.s.id),
-      pb:this.fmt(x.s.pbs[x.s.primary[0]]),imp:(x.s.diver?'+':'−')+(x.imp*100).toFixed(1)+'%',
-      onTap:()=>this.setState({sel:x.s.id,meEvent:null})}));
+    // Only athletes who've actually logged a real time count here — same
+    // real-data-only rule as the profile/progression chart (see
+    // detailFor) — so this never attributes a made-up improvement number
+    // to a real teammate who hasn't entered anything yet.
+    const improvers=this.all
+      .filter(s=>(isDivingCoach?s.diver:!s.diver)&&(s.id==='Rayane Debbarh'||s.hasLogged))
+      .map(s=>({s,imp:this.athleteImp(s)})).filter(x=>x.imp)
+      .sort((a,b)=>b.imp.frac-a.imp.frac).slice(0,3).map(x=>({
+        name:x.s.name,ini:x.s.ini,avc:x.s.avc,ev:this.evMap[x.s.primary[0]].n,
+        slotId:this.slotIdOf(x.s.id),photo:this.photoOf(x.s.id),
+        pb:this.fmtEv(x.s.primary[0],x.s.pbs[x.s.primary[0]]),imp:this.fmtImp(x.s,x.imp),
+        onTap:()=>this.setState({sel:x.s.id,meEvent:null})}));
+    const improversEmpty=improvers.length===0;
     // Practice attendance — coach-only. Swim coach checks in swimmers,
     // diving coach checks in divers, same split every other coach view
     // already uses. Missing an entry for someone defaults the row to
@@ -3215,15 +3365,13 @@ class Component extends DCLogic {
       heroName:user.name.split(' ')[0],
       heroIsDiver:user.diver,heroIsMen:!user.diver&&user.gender==='M',heroIsWomen:!user.diver&&user.gender==='W',
       nextMeet,cdDays:String(cdDays),nextShortName:'SVSU & LSSU Duals',
-      pbCount:user.id==='Rayane Debbarh'?'5':String(2+this.hs(user.id)%3),
-      miaaPlace:user.id==='Rayane Debbarh'?'17th':(8+this.hs(user.id)%16)+'th',
-      miaaEv:(user.id==='Rayane Debbarh'?'100 Breast':this.evMap[user.primary[0]].n)+' · MIAA 2026',
+      pbCount:user.id==='Rayane Debbarh'?'5':(user.hasLogged?String(user.primary.length):'0'),
       selfList,selfCount,selfEmpty:selfList.length===0,addOpts,addSel,addEvtVal:'',
       allSelfBtn:()=>this.setState({showAllSelf:!st.showAllSelf}),
       allSelfLabel:st.showAllSelf?'Top 3 ‹':'All goals ›',
       allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
       allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
-      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,
+      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,rivalNoEvent,rivalNoOpponent,
       workoutLib:[
         {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Coach will post sets here — none yet'},
         {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Coach will post circuits here — none yet'},
@@ -3237,14 +3385,14 @@ class Component extends DCLogic {
       goSim:()=>this.setState({tab:'sim'}),
       goGoals:()=>this.setState({tab:'goals'}),
       upcoming:schedT.slice(0,2),
-      myGoals,myRecent,sigEv:this.evMap[sig].n.toUpperCase(),chal,
+      myGoals,myGoalsEmpty,myRecent,myRecentEmpty:myRecent.length===0,sigEv:this.evMap[sig].n.toUpperCase(),chal,
       recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
       allLabel:user.diver?'All dives':'All swims',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
       todayName:this.trainWeek[dayIdx].day,todaySessions:this.trainWeek[dayIdx].s,
       anns:this.anns,annsEmpty:this.anns.length===0,week,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
-      nDivers:String(this.all.filter(s=>s.diver).length),improvers,
+      nDivers:String(this.all.filter(s=>s.diver).length),improvers,improversEmpty,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
