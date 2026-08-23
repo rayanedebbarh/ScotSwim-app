@@ -1,0 +1,45 @@
+name: iOS Build (simulator, unsigned)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile-app/**'
+      - '.github/workflows/ios-build.yml'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: mobile-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install web dependencies
+        run: npm ci
+
+      - name: Sync web assets and Capacitor iOS project
+        run: npm run sync-web && npx cap sync ios
+
+      - name: Install CocoaPods dependencies
+        working-directory: mobile-app/ios/App
+        run: pod install
+
+      # Builds for the iOS Simulator, not a real device — this needs no
+      # signing certificate or provisioning profile, so it works before a
+      # paid Apple Developer account exists. It proves the native project
+      # actually compiles. A real device / App Store build needs signing
+      # credentials added as repo secrets once the developer account and
+      # certificates exist — see mobile-app/README.md.
+      - name: Build for iOS Simulator (no signing)
+        working-directory: mobile-app/ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App \
+            -configuration Debug -sdk iphonesimulator \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
