@@ -2044,26 +2044,33 @@ class Component extends DCLogic {
     const best=dive?Math.max(...hist):Math.min(...hist);
     // Every label sits at the same fixed, tight distance from its own
     // point — never stretched further away to dodge the polyline, so the
-    // gap reads identically everywhere, on every event's chart. Which
-    // SIDE it sits on isn't fixed to "always above" any more: a point
-    // that's a local peak (better than both neighbors — visually higher,
-    // since a faster/better swim sits higher on the chart) labels above,
-    // where the open space actually is; a local valley (worse than both
-    // neighbors) labels below, for the same reason; an end point compares
-    // to its one neighbor. That alone keeps almost every label clear of
-    // the line without needing to measure the line's path at all — a
-    // peak's connecting segments both stay below it, so a label placed
-    // above never reaches down far enough to cross them, and the mirror
-    // holds for valleys. When two labels still collide (close-together
-    // points, 5+ entries in one event), the loser gets pushed one more
-    // row further in its OWN chosen direction — away from its point,
-    // never flipped to the other side, so it can't end up crossing the
-    // line as a side effect of dodging another label.
+    // gap reads identically everywhere, on every event's chart. A peak
+    // labels above and a valley labels below by default (that's where the
+    // open space actually is), but that default is only ever a starting
+    // guess — it's checked against the two real line segments touching
+    // this point (Liang-Barsky segment/box clipping, `segHitsBox`), and if
+    // the label's own box would actually cross either one, it's tried
+    // again: same side but shifted fully left or right (edge flush with
+    // the point instead of centered on it), then the opposite side,
+    // centered and shifted. This matters most on a steadily rising or
+    // falling run — a point there is neither a clean peak nor a valley,
+    // so the "same distance, correct side" guess alone isn't enough:
+    // slope alone tells nothing about how the specific label's box
+    // sits against that point's own two segments, and a wide label on a
+    // steep segment used to end up cut straight through by the line. The
+    // first candidate that clears both segments wins; only if every
+    // candidate still crosses something (rare) does it fall back to the
+    // plain default. When two labels still collide with each other
+    // (close-together points, 5+ entries in one event), the loser gets
+    // pushed one more row further in its OWN chosen direction — away from
+    // its point, never flipped to the other side, so it can't end up
+    // crossing the line as a side effect of dodging another label.
     if(!this._pointLabelCtx)this._pointLabelCtx=document.createElement('canvas').getContext('2d');
     this._pointLabelCtx.font="700 9px 'Barlow',sans-serif";
     const measurePt=str=>this._pointLabelCtx.measureText(str).width;
     const boxWReal=str=>Math.max(20,Math.ceil(measurePt(str))+8);
     const CLR=6,LH=16,GAP=2;
+    const xs=hist.map((t,i)=>X(i));
     const ys=hist.map(t=>Y(t));
     const sideOf=i=>{
       const y=ys[i],L=ys[i-1],R=ys[i+1];
@@ -2073,13 +2080,41 @@ class Component extends DCLogic {
       if(y>=Math.max(L,R))return 'below';
       return 'above';
     };
+    // Liang-Barsky: does the segment (x1,y1)-(x2,y2) cross the axis-aligned
+    // box [bx,bx+bw] x [by,by+bh] anywhere along its length?
+    const segHitsBox=(x1,y1,x2,y2,bx,by,bw,bh)=>{
+      let t0=0,t1=1;
+      const dx=x2-x1,dy=y2-y1;
+      const clip=(p,q)=>{
+        if(p===0)return q>=0;
+        const r=q/p;
+        if(p<0){if(r>t1)return false;if(r>t0)t0=r;}
+        else{if(r<t0)return false;if(r<t1)t1=r;}
+        return true;
+      };
+      return clip(-dx,x1-bx)&&clip(dx,(bx+bw)-x1)&&clip(-dy,y1-by)&&clip(dy,(by+bh)-y1)&&t0<=t1;
+    };
     const placed=[];
     const dots=hist.map((t,i)=>{
-      const x=X(i),y=Y(t);
+      const x=xs[i],y=ys[i];
       const label=this.fmtEv(ev,t);
       const lw=boxWReal(label);
-      const fx=Math.min(318-lw,Math.max(2,x-lw/2));
-      const side=sideOf(i);
+      const clampX=fx=>Math.min(318-lw,Math.max(2,fx));
+      const prefSide=sideOf(i);
+      const candidates=[];
+      [prefSide,prefSide==='above'?'below':'above'].forEach(side=>{
+        [x-lw/2,x-lw,x].forEach(rawFx=>{
+          candidates.push({side,fx:clampX(rawFx)});
+        });
+      });
+      const hitsLine=c=>{
+        const fy=c.side==='above'?y-CLR-LH:y+CLR;
+        if(i>0&&segHitsBox(xs[i-1],ys[i-1],x,y,c.fx,fy,lw,LH))return true;
+        if(i<hist.length-1&&segHitsBox(x,y,xs[i+1],ys[i+1],c.fx,fy,lw,LH))return true;
+        return false;
+      };
+      const chosen=candidates.find(c=>!hitsLine(c))||candidates[0];
+      const side=chosen.side,fx=chosen.fx;
       let fy=side==='above'?y-CLR-LH:y+CLR,moved=true;
       while(moved){
         moved=false;
