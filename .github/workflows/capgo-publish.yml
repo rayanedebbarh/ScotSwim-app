@@ -1,0 +1,61 @@
+name: Publish OTA Update (Capgo)
+
+# Manually triggered — this is the "one thing to run" for pushing a code
+# change (JS/HTML/CSS only, per Apple/Google's OTA rules) live to everyone
+# without an app store review cycle. Needs CAPGO_API_KEY set as a repo
+# secret (Settings -> Secrets and variables -> Actions) before this works.
+on:
+  workflow_dispatch:
+    inputs:
+      comment:
+        description: 'What changed in this update (shows in the Capgo dashboard)'
+        required: false
+        default: ''
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync web assets from repo root
+        run: npm run sync-web
+
+      # Registers the app if it doesn't exist yet in Capgo Cloud; harmless
+      # (and allowed to fail) if it's already registered from the dashboard
+      # onboarding flow.
+      - name: Ensure app is registered in Capgo Cloud
+        continue-on-error: true
+        run: |
+          npx @capgo/cli@latest app add edu.alma.scotswim \
+            --apikey "${{ secrets.CAPGO_API_KEY }}" \
+            --name "ScotSwim"
+
+      # Creates the "production" channel as the default (the one devices
+      # actually check for updates) if it doesn't exist yet; harmless (and
+      # allowed to fail) if it's already set up.
+      - name: Ensure production channel exists and is default
+        continue-on-error: true
+        run: |
+          npx @capgo/cli@latest channel add production edu.alma.scotswim \
+            --apikey "${{ secrets.CAPGO_API_KEY }}" \
+            --default
+
+      - name: Upload and publish bundle to production channel
+        run: |
+          npx @capgo/cli@latest bundle upload edu.alma.scotswim \
+            --apikey "${{ secrets.CAPGO_API_KEY }}" \
+            --path www \
+            --channel production \
+            --auto-bump patch \
+            --comment "${{ github.event.inputs.comment }}"

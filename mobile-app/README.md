@@ -7,28 +7,31 @@ source: the root-level files. `www/` here is never committed — it's
 regenerated from the root on every build by `scripts/sync-web.sh`, so this
 folder can never drift out of sync with the live site.
 
-## OTA updates (Capgo)
+## OTA updates (Capgo Cloud)
 
 `@capgo/capacitor-updater` is installed and wired in — `componentDidMount`
 in `ScotSwim.dc.html` calls `notifyAppReady()` (no-op outside the native
 app), and `PrivacyInfo.xcprivacy` declares the UserDefaults API usage
-Apple requires. That's the code-level integration; **it does nothing yet**
-until one of two update backends is picked and configured:
+Apple requires. Publishing an update is one step:
 
-- **Capgo Cloud** — sign up at capgo.app, get an API key, run
-  `npx @capgo/cli@latest init API_KEY` to finish wiring it up. Free tier
-  covers small apps; paid tiers exist beyond that (check current pricing —
-  it changes). Simplest ongoing workflow: one CLI command pushes a new
-  bundle to everyone.
-- **Self-hosted (fully free)** — zip `www/` on each release, publish it as
-  a GitHub Release asset, point the app at a fixed "latest" URL via
-  `CapacitorUpdater.download()`/`.set()`. More manual (needs its own
-  version-bump + upload step, ideally automated in CI), but no third-party
-  account or cost.
+**GitHub → Actions → "Publish OTA Update (Capgo)" → Run workflow** (optionally
+type a comment describing the change first). That's the whole process —
+it builds the current web app, bumps the bundle version automatically, and
+pushes it live to every installed copy within minutes. No app store review,
+no manual zipping, no version bookkeeping.
 
-Either way: **Google Play and Apple both explicitly allow this** for JS/
-HTML/CSS-only updates (see the plugin's compliance notes) — it must never
-change native code or the app's core purpose, only content.
+One-time setup this needs (not done yet): add a repository secret named
+`CAPGO_API_KEY` — GitHub → repo Settings → Secrets and variables → Actions
+→ New repository secret — with a Capgo API key as the value (generate one
+at console.capgo.app/dashboard/apikeys, or reuse the one from the
+`capgo.app` onboarding flow). The workflow (`.github/workflows/
+capgo-publish.yml`) registers the app and a default "production" channel
+in Capgo Cloud automatically on first run if they don't already exist.
+
+This is fully compliant with both stores: **Google Play and Apple both
+explicitly allow OTA JS/HTML/CSS updates** for interpreted code (see the
+plugin's compliance notes) — the one rule is it must never change native
+code or the app's core purpose, only content.
 
 ## Known blocker before this is store-ready
 
@@ -76,9 +79,8 @@ npx cap open ios     # requires Xcode (macOS only)
 
 ## Still needed before either store submission
 
-1. **Pick an OTA update backend** (Capgo Cloud vs self-hosted, see above)
-   if you want it live before the first submission — otherwise it can wait,
-   nothing depends on it.
+1. **Add the `CAPGO_API_KEY` repo secret** (see above) to actually turn on
+   OTA updates — everything else for it is already wired up.
 2. **Real app icon** — replace `assets/icon-only.png` (and re-run
    `npx @capacitor/assets generate`) with Alma's actual team logo/mark.
 3. **Apple Developer Program** account ($99/yr) — needed for App Store
