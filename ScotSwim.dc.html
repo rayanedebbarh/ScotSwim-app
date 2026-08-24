@@ -28,6 +28,11 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 @keyframes scotswimMarqueeA{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 @keyframes scotswimMarqueeB{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 input::placeholder{color:rgba(245,233,220,.5)}
+/* Overrides the cream placeholder above for inputs that sit on light
+   (white/cream) card backgrounds instead of the dark login screen —
+   the cream color is nearly invisible there. Muted enough to still
+   read as a hint, not as already-typed content. */
+.darkPh::placeholder{color:rgba(42,18,24,.4)}
 .simCtaBtn{flex:1;border:1.5px solid #6B1F33;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer;transition:background .15s ease,color .15s ease}
 .simCtaBtn:hover,.simCtaBtn:active{background:none;color:#6B1F33}
 /* Menu drawer rows: bg is set inline per-row (translucent white while it's
@@ -571,7 +576,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <sc-for list="{{ d.s }}" as="s" hint-placeholder-count="2">
             <sc-if value="{{ s.editing }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,18,24,.06)">
-                <input value="{{ s.tValue }}" onChange="{{ s.onTChange }}" placeholder="6:00 AM" style="width:78px;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box;flex:none">
+                <input value="{{ s.tValue }}" onChange="{{ s.onTChange }}" placeholder="6:00 AM" class="darkPh" style="width:78px;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box;flex:none">
                 <select value="{{ s.tagValue }}" onChange="{{ s.onTagChange }}" style="width:74px;padding:6px 4px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:11px;outline:none;background:#fff;flex:none">
                   <sc-for list="{{ s.tagOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
                 </select>
@@ -579,7 +584,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
                   <div style="flex:1;font-size:11.5px;color:rgba(42,18,24,.4);font-style:italic;padding:0 2px">TBA — via TeamBuildr</div>
                 </sc-if>
                 <sc-if value="{{ s.isNotLift }}" hint-placeholder-val="{{ true }}">
-                  <input value="{{ s.nValue }}" onChange="{{ s.onNChange }}" placeholder="e.g. Threshold — main set 8×200" style="flex:1;min-width:0;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
+                  <input value="{{ s.nValue }}" onChange="{{ s.onNChange }}" placeholder="e.g. Threshold — main set 8×200" class="darkPh" style="flex:1;min-width:0;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
                 </sc-if>
                 <button onClick="{{ s.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px;flex:none">✕</button>
               </div>
