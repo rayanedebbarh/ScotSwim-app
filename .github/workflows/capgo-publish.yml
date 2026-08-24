@@ -39,7 +39,8 @@ jobs:
         run: |
           npx @capgo/cli@latest app add edu.alma.scotswim \
             --apikey "${{ secrets.CAPGO_API_KEY }}" \
-            --name "ScotSwim"
+            --name "ScotSwim" \
+            --icon assets/icon-only.png
 
       # Creates the "production" channel as the default (the one devices
       # actually check for updates) if it doesn't exist yet; harmless (and
@@ -51,6 +52,12 @@ jobs:
             --apikey "${{ secrets.CAPGO_API_KEY }}" \
             --default
 
+      # --no-code-check: Capgo's static check only scans .js files for a
+      # literal notifyAppReady() call, but this app is one big HTML file
+      # that Babel-transpiles a <script> tag in the browser — the call is
+      # genuinely there (verified via Playwright, see mobile-app/README.md)
+      # and does fire correctly on the native app, the scanner just can't
+      # see inside index.html's inline script.
       - name: Upload and publish bundle to production channel
         run: |
           npx @capgo/cli@latest bundle upload edu.alma.scotswim \
@@ -58,4 +65,5 @@ jobs:
             --path www \
             --channel production \
             --auto-bump patch \
+            --no-code-check \
             --comment "${{ github.event.inputs.comment }}"
