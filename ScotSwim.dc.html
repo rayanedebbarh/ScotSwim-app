@@ -299,6 +299,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TRAINING — {{ todayName }}</div>
           <button onClick="{{ goTrain }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Full week ›</button>
         </div>
+        <sc-if value="{{ todaySessionsEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0;line-height:1.45">Nothing scheduled yet — check back once your coach posts today's plan.</div>
+        </sc-if>
         <sc-for list="{{ todaySessions }}" as="s" hint-placeholder-count="2">
           <div style="display:flex;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:#6B1F33;min-width:64px">{{ s.t }}</div>
@@ -405,16 +408,21 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM ANNOUNCEMENTS</div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <input value="{{ annPost }}" onChange="{{ annPostChange }}" placeholder="Write an announcement…" style="flex:1;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:8px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+          <button onClick="{{ annPostSubmit }}" style="border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:0 16px;font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer">POST</button>
+        </div>
         <sc-if value="{{ annsEmpty }}" hint-placeholder-val="{{ true }}">
-          <div style="text-align:center;padding:22px 8px 6px">
+          <div style="text-align:center;padding:18px 8px 6px">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">TBA</div>
             <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Nothing posted yet — announcements you send to the team will show up here.</div>
           </div>
         </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
-          <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
             <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">Posted {{ a.d }}</div></div>
+            <button onClick="{{ a.remove }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:13px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
           </div>
         </sc-for>
       </div>
@@ -545,19 +553,48 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">WEEKLY SCHEDULE</div>
+        <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ toggleTrainEdit }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ trainEditLabel }}</button>
+        </sc-if>
+      </div>
       <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
         <div style="background:#fff;border:{{ d.bd }};border-radius:8px;padding:13px 16px">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#6B1F33">{{ d.day }}</div>
             <sc-if value="{{ d.today }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:#F5E9DC;background:#1B7A78;border-radius:3px;padding:3px 9px">TODAY</div></sc-if>
           </div>
+          <sc-if value="{{ d.sEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:rgba(42,18,24,.45);padding:8px 0">Nothing scheduled</div>
+          </sc-if>
           <sc-for list="{{ d.s }}" as="s" hint-placeholder-count="2">
-            <div style="display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,18,24,.06)">
-              <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;color:#6B1F33;min-width:62px">{{ s.t }}</div>
-              <div style="flex:1;font-size:13px">{{ s.n }}</div>
-              <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#1B7A78;border:1px solid #1B7A78;border-radius:3px;padding:2px 7px">{{ s.tag }}</div>
-            </div>
+            <sc-if value="{{ s.editing }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,18,24,.06)">
+                <input value="{{ s.tValue }}" onChange="{{ s.onTChange }}" placeholder="6:00 AM" style="width:78px;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box;flex:none">
+                <select value="{{ s.tagValue }}" onChange="{{ s.onTagChange }}" style="width:74px;padding:6px 4px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:11px;outline:none;background:#fff;flex:none">
+                  <sc-for list="{{ s.tagOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+                </select>
+                <sc-if value="{{ s.isLift }}" hint-placeholder-val="{{ false }}">
+                  <div style="flex:1;font-size:11.5px;color:rgba(42,18,24,.4);font-style:italic;padding:0 2px">TBA — via TeamBuildr</div>
+                </sc-if>
+                <sc-if value="{{ s.isNotLift }}" hint-placeholder-val="{{ true }}">
+                  <input value="{{ s.nValue }}" onChange="{{ s.onNChange }}" placeholder="e.g. Threshold — main set 8×200" style="flex:1;min-width:0;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
+                </sc-if>
+                <button onClick="{{ s.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px;flex:none">✕</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ s.notEditing }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,18,24,.06)">
+                <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;color:#6B1F33;min-width:62px">{{ s.t }}</div>
+                <div style="flex:1;font-size:13px">{{ s.n }}</div>
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#1B7A78;border:1px solid #1B7A78;border-radius:3px;padding:2px 7px">{{ s.tag }}</div>
+              </div>
+            </sc-if>
           </sc-for>
+          <sc-if value="{{ d.editing }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ d.addSession }}" style="width:100%;border:1.5px dashed rgba(42,18,24,.25);background:none;color:#1B7A78;border-radius:6px;padding:8px;margin-top:8px;font-family:'Barlow';font-weight:600;font-size:12px;cursor:pointer">＋ Add session</button>
+          </sc-if>
         </div>
       </sc-for>
     </div>
@@ -1514,6 +1551,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
+      announcements:[],annPost:'',trainingWeek:null,trainEditing:false,
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -1766,19 +1804,18 @@ class Component extends DCLogic {
       {tag:'L',bg:'#6B1F33',n:'Kalamazoo vs. Alma',d:'Jan 31, 2026 · Kalamazoo, MI',score:'112 – 148'},
       {tag:'6',bg:'#2A1218',n:'MIAA Championships',d:'Feb 18–21, 2026 · Holland, MI',score:'6th of 8'}
     ];
-    this.trainWeek=[
-      {day:'MONDAY',s:[{t:'6:00 AM',n:'Aerobic base — 5,200m',tag:'POOL'},{t:'4:00 PM',n:'Technique + kick sets',tag:'POOL'}]},
-      {day:'TUESDAY',s:[{t:'4:00 PM',n:'Threshold — main set 8×200',tag:'POOL'},{t:'6:00 PM',n:'Strength block A',tag:'LIFT'}]},
-      {day:'WEDNESDAY',s:[{t:'6:00 AM',n:'Recovery swim + drills',tag:'POOL'},{t:'4:00 PM',n:'IM work + starts',tag:'POOL'}]},
-      {day:'THURSDAY',s:[{t:'4:00 PM',n:'Race pace — 12×50 @ goal',tag:'POOL'},{t:'6:00 PM',n:'Strength block B',tag:'LIFT'}]},
-      {day:'FRIDAY',s:[{t:'6:00 AM',n:'Sprint work + relay exchanges',tag:'POOL'},{t:'4:00 PM',n:'Divers: boards + dryland',tag:'DIVE'}]},
-      {day:'SATURDAY',s:[{t:'8:00 AM',n:'Long course endurance',tag:'POOL'}]},
-      {day:'SUNDAY',s:[{t:'—',n:'Rest & mobility on your own',tag:'REST'}]}
-    ];
-    // No real announcements exist yet pre-season — show a clean "check
-    // back soon" state (see annsEmpty) rather than invented placeholder
-    // posts.
-    this.anns=[];
+    // Both the weekly training schedule and team announcements are real,
+    // coach-entered content (see startTeamContentSync/the training &
+    // announcements Firestore collections) — nothing synthetic seeded
+    // here, every athlete's device just starts empty until a coach
+    // actually posts something.
+    this.DAYS=['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'];
+    // LIFT is deliberately not a free-text field a coach types into — real
+    // lift exercises come from TeamBuildr once the season's lift schedule
+    // is out, so any LIFT-tagged session always displays as TBA (see
+    // liftLabel below) regardless of what's stored, coach edit or not.
+    this.TRAIN_TAGS=['POOL','DRY','LIFT','DIVE','REST'];
+    this.LIFT_TBA='TBA — set in TeamBuildr once the season’s lift schedule is out';
     // All-time diving top times (1M/3M, 6-dive and 11-dive formats),
     // per real SwimCloud program history — includes athletes no longer
     // on the current roster, same as any all-time list. There's no
@@ -2002,6 +2039,7 @@ class Component extends DCLogic {
     return R[s.id]??null;
   }
   fmtEv(ev,t){return this.evMap[ev]&&this.evMap[ev].dive?t.toFixed(1)+' pts':this.fmt(t)}
+  fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
   goalOf(s,ev){const d=this.state.goalDelta[s.id+'|'+ev]||0;return Math.round((s.goals[ev]+d)*100)/100}
   // Coach-set goals (goalDelta) and athlete-set goals (selfGoals) otherwise
   // live only in React state — a reload or a fresh login wipes them. Persist
@@ -2771,7 +2809,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();this.stopTeamContentSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -2801,6 +2839,7 @@ class Component extends DCLogic {
       this.armMusicOnLogin();
       this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
       if(profile.role==='athlete')this.startMyEventsSync(profile.rosterId);
+      this.startTeamContentSync();
     }).catch(()=>this.setState({authChecking:false}));
   }
   // Keeps this athlete's own logged times/dates live across every device
@@ -2832,6 +2871,49 @@ class Component extends DCLogic {
   }
   stopMyEventsSync(){
     if(this._myEventsUnsub){this._myEventsUnsub();this._myEventsUnsub=null;}
+  }
+  // Team announcements + the weekly training schedule — both shared,
+  // team-wide content only a coach can write, kept live for every signed-in
+  // user (athlete or coach, whichever device), same live-listener pattern
+  // as startMyEventsSync above.
+  startTeamContentSync(){
+    if(!this.fbReady)return;
+    if(this._annUnsub)this._annUnsub();
+    this._annUnsub=this.db.collection('announcements').orderBy('postedAt','desc').limit(30)
+      .onSnapshot(snap=>{
+        this.setState({announcements:snap.docs.map(d=>({id:d.id,...d.data()}))});
+      },()=>{});
+    if(this._trainUnsub)this._trainUnsub();
+    this._trainUnsub=this.db.collection('training').doc('week').onSnapshot(doc=>{
+      this.setState({trainingWeek:doc.exists?(doc.data().days||{}):null});
+    },()=>{});
+  }
+  stopTeamContentSync(){
+    if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
+    if(this._trainUnsub){this._trainUnsub();this._trainUnsub=null;}
+  }
+  postAnnouncement(){
+    const text=(this.state.annPost||'').trim();
+    if(!text||!this.fbReady)return;
+    const authorName=this.state.role==='dcoach'?'Coach Stone':'Coach Hamstra';
+    this.setState({annPost:''});
+    this.db.collection('announcements').add({text,postedAt:Date.now(),authorName}).catch(()=>{});
+  }
+  deleteAnnouncement(id){
+    if(!this.fbReady)return;
+    this.db.collection('announcements').doc(id).delete().catch(()=>{});
+  }
+  // Debounced whole-doc write — a coach editing a field-by-field weekly
+  // schedule shouldn't hit Firestore on every keystroke, same reasoning as
+  // syncMyEventsToCloud. Local state updates instantly regardless (see the
+  // saveTrainDay closure in renderVals), so typing itself never waits on
+  // this.
+  syncTrainingToCloud(days){
+    if(!this.fbReady)return;
+    clearTimeout(this._trainSaveTimer);
+    this._trainSaveTimer=setTimeout(()=>{
+      this.db.collection('training').doc('week').set({days}).catch(()=>{});
+    },700);
   }
   // One-time fetch (not a live listener — avoids a growing pile of open
   // subscriptions for every teammate a coach happens to click through)
@@ -2935,6 +3017,7 @@ class Component extends DCLogic {
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
             if(info.role==='athlete')this.startMyEventsSync(info.rosterId);
+            this.startTeamContentSync();
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
     };
@@ -3095,7 +3178,43 @@ class Component extends DCLogic {
       aPhoto:aP,aHasP:!!aP,aNoP:!aP,bPhoto:bP,bHasP:!!bP,bNoP:!bP,
       note:lead?defendLine:rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'}:null;
     const dayIdx=(new Date().getDay()+6)%7;
-    const week=this.trainWeek.map((d,i)=>({...d,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)'}));
+    // Coach-editable weekly training schedule (swim coach and diving
+    // coach both count — see isCoach). Edits write the whole day's
+    // session list back in one debounced call (syncTrainingToCloud); the
+    // local setState is instant so typing itself never waits on the
+    // network. LIFT sessions never show a typed exercise — real lift
+    // work comes from TeamBuildr once the season's schedule is out, so
+    // the name always renders as this.LIFT_TBA regardless of what (if
+    // anything) is stored, both here and in the dashboard preview below.
+    const trainEditing=isCoach&&st.trainEditing;
+    const toggleTrainEdit=()=>this.setState({trainEditing:!st.trainEditing});
+    const trainEditLabel=trainEditing?'Done ✓':'Edit schedule ✎';
+    const saveTrainDay=(day,sessions)=>{
+      const next={...(st.trainingWeek||{}),[day]:sessions};
+      this.setState({trainingWeek:next});
+      this.syncTrainingToCloud(next);
+    };
+    const tagOpts=this.TRAIN_TAGS.map(tg=>({id:tg,n:tg}));
+    const week=this.DAYS.map((day,i)=>{
+      const sessions=(st.trainingWeek&&st.trainingWeek[day])||[];
+      const rows=sessions.map((s,j)=>{
+        const isLift=s.tag==='LIFT';
+        const update=patch=>saveTrainDay(day,sessions.map((x,k)=>k===j?{...x,...patch}:x));
+        return {t:s.t,n:isLift?this.LIFT_TBA:s.n,tag:s.tag,isLift,isNotLift:!isLift,editing:trainEditing,notEditing:!trainEditing,
+          tValue:s.t,nValue:s.n,tagValue:s.tag,tagOpts,
+          onTChange:e=>update({t:e.target.value}),
+          onNChange:e=>update({n:e.target.value}),
+          onTagChange:e=>{const tag=e.target.value;update(tag==='LIFT'?{tag,n:''}:{tag});},
+          remove:()=>saveTrainDay(day,sessions.filter((_,k)=>k!==j))};
+      });
+      return {day,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)',
+        s:rows,sEmpty:rows.length===0,editing:trainEditing,
+        addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:'POOL'}])};
+    });
+    const annPostChange=e=>this.setState({annPost:e.target.value});
+    const annPostSubmit=()=>this.postAnnouncement();
+    const anns=st.announcements.map(a=>({id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),remove:()=>this.deleteAnnouncement(a.id)}));
+    const annsEmpty=anns.length===0;
     // team
     const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
@@ -3266,7 +3385,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -3329,7 +3448,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       musicPlaying:this.musicPrefs.playing,
       musicIcon:this.musicPrefs.playing?'❚❚':'▶',
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
@@ -3395,8 +3514,8 @@ class Component extends DCLogic {
       recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
       allLabel:user.diver?'All dives':'All swims',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
-      todayName:this.trainWeek[dayIdx].day,todaySessions:this.trainWeek[dayIdx].s,
-      anns:this.anns,annsEmpty:this.anns.length===0,week,
+      todayName:week[dayIdx].day,todaySessions:week[dayIdx].s,todaySessionsEmpty:week[dayIdx].sEmpty,
+      anns,annsEmpty,annPost:st.annPost,annPostChange,annPostSubmit,week,trainEditing,toggleTrainEdit,trainEditLabel,
       nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,improversEmpty,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
