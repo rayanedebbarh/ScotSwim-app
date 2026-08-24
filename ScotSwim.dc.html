@@ -570,13 +570,19 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#6B1F33">{{ d.day }}</div>
             <sc-if value="{{ d.today }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:#F5E9DC;background:#1B7A78;border-radius:3px;padding:3px 9px">TODAY</div></sc-if>
           </div>
+          <sc-if value="{{ d.editing }}" hint-placeholder-val="{{ false }}">
+            <input value="{{ d.noteValue }}" onChange="{{ d.onNoteChange }}" placeholder="e.g. Choose one session — divers meet separately at 4:00 PM" class="darkPh" style="width:100%;margin-top:9px;padding:7px 9px;border:1.5px dashed rgba(42,18,24,.25);border-radius:6px;font-family:'Barlow';font-size:11.5px;font-style:italic;outline:none;box-sizing:border-box;background:rgba(27,122,120,.05)">
+          </sc-if>
+          <sc-if value="{{ d.showNote }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:9px;padding:7px 9px;background:rgba(27,122,120,.08);border-left:2.5px solid #1B7A78;border-radius:4px;font-size:11.5px;font-style:italic;color:#1B4744;line-height:1.4">{{ d.note }}</div>
+          </sc-if>
           <sc-if value="{{ d.sEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12px;color:rgba(42,18,24,.45);padding:8px 0">Nothing scheduled</div>
           </sc-if>
           <sc-for list="{{ d.s }}" as="s" hint-placeholder-count="2">
             <sc-if value="{{ s.editing }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,18,24,.06)">
-                <input value="{{ s.tValue }}" onChange="{{ s.onTChange }}" placeholder="6:00 AM" class="darkPh" style="width:78px;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box;flex:none">
+                <input value="{{ s.tValue }}" onChange="{{ s.onTChange }}" placeholder="6:00–8:00 AM" class="darkPh" style="width:92px;padding:6px 6px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:11px;outline:none;box-sizing:border-box;flex:none">
                 <select value="{{ s.tagValue }}" onChange="{{ s.onTagChange }}" style="width:74px;padding:6px 4px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:11px;outline:none;background:#fff;flex:none">
                   <sc-for list="{{ s.tagOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
                 </select>
@@ -1556,7 +1562,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      announcements:[],annPost:'',trainingWeek:null,trainEditing:false,
+      announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -2890,7 +2896,8 @@ class Component extends DCLogic {
       },()=>{});
     if(this._trainUnsub)this._trainUnsub();
     this._trainUnsub=this.db.collection('training').doc('week').onSnapshot(doc=>{
-      this.setState({trainingWeek:doc.exists?(doc.data().days||{}):null});
+      const data=doc.exists?doc.data():null;
+      this.setState({trainingWeek:data?(data.days||{}):null,trainNotes:(data&&data.notes)||{}});
     },()=>{});
   }
   stopTeamContentSync(){
@@ -2911,13 +2918,15 @@ class Component extends DCLogic {
   // Debounced whole-doc write — a coach editing a field-by-field weekly
   // schedule shouldn't hit Firestore on every keystroke, same reasoning as
   // syncMyEventsToCloud. Local state updates instantly regardless (see the
-  // saveTrainDay closure in renderVals), so typing itself never waits on
-  // this.
-  syncTrainingToCloud(days){
+  // saveTrainDay/saveDayNote closures in renderVals), so typing itself
+  // never waits on this. Always writes both days and notes together (the
+  // caller passes the full current value of whichever one it didn't
+  // change) since a plain .set() replaces the whole doc.
+  syncTrainingToCloud(days,notes){
     if(!this.fbReady)return;
     clearTimeout(this._trainSaveTimer);
     this._trainSaveTimer=setTimeout(()=>{
-      this.db.collection('training').doc('week').set({days}).catch(()=>{});
+      this.db.collection('training').doc('week').set({days,notes}).catch(()=>{});
     },700);
   }
   // One-time fetch (not a live listener — avoids a growing pile of open
@@ -3197,9 +3206,22 @@ class Component extends DCLogic {
     const saveTrainDay=(day,sessions)=>{
       const next={...(st.trainingWeek||{}),[day]:sessions};
       this.setState({trainingWeek:next});
-      this.syncTrainingToCloud(next);
+      this.syncTrainingToCloud(next,st.trainNotes);
     };
-    const tagOpts=this.TRAIN_TAGS.map(tg=>({id:tg,n:tg}));
+    // Per-day note (e.g. "Choose one session — divers meet separately at
+    // 4:00 PM") — a short free-text caption coaches can attach to a whole
+    // day, separate from any one session. Stored alongside days in the
+    // same training/week doc (see syncTrainingToCloud), read-only for
+    // athletes same as everything else here.
+    const saveDayNote=(day,text)=>{
+      const next={...(st.trainNotes||{}),[day]:text};
+      this.setState({trainNotes:next});
+      this.syncTrainingToCloud(st.trainingWeek,next);
+    };
+    // The diving coach lives in this tab constantly and rarely touches
+    // POOL/DRY sessions, so DIVE leads the dropdown for them instead of
+    // sitting fourth — everyone else keeps the original order.
+    const tagOpts=(isDivingCoach?['DIVE','POOL','DRY','LIFT','REST']:this.TRAIN_TAGS).map(tg=>({id:tg,n:tg}));
     const week=this.DAYS.map((day,i)=>{
       const sessions=(st.trainingWeek&&st.trainingWeek[day])||[];
       const rows=sessions.map((s,j)=>{
@@ -3212,8 +3234,11 @@ class Component extends DCLogic {
           onTagChange:e=>{const tag=e.target.value;update(tag==='LIFT'?{tag,n:''}:{tag});},
           remove:()=>saveTrainDay(day,sessions.filter((_,k)=>k!==j))};
       });
+      const note=(st.trainNotes&&st.trainNotes[day])||'';
       return {day,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)',
-        s:rows,sEmpty:rows.length===0,editing:trainEditing,
+        s:rows,sEmpty:rows.length===0,editing:trainEditing,notEditing:!trainEditing,
+        note,noteValue:note,showNote:!trainEditing&&!!note,
+        onNoteChange:e=>saveDayNote(day,e.target.value),
         addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:'POOL'}])};
     });
     const annPostChange=e=>this.setState({annPost:e.target.value});
