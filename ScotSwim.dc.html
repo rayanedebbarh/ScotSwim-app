@@ -3230,6 +3230,7 @@ class Component extends DCLogic {
     const dayNotePlaceholder=isDivingCoach
       ?'e.g. Please be on time'
       :'e.g. Choose one session — please be on time';
+    const defaultTag=isDivingCoach?'DIVE':'POOL';
     const week=this.DAYS.map((day,i)=>{
       const sessions=(st.trainingWeek&&st.trainingWeek[day])||[];
       const rows=sessions.map((s,j)=>{
@@ -3247,7 +3248,7 @@ class Component extends DCLogic {
         s:rows,sEmpty:rows.length===0,editing:trainEditing,notEditing:!trainEditing,
         note,noteValue:note,noteholder:dayNotePlaceholder,showNote:!trainEditing&&!!note,
         onNoteChange:e=>saveDayNote(day,e.target.value),
-        addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:'POOL'}])};
+        addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:defaultTag}])};
     });
     const annPostChange=e=>this.setState({annPost:e.target.value});
     const annPostSubmit=()=>this.postAnnouncement();
