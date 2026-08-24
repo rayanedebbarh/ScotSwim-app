@@ -571,7 +571,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <sc-if value="{{ d.today }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:#F5E9DC;background:#1B7A78;border-radius:3px;padding:3px 9px">TODAY</div></sc-if>
           </div>
           <sc-if value="{{ d.editing }}" hint-placeholder-val="{{ false }}">
-            <input value="{{ d.noteValue }}" onChange="{{ d.onNoteChange }}" placeholder="e.g. Choose one session — divers meet separately at 4:00 PM" class="darkPh" style="width:100%;margin-top:9px;padding:7px 9px;border:1.5px dashed rgba(42,18,24,.25);border-radius:6px;font-family:'Barlow';font-size:11.5px;font-style:italic;outline:none;box-sizing:border-box;background:rgba(27,122,120,.05)">
+            <input value="{{ d.noteValue }}" onChange="{{ d.onNoteChange }}" placeholder="{{ d.noteholder }}" class="darkPh" style="width:100%;margin-top:9px;padding:7px 9px;border:1.5px dashed rgba(42,18,24,.25);border-radius:6px;font-family:'Barlow';font-size:11.5px;font-style:italic;outline:none;box-sizing:border-box;background:rgba(27,122,120,.05)">
           </sc-if>
           <sc-if value="{{ d.showNote }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:9px;padding:7px 9px;background:rgba(27,122,120,.08);border-left:2.5px solid #1B7A78;border-radius:4px;font-size:11.5px;font-style:italic;color:#1B4744;line-height:1.4">{{ d.note }}</div>
@@ -3208,11 +3208,11 @@ class Component extends DCLogic {
       this.setState({trainingWeek:next});
       this.syncTrainingToCloud(next,st.trainNotes);
     };
-    // Per-day note (e.g. "Choose one session — divers meet separately at
-    // 4:00 PM") — a short free-text caption coaches can attach to a whole
-    // day, separate from any one session. Stored alongside days in the
-    // same training/week doc (see syncTrainingToCloud), read-only for
-    // athletes same as everything else here.
+    // Per-day note — a short free-text caption coaches can attach to a
+    // whole day, separate from any one session (see dayNotePlaceholder
+    // below for the role-specific example text). Stored alongside days
+    // in the same training/week doc (see syncTrainingToCloud), read-only
+    // for athletes same as everything else here.
     const saveDayNote=(day,text)=>{
       const next={...(st.trainNotes||{}),[day]:text};
       this.setState({trainNotes:next});
@@ -3222,6 +3222,14 @@ class Component extends DCLogic {
     // POOL/DRY sessions, so DIVE leads the dropdown for them instead of
     // sitting fourth — everyone else keeps the original order.
     const tagOpts=(isDivingCoach?['DIVE','POOL','DRY','LIFT','REST']:this.TRAIN_TAGS).map(tg=>({id:tg,n:tg}));
+    // The day-note example text differs by role: swim has multiple
+    // groups/sessions running at once so "choose one" is a real prompt,
+    // while diving usually runs a single group/session, so that phrasing
+    // wouldn't make sense there — give each a placeholder that actually
+    // fits what they'd type.
+    const dayNotePlaceholder=isDivingCoach
+      ?'e.g. Please be on time'
+      :'e.g. Choose one session — please be on time';
     const week=this.DAYS.map((day,i)=>{
       const sessions=(st.trainingWeek&&st.trainingWeek[day])||[];
       const rows=sessions.map((s,j)=>{
@@ -3237,7 +3245,7 @@ class Component extends DCLogic {
       const note=(st.trainNotes&&st.trainNotes[day])||'';
       return {day,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)',
         s:rows,sEmpty:rows.length===0,editing:trainEditing,notEditing:!trainEditing,
-        note,noteValue:note,showNote:!trainEditing&&!!note,
+        note,noteValue:note,noteholder:dayNotePlaceholder,showNote:!trainEditing&&!!note,
         onNoteChange:e=>saveDayNote(day,e.target.value),
         addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:'POOL'}])};
     });
