@@ -3536,7 +3536,15 @@ class Component extends DCLogic {
       allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
       allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
       rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,rivalNoEvent,rivalNoOpponent,
-      workoutLib:[
+      // DIVE leads for the diving coach (same reasoning as tagOpts/
+      // defaultTag above — that's the category they actually use), and
+      // stays out of everyone else's library same as before.
+      workoutLib:isDivingCoach?[
+        {ab:'DIVE',c:'#8C6B1F',n:'Diving workouts',d:'Coach will post board work here — none yet'},
+        {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Coach will post sets here — none yet'},
+        {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Coach will post circuits here — none yet'},
+        {ab:'LIFT',c:'#2A1218',n:'Lift workouts',d:'Sherman S&C blocks land here — none yet'}
+      ]:[
         {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Coach will post sets here — none yet'},
         {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Coach will post circuits here — none yet'},
         {ab:'LIFT',c:'#2A1218',n:'Lift workouts',d:'Sherman S&C blocks land here — none yet'}
