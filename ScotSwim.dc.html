@@ -3538,11 +3538,20 @@ class Component extends DCLogic {
       rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,rivalNoEvent,rivalNoOpponent,
       // DIVE leads for the diving coach (same reasoning as tagOpts/
       // defaultTag above — that's the category they actually use), and
-      // stays out of everyone else's library same as before.
+      // stays out of everyone else's library same as before. Coaches see
+      // "Nothing posted yet" instead of "Coach will post..." — reading
+      // that phrasing about themselves in the third person read oddly for
+      // the person who'd actually be doing the posting. LIFT keeps its
+      // own wording either way since it was never "Coach will post..."
+      // to begin with (real lift work comes from TeamBuildr, not here).
       workoutLib:isDivingCoach?[
-        {ab:'DIVE',c:'#8C6B1F',n:'Diving workouts',d:'Coach will post board work here — none yet'},
-        {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Coach will post sets here — none yet'},
-        {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Coach will post circuits here — none yet'},
+        {ab:'DIVE',c:'#8C6B1F',n:'Diving workouts',d:'Nothing posted yet'},
+        {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Nothing posted yet'},
+        {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Nothing posted yet'},
+        {ab:'LIFT',c:'#2A1218',n:'Lift workouts',d:'Sherman S&C blocks land here — none yet'}
+      ]:isCoach?[
+        {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Nothing posted yet'},
+        {ab:'DRY',c:'#6B1F33',n:'Dryland workouts',d:'Nothing posted yet'},
         {ab:'LIFT',c:'#2A1218',n:'Lift workouts',d:'Sherman S&C blocks land here — none yet'}
       ]:[
         {ab:'POOL',c:'#1B7A78',n:'Pool team workouts',d:'Coach will post sets here — none yet'},
