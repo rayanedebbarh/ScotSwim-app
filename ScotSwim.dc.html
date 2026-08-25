@@ -610,6 +610,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <sc-if value="{{ liftCard.showEditBtn }}" hint-placeholder-val="{{ false }}">
               <button onClick="{{ liftCard.toggleEdit }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:rgba(42,18,24,.55);border-radius:5px;padding:5px 10px;font-family:'Barlow';font-weight:700;font-size:11px;cursor:pointer;flex:none;white-space:nowrap">{{ liftCard.editBtnLabel }}</button>
             </sc-if>
+            <sc-if value="{{ liftCard.showDeleteBtn }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ liftCard.deleteLift }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:12px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
+            </sc-if>
             <sc-if value="{{ liftCard.showDoneBtn }}" hint-placeholder-val="{{ false }}">
               <button onClick="{{ liftCard.toggleEdit }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;flex:none;padding:4px">Done ✓</button>
             </sc-if>
@@ -3089,6 +3092,15 @@ class Component extends DCLogic {
       this.db.collection('workoutLibrary').doc('LIFT').set(next).catch(()=>{});
     },700);
   }
+  // Removes the whole lift block in one action, same as the ✕ on a
+  // posted workout sheet — clears any pending debounced save first so a
+  // still-in-flight edit can't resurrect it a moment later.
+  deleteLiftLib(){
+    clearTimeout(this._liftLibSaveTimer);
+    this.setState({liftLib:{text:'',photo:'',date:''}});
+    if(!this.fbReady)return;
+    this.db.collection('workoutLibrary').doc('LIFT').delete().catch(()=>{});
+  }
   // One-time fetch (not a live listener — avoids a growing pile of open
   // subscriptions for every teammate a coach happens to click through)
   // for viewing someone ELSE's logged times, e.g. from the Team tab.
@@ -3490,7 +3502,9 @@ class Component extends DCLogic {
       },
       removePhoto:()=>this.saveLiftLib({photo:''}),
       showTextReadout:!!liftText&&!liftEditing,
-      showDateReadout:!!liftDate&&!liftEditing
+      showDateReadout:!!liftDate&&!liftEditing,
+      showDeleteBtn:isCoach&&liftPosted&&!liftEditing,
+      deleteLift:()=>this.deleteLiftLib()
     };
     const annPostChange=e=>this.setState({annPost:e.target.value});
     const annPostSubmit=()=>this.postAnnouncement();
