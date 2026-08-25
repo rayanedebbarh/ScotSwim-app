@@ -554,40 +554,53 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="display:flex;align-items:center;gap:12px">
               <div style="width:38px;height:34px;border-radius:6px;background:{{ w.c }};color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.5px;flex:none">{{ w.ab }}</div>
-              <div style="flex:1;min-width:0">
-                <div style="font-weight:700;font-size:13.5px">{{ w.n }}</div>
-                <sc-if value="{{ w.notEditingCard }}" hint-placeholder-val="{{ true }}">
-                  <div style="font-size:11.5px;color:rgba(42,18,24,.5);white-space:pre-wrap">{{ w.d }}</div>
-                </sc-if>
-              </div>
-              <sc-if value="{{ w.showAddBtn }}" hint-placeholder-val="{{ false }}">
-                <button onClick="{{ w.toggleEdit }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:rgba(42,18,24,.5);border-radius:5px;padding:5px 10px;font-family:'Barlow';font-weight:700;font-size:11px;cursor:pointer;flex:none;white-space:nowrap">＋ Add</button>
-              </sc-if>
-              <sc-if value="{{ w.showEditBtn }}" hint-placeholder-val="{{ false }}">
-                <button onClick="{{ w.toggleEdit }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;flex:none;padding:4px">Edit ✎</button>
-              </sc-if>
-              <sc-if value="{{ w.showDoneBtn }}" hint-placeholder-val="{{ false }}">
-                <button onClick="{{ w.toggleEdit }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;flex:none;padding:4px">Done ✓</button>
+              <div style="flex:1;min-width:0;font-weight:700;font-size:13.5px">{{ w.n }}</div>
+              <sc-if value="{{ w.showNewBtn }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ w.openCompose }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:rgba(42,18,24,.55);border-radius:5px;padding:5px 10px;font-family:'Barlow';font-weight:700;font-size:11px;cursor:pointer;flex:none;white-space:nowrap">＋ New</button>
               </sc-if>
               <sc-if value="{{ w.showEmptyBadge }}" hint-placeholder-val="{{ true }}">
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);border:1px dashed rgba(42,18,24,.3);border-radius:3px;padding:4px 8px;flex:none">EMPTY</div>
               </sc-if>
             </div>
-            <sc-if value="{{ w.hasPhoto }}" hint-placeholder-val="{{ false }}">
-              <img src="{{ w.photo }}" style="display:block;width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:10px">
-            </sc-if>
-            <sc-if value="{{ w.editing }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-                <textarea value="{{ w.textValue }}" onChange="{{ w.onTextChange }}" placeholder="{{ w.textPlaceholder }}" class="darkPh" style="width:100%;min-height:64px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:8px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+            <sc-if value="{{ w.composing }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;background:rgba(27,122,120,.05);border:1.5px dashed rgba(42,18,24,.2);border-radius:8px;padding:10px">
+                <input value="{{ w.dayValue }}" onChange="{{ w.onDayChange }}" placeholder="e.g. Monday, Feb 3" class="darkPh" style="width:100%;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.5px;outline:none;box-sizing:border-box">
+                <textarea value="{{ w.textValue }}" onChange="{{ w.onTextChange }}" placeholder="{{ w.textPlaceholder }}" class="darkPh" style="width:100%;min-height:64px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
                 <div style="display:flex;align-items:center;gap:12px">
                   <label for="{{ w.fileInputId }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:#1B7A78;border-radius:6px;padding:7px 12px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">{{ w.photoBtnLabel }}</label>
                   <input id="{{ w.fileInputId }}" type="file" accept="image/*" onChange="{{ w.onPhotoPick }}" style="display:none">
-                  <sc-if value="{{ w.hasPhoto }}" hint-placeholder-val="{{ false }}">
-                    <button onClick="{{ w.removePhoto }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:11.5px;cursor:pointer">Remove photo</button>
+                  <sc-if value="{{ w.draftHasPhoto }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ w.removeDraftPhoto }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:11.5px;cursor:pointer">Remove photo</button>
                   </sc-if>
+                </div>
+                <sc-if value="{{ w.draftHasPhoto }}" hint-placeholder-val="{{ false }}">
+                  <img src="{{ w.draftPhoto }}" style="display:block;width:100%;max-height:150px;object-fit:cover;border-radius:6px">
+                </sc-if>
+                <div style="display:flex;justify-content:flex-end;gap:14px;margin-top:2px">
+                  <button onClick="{{ w.closeCompose }}" style="border:none;background:none;color:rgba(42,18,24,.5);font-size:12px;font-weight:600;cursor:pointer">Cancel</button>
+                  <button onClick="{{ w.post }}" style="border:none;background:#6B1F33;color:#F5E9DC;border-radius:6px;padding:8px 16px;font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:1px;cursor:pointer">POST</button>
                 </div>
               </div>
             </sc-if>
+            <sc-if value="{{ w.showEmptyText }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:8px">{{ w.emptyText }}</div>
+            </sc-if>
+            <sc-for list="{{ w.sheets }}" as="s" hint-placeholder-count="2">
+              <div style="margin-top:10px;background:rgba(42,18,24,.03);border-radius:8px;padding:10px 12px">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+                  <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1B7A78">{{ s.day }}</div>
+                  <sc-if value="{{ s.canDelete }}" hint-placeholder-val="{{ false }}">
+                    <button onClick="{{ s.remove }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:12px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
+                  </sc-if>
+                </div>
+                <sc-if value="{{ s.hasPhoto }}" hint-placeholder-val="{{ false }}">
+                  <img src="{{ s.photo }}" style="display:block;width:100%;max-height:170px;object-fit:cover;border-radius:6px;margin-top:8px">
+                </sc-if>
+                <sc-if value="{{ s.hasText }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:12.5px;color:rgba(42,18,24,.8);white-space:pre-wrap;margin-top:6px;line-height:1.4">{{ s.text }}</div>
+                </sc-if>
+              </div>
+            </sc-for>
           </div>
         </sc-for>
       </div>
@@ -1596,7 +1609,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
-      workoutLibData:{},libEditingCat:null,
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',text:'',photo:''},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -1612,10 +1625,6 @@ class Component extends DCLogic {
       this.auth=window.firebase.auth();
       this.db=window.firebase.firestore();
     }
-    // One debounce timer per workout-library category so editing POOL's
-    // text right after switching away from DRY doesn't cancel DRY's
-    // still-pending save.
-    this._libSaveTimers={};
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals/music (see saveBios).
     try{
@@ -2939,16 +2948,18 @@ class Component extends DCLogic {
       const data=doc.exists?doc.data():null;
       this.setState({trainingWeek:data?(data.days||{}):null,trainNotes:(data&&data.notes)||{}});
     },()=>{});
-    // Workout library — one doc per category (POOL/DRY/DIVE; LIFT never
-    // gets a doc, see saveWorkoutLibField), each holding whatever mix of
-    // text and photo the coach chose to post. Small collection (at most
-    // 4 docs), so a plain collection listener with no query is simplest.
+    // Workout library sheets — coaches post a new dated sheet each
+    // session/day rather than maintaining one persistent blurb per
+    // category (see postWorkoutSheet), so this is a growing collection
+    // like announcements, not a singleton doc like training/week. One
+    // listener across all categories (POOL/DRY/DIVE; LIFT never gets a
+    // sheet) — cheap at this scale, filtered by category client-side in
+    // renderVals so there's no need for a Firestore composite index.
     if(this._libUnsub)this._libUnsub();
-    this._libUnsub=this.db.collection('workoutLibrary').onSnapshot(snap=>{
-      const map={};
-      snap.docs.forEach(d=>{map[d.id]=d.data();});
-      this.setState({workoutLibData:map});
-    },()=>{});
+    this._libUnsub=this.db.collection('workoutSheets').orderBy('postedAt','desc').limit(90)
+      .onSnapshot(snap=>{
+        this.setState({workoutSheets:snap.docs.map(d=>({id:d.id,...d.data()}))});
+      },()=>{});
   }
   stopTeamContentSync(){
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
@@ -2980,21 +2991,36 @@ class Component extends DCLogic {
       this.db.collection('training').doc('week').set({days,notes}).catch(()=>{});
     },700);
   }
-  // Merges a text and/or photo change into one category's workout-library
-  // doc (POOL/DRY/DIVE only — LIFT is never editable here, same TeamBuildr
-  // reasoning as everywhere else it shows up). Local state updates
-  // instantly; the Firestore write is debounced per category so typing in
-  // the textarea doesn't spam writes.
-  saveWorkoutLibField(category,patch){
-    const cur=this.state.workoutLibData[category]||{text:'',photo:''};
-    const next={...cur,...patch,updatedAt:Date.now()};
-    const workoutLibData={...this.state.workoutLibData,[category]:next};
-    this.setState({workoutLibData});
+  // Opens/closes the "new sheet" compose panel for one category (POOL/
+  // DRY/DIVE only — LIFT is never editable here, same TeamBuildr
+  // reasoning as everywhere else it shows up). Only one category composes
+  // at a time, so a single shared draft is enough — reset fresh every
+  // time a panel opens so a half-typed draft from a different category
+  // never leaks in.
+  openLibCompose(category){
+    this.setState({libComposeCat:category,libDraft:{day:'',text:'',photo:''}});
+  }
+  closeLibCompose(){
+    this.setState({libComposeCat:null});
+  }
+  setLibDraft(patch){
+    this.setState({libDraft:{...this.state.libDraft,...patch}});
+  }
+  // Explicit publish, not a debounced auto-save — each sheet is a
+  // one-time post (like an announcement), not a value a coach keeps
+  // revising in place. Requires a day/date label plus at least a note or
+  // a photo; a bare day label with nothing else isn't a sheet.
+  postWorkoutSheet(){
+    const category=this.state.libComposeCat;
+    const {day,text,photo}=this.state.libDraft;
+    if(!category||!this.fbReady)return;
+    if(!day.trim()||!(text.trim()||photo))return;
+    this.setState({libComposeCat:null});
+    this.db.collection('workoutSheets').add({category,day:day.trim(),text:text.trim(),photo,postedAt:Date.now()}).catch(()=>{});
+  }
+  deleteWorkoutSheet(id){
     if(!this.fbReady)return;
-    clearTimeout(this._libSaveTimers[category]);
-    this._libSaveTimers[category]=setTimeout(()=>{
-      this.db.collection('workoutLibrary').doc(category).set(next).catch(()=>{});
-    },700);
+    this.db.collection('workoutSheets').doc(id).delete().catch(()=>{});
   }
   // One-time fetch (not a live listener — avoids a growing pile of open
   // subscriptions for every teammate a coach happens to click through)
@@ -3317,12 +3343,12 @@ class Component extends DCLogic {
         onNoteChange:e=>saveDayNote(day,e.target.value),
         addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:defaultTag}])};
     });
-    // WORKOUT LIBRARY — coach-editable per-category content (text and/or a
-    // photo, coach's choice of either/both). Text and photo are stored
-    // together per category in workoutLibData (live from Firestore, see
-    // startTeamContentSync) and edited one category at a time via
-    // libEditingCat, same accordion idea as the day-note fields above.
-    // LIFT never gets this treatment — same TeamBuildr-only rule as the
+    // WORKOUT LIBRARY — coaches post a dated sheet (text and/or a photo,
+    // coach's choice) each session/day rather than maintaining one static
+    // blurb per category, so each category is really a small dated feed
+    // (see postWorkoutSheet/workoutSheets). Only one category's compose
+    // panel is open at a time (libComposeCat), sharing one draft. LIFT
+    // never gets this treatment — same TeamBuildr-only rule as the
     // weekly schedule — so it's built separately, below, as a plain
     // static card.
     const libMeta={
@@ -3332,34 +3358,40 @@ class Component extends DCLogic {
     };
     const buildLibCard=cat=>{
       const meta=libMeta[cat];
-      const data=st.workoutLibData[cat]||{};
-      const text=data.text||'';
-      const photo=data.photo||'';
-      const posted=!!(text||photo);
-      const editing=isCoach&&st.libEditingCat===cat;
-      const toggleEdit=()=>this.setState({libEditingCat:editing?null:cat});
+      const sheets=st.workoutSheets.filter(s=>s.category===cat).map(s=>({
+        id:s.id,day:s.day,text:s.text,hasText:!!s.text,photo:s.photo,hasPhoto:!!s.photo,
+        canDelete:isCoach,remove:()=>this.deleteWorkoutSheet(s.id)
+      }));
+      const sheetsEmpty=sheets.length===0;
+      const composing=isCoach&&st.libComposeCat===cat;
+      const draft=st.libDraft;
       return {ab:cat,c:meta.c,n:meta.n,
-        d:posted?text:(isCoach?'Nothing posted yet':meta.fallback),
-        editing,notEditingCard:!editing,
-        showAddBtn:isCoach&&!posted&&!editing,showEditBtn:isCoach&&posted&&!editing,showDoneBtn:isCoach&&editing,
-        showEmptyBadge:!isCoach&&!posted,
-        toggleEdit,
-        hasPhoto:!!photo,photo,
-        textValue:text,textPlaceholder:meta.ph,
-        onTextChange:e=>this.saveWorkoutLibField(cat,{text:e.target.value}),
+        sheets,sheetsEmpty,
+        showEmptyText:sheetsEmpty&&!composing,
+        emptyText:isCoach?'Nothing posted yet':meta.fallback,
+        showEmptyBadge:!isCoach&&sheetsEmpty,
+        showNewBtn:isCoach&&!composing,
+        composing,
+        openCompose:()=>this.openLibCompose(cat),
+        closeCompose:()=>this.closeLibCompose(),
+        dayValue:draft.day,onDayChange:e=>this.setLibDraft({day:e.target.value}),
+        textValue:draft.text,textPlaceholder:meta.ph,onTextChange:e=>this.setLibDraft({text:e.target.value}),
+        draftHasPhoto:!!draft.photo,draftPhoto:draft.photo,
         fileInputId:'libFile'+cat,
-        photoBtnLabel:photo?'Change photo':'＋ Add photo',
+        photoBtnLabel:draft.photo?'Change photo':'＋ Add photo',
         onPhotoPick:e=>{
           const f=e.target.files&&e.target.files[0];
-          if(f)this.readPhotoFile(f,d=>this.saveWorkoutLibField(cat,{photo:d}),640,0.72);
+          if(f)this.readPhotoFile(f,d=>this.setLibDraft({photo:d}),640,0.72);
           e.target.value='';
         },
-        removePhoto:()=>this.saveWorkoutLibField(cat,{photo:''})};
+        removeDraftPhoto:()=>this.setLibDraft({photo:''}),
+        post:()=>this.postWorkoutSheet()};
     };
-    const liftLibCard={ab:'LIFT',c:'#2A1218',n:'Lift workouts',d:'Sherman S&C blocks land here — none yet',
-      editing:false,notEditingCard:true,showAddBtn:false,showEditBtn:false,showDoneBtn:false,showEmptyBadge:true,
-      toggleEdit:()=>{},hasPhoto:false,photo:'',textValue:'',textPlaceholder:'',onTextChange:()=>{},
-      fileInputId:'libFileLIFT',photoBtnLabel:'',onPhotoPick:()=>{},removePhoto:()=>{}};
+    const liftLibCard={ab:'LIFT',c:'#2A1218',n:'Lift workouts',
+      sheets:[],sheetsEmpty:true,showEmptyText:true,emptyText:'Sherman S&C blocks land here — none yet',
+      showEmptyBadge:true,showNewBtn:false,composing:false,
+      openCompose:()=>{},closeCompose:()=>{},dayValue:'',onDayChange:()=>{},textValue:'',textPlaceholder:'',onTextChange:()=>{},
+      draftHasPhoto:false,draftPhoto:'',fileInputId:'libFileLIFT',photoBtnLabel:'',onPhotoPick:()=>{},removeDraftPhoto:()=>{},post:()=>{}};
     const workoutLib=isDivingCoach
       ?[buildLibCard('DIVE'),buildLibCard('POOL'),buildLibCard('DRY'),liftLibCard]
       :[buildLibCard('POOL'),buildLibCard('DRY'),liftLibCard];
