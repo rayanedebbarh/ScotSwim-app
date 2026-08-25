@@ -565,6 +565,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <sc-if value="{{ w.composing }}" hint-placeholder-val="{{ false }}">
               <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;background:rgba(27,122,120,.05);border:1.5px dashed rgba(42,18,24,.2);border-radius:8px;padding:10px">
                 <input value="{{ w.dayValue }}" onChange="{{ w.onDayChange }}" placeholder="e.g. Monday, Feb 3" class="darkPh" style="width:100%;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.5px;outline:none;box-sizing:border-box">
+                <sc-if value="{{ w.hasTime }}" hint-placeholder-val="{{ false }}">
+                  <input value="{{ w.timeValue }}" onChange="{{ w.onTimeChange }}" placeholder="e.g. 3:30–4:30 PM" class="darkPh" style="width:100%;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;outline:none;box-sizing:border-box">
+                </sc-if>
                 <textarea value="{{ w.textValue }}" onChange="{{ w.onTextChange }}" placeholder="{{ w.textPlaceholder }}" class="darkPh" style="width:100%;min-height:64px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
                 <div style="display:flex;align-items:center;gap:12px">
                   <label for="{{ w.fileInputId }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:#1B7A78;border-radius:6px;padding:7px 12px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">{{ w.photoBtnLabel }}</label>
@@ -588,7 +591,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <sc-for list="{{ w.sheets }}" as="s" hint-placeholder-count="2">
               <div style="margin-top:10px;background:rgba(42,18,24,.03);border-radius:8px;padding:10px 12px">
                 <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
-                  <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1B7A78">{{ s.day }}</div>
+                  <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1B7A78">{{ s.day }}<sc-if value="{{ s.hasTime }}" hint-placeholder-val="{{ false }}"> · {{ s.time }}</sc-if></div>
                   <sc-if value="{{ s.canDelete }}" hint-placeholder-val="{{ false }}">
                     <button onClick="{{ s.remove }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:12px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
                   </sc-if>
@@ -603,49 +606,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </sc-for>
           </div>
         </sc-for>
-        <div style="padding:11px 0 0">
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="width:38px;height:34px;border-radius:6px;background:#2A1218;color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.5px;flex:none">LIFT</div>
-            <div style="flex:1;min-width:0;font-weight:700;font-size:13.5px">Lift exercises &amp; schedule</div>
-            <sc-if value="{{ liftCard.showEditBtn }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ liftCard.toggleEdit }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:rgba(42,18,24,.55);border-radius:5px;padding:5px 10px;font-family:'Barlow';font-weight:700;font-size:11px;cursor:pointer;flex:none;white-space:nowrap">{{ liftCard.editBtnLabel }}</button>
-            </sc-if>
-            <sc-if value="{{ liftCard.showDeleteBtn }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ liftCard.deleteLift }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:12px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
-            </sc-if>
-            <sc-if value="{{ liftCard.showDoneBtn }}" hint-placeholder-val="{{ false }}">
-              <button onClick="{{ liftCard.toggleEdit }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;flex:none;padding:4px">Done ✓</button>
-            </sc-if>
-            <sc-if value="{{ liftCard.showEmptyBadge }}" hint-placeholder-val="{{ true }}">
-              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);border:1px dashed rgba(42,18,24,.3);border-radius:3px;padding:4px 8px;flex:none">EMPTY</div>
-            </sc-if>
-          </div>
-          <sc-if value="{{ liftCard.editing }}" hint-placeholder-val="{{ false }}">
-            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
-              <input value="{{ liftCard.dateValue }}" onChange="{{ liftCard.onDateChange }}" placeholder="e.g. Effective Jan 6 — Week 1-4" class="darkPh" style="width:100%;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.5px;outline:none;box-sizing:border-box">
-              <textarea value="{{ liftCard.textValue }}" onChange="{{ liftCard.onTextChange }}" placeholder="e.g. Squat, bench, deadlift — Mon/Wed/Fri 3:30–4:30 PM" class="darkPh" style="width:100%;min-height:80px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
-              <div style="display:flex;align-items:center;gap:12px">
-                <label for="{{ liftCard.fileInputId }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:#1B7A78;border-radius:6px;padding:7px 12px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">{{ liftCard.photoBtnLabel }}</label>
-                <input id="{{ liftCard.fileInputId }}" type="file" accept="image/*" onChange="{{ liftCard.onPhotoPick }}" style="display:none">
-                <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ liftCard.removePhoto }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:11.5px;cursor:pointer">Remove photo</button>
-                </sc-if>
-              </div>
-            </div>
-          </sc-if>
-          <sc-if value="{{ liftCard.showEmptyText }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:8px">{{ liftCard.emptyText }}</div>
-          </sc-if>
-          <sc-if value="{{ liftCard.showDateReadout }}" hint-placeholder-val="{{ true }}">
-            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1B7A78;margin-top:10px">{{ liftCard.dateValue }}</div>
-          </sc-if>
-          <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
-            <img src="{{ liftCard.photo }}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:8px">
-          </sc-if>
-          <sc-if value="{{ liftCard.showTextReadout }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:12.5px;color:rgba(42,18,24,.8);white-space:pre-wrap;margin-top:6px;line-height:1.5">{{ liftCard.textValue }}</div>
-          </sc-if>
-        </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">WEEKLY SCHEDULE</div>
@@ -1657,8 +1617,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
-      workoutSheets:[],libComposeCat:null,libDraft:{day:'',text:'',photo:''},
-      liftLib:{text:'',photo:'',date:''},liftEditing:false,
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -3001,27 +2960,19 @@ class Component extends DCLogic {
     // session/day rather than maintaining one persistent blurb per
     // category (see postWorkoutSheet), so this is a growing collection
     // like announcements, not a singleton doc like training/week. One
-    // listener across all three categories (POOL/DRY/DIVE) — cheap at
-    // this scale, filtered by category client-side in renderVals so
+    // listener across all four categories (POOL/DRY/DIVE/LIFT) — cheap
+    // at this scale, filtered by category client-side in renderVals so
     // there's no need for a Firestore composite index.
     if(this._libUnsub)this._libUnsub();
-    this._libUnsub=this.db.collection('workoutSheets').orderBy('postedAt','desc').limit(90)
+    this._libUnsub=this.db.collection('workoutSheets').orderBy('postedAt','desc').limit(120)
       .onSnapshot(snap=>{
         this.setState({workoutSheets:snap.docs.map(d=>({id:d.id,...d.data()}))});
       },()=>{});
-    // Lift is the opposite case — the exercises and session times barely
-    // change across a season, so it's one persistent doc a coach edits in
-    // place (like training/week), not a dated feed.
-    if(this._liftLibUnsub)this._liftLibUnsub();
-    this._liftLibUnsub=this.db.collection('workoutLibrary').doc('LIFT').onSnapshot(doc=>{
-      this.setState({liftLib:doc.exists?doc.data():{text:'',photo:'',date:''}});
-    },()=>{});
   }
   stopTeamContentSync(){
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
     if(this._trainUnsub){this._trainUnsub();this._trainUnsub=null;}
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
-    if(this._liftLibUnsub){this._liftLibUnsub();this._liftLibUnsub=null;}
   }
   postAnnouncement(){
     const text=(this.state.annPost||'').trim();
@@ -3049,13 +3000,13 @@ class Component extends DCLogic {
     },700);
   }
   // Opens/closes the "new sheet" compose panel for one category (POOL/
-  // DRY/DIVE only — LIFT is never editable here, same TeamBuildr
-  // reasoning as everywhere else it shows up). Only one category composes
-  // at a time, so a single shared draft is enough — reset fresh every
-  // time a panel opens so a half-typed draft from a different category
-  // never leaks in.
+  // DRY/DIVE/LIFT). Only one category composes at a time, so a single
+  // shared draft is enough — reset fresh every time a panel opens so a
+  // half-typed draft from a different category never leaks in. `time` is
+  // only shown/used for LIFT (see libMeta's hasTime flag) — kept on every
+  // draft regardless since an unused field is harmless.
   openLibCompose(category){
-    this.setState({libComposeCat:category,libDraft:{day:'',text:'',photo:''}});
+    this.setState({libComposeCat:category,libDraft:{day:'',time:'',text:'',photo:''}});
   }
   closeLibCompose(){
     this.setState({libComposeCat:null});
@@ -3066,40 +3017,19 @@ class Component extends DCLogic {
   // Explicit publish, not a debounced auto-save — each sheet is a
   // one-time post (like an announcement), not a value a coach keeps
   // revising in place. Requires a day/date label plus at least a note or
-  // a photo; a bare day label with nothing else isn't a sheet.
+  // a photo; a bare day label with nothing else isn't a sheet. Time is
+  // always optional — some coaches will want it, some won't bother.
   postWorkoutSheet(){
     const category=this.state.libComposeCat;
-    const {day,text,photo}=this.state.libDraft;
+    const {day,time,text,photo}=this.state.libDraft;
     if(!category||!this.fbReady)return;
     if(!day.trim()||!(text.trim()||photo))return;
     this.setState({libComposeCat:null});
-    this.db.collection('workoutSheets').add({category,day:day.trim(),text:text.trim(),photo,postedAt:Date.now()}).catch(()=>{});
+    this.db.collection('workoutSheets').add({category,day:day.trim(),time:time.trim(),text:text.trim(),photo,postedAt:Date.now()}).catch(()=>{});
   }
   deleteWorkoutSheet(id){
     if(!this.fbReady)return;
     this.db.collection('workoutSheets').doc(id).delete().catch(()=>{});
-  }
-  // Debounced in-place edit for the one persistent lift doc — coach types
-  // in the textarea or swaps the photo and it saves shortly after they
-  // stop, same reasoning as syncTrainingToCloud. Local state updates
-  // instantly regardless (see the closures in buildLiftCard).
-  saveLiftLib(patch){
-    const next={...this.state.liftLib,...patch,updatedAt:Date.now()};
-    this.setState({liftLib:next});
-    if(!this.fbReady)return;
-    clearTimeout(this._liftLibSaveTimer);
-    this._liftLibSaveTimer=setTimeout(()=>{
-      this.db.collection('workoutLibrary').doc('LIFT').set(next).catch(()=>{});
-    },700);
-  }
-  // Removes the whole lift block in one action, same as the ✕ on a
-  // posted workout sheet — clears any pending debounced save first so a
-  // still-in-flight edit can't resurrect it a moment later.
-  deleteLiftLib(){
-    clearTimeout(this._liftLibSaveTimer);
-    this.setState({liftLib:{text:'',photo:'',date:''}});
-    if(!this.fbReady)return;
-    this.db.collection('workoutLibrary').doc('LIFT').delete().catch(()=>{});
   }
   // One-time fetch (not a live listener — avoids a growing pile of open
   // subscriptions for every teammate a coach happens to click through)
@@ -3422,23 +3352,27 @@ class Component extends DCLogic {
         onNoteChange:e=>saveDayNote(day,e.target.value),
         addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:defaultTag}])};
     });
-    // WORKOUT LIBRARY — coaches post a dated sheet (text and/or a photo,
-    // coach's choice) each session/day rather than maintaining one static
-    // blurb per category, so each category is really a small dated feed
-    // (see postWorkoutSheet/workoutSheets). Only one category's compose
-    // panel is open at a time (libComposeCat), sharing one draft. LIFT
-    // never gets this treatment — same TeamBuildr-only rule as the
-    // weekly schedule — so it's built separately, below, as a plain
-    // static card.
+    // WORKOUT LIBRARY — coaches post a dated block (text and/or a photo,
+    // coach's choice) each time they have something new, rather than
+    // maintaining one static blurb per category, so each category is
+    // really a small dated feed (see postWorkoutSheet/workoutSheets).
+    // Only one category's compose panel is open at a time (libComposeCat),
+    // sharing one draft. LIFT works the same way as POOL/DRY/DIVE — a
+    // coach entering lift data manually wants one block per day (Monday's
+    // lift, Wednesday's lift, ...), each with its own time and either a
+    // typed set of exercises or a screenshot from TeamBuildr — so it gets
+    // the same hasTime-flagged extra field rather than special-cased
+    // separately.
     const libMeta={
       POOL:{n:'Pool team workouts',c:'#1B7A78',ph:'e.g. 4×100 kick, 6×50 build, 3×200 pull…',fallback:'Coach will post sets here — none yet'},
       DRY:{n:'Dryland workouts',c:'#6B1F33',ph:'e.g. Core circuit — 3 rounds: plank, band pulls, med-ball throws',fallback:'Coach will post circuits here — none yet'},
-      DIVE:{n:'Diving workouts',c:'#8C6B1F',ph:'e.g. Approach + hurdle drills, list dives off 1M',fallback:'Coach will post board work here — none yet'}
+      DIVE:{n:'Diving workouts',c:'#8C6B1F',ph:'e.g. Approach + hurdle drills, list dives off 1M',fallback:'Coach will post board work here — none yet'},
+      LIFT:{n:'Lift workouts',c:'#2A1218',ph:'e.g. Squat 5x5, Bench 5x5, Deadlift 3x5 (or add a screenshot from TeamBuildr instead)',fallback:'Coach will post exercises & lift times here — none yet',hasTime:true}
     };
     const buildLibCard=cat=>{
       const meta=libMeta[cat];
       const sheets=st.workoutSheets.filter(s=>s.category===cat).map(s=>({
-        id:s.id,day:s.day,text:s.text,hasText:!!s.text,photo:s.photo,hasPhoto:!!s.photo,
+        id:s.id,day:s.day,time:s.time,hasTime:!!s.time,text:s.text,hasText:!!s.text,photo:s.photo,hasPhoto:!!s.photo,
         canDelete:isCoach,remove:()=>this.deleteWorkoutSheet(s.id)
       }));
       const sheetsEmpty=sheets.length===0;
@@ -3450,10 +3384,11 @@ class Component extends DCLogic {
         emptyText:isCoach?'Nothing posted yet':meta.fallback,
         showEmptyBadge:!isCoach&&sheetsEmpty,
         showNewBtn:isCoach&&!composing,
-        composing,
+        composing,hasTime:!!meta.hasTime,
         openCompose:()=>this.openLibCompose(cat),
         closeCompose:()=>this.closeLibCompose(),
         dayValue:draft.day,onDayChange:e=>this.setLibDraft({day:e.target.value}),
+        timeValue:draft.time,onTimeChange:e=>this.setLibDraft({time:e.target.value}),
         textValue:draft.text,textPlaceholder:meta.ph,onTextChange:e=>this.setLibDraft({text:e.target.value}),
         draftHasPhoto:!!draft.photo,draftPhoto:draft.photo,
         fileInputId:'libFile'+cat,
@@ -3467,45 +3402,8 @@ class Component extends DCLogic {
         post:()=>this.postWorkoutSheet()};
     };
     const workoutLib=isDivingCoach
-      ?[buildLibCard('DIVE'),buildLibCard('POOL'),buildLibCard('DRY')]
-      :[buildLibCard('POOL'),buildLibCard('DRY')];
-    // Lift program — one persistent card the coach edits in place, unlike
-    // the dated sheets above (no need to re-post the same thing every
-    // session just to keep a history). It still carries its own date
-    // field though — a coach-written note of when this version takes
-    // effect (e.g. "Effective Jan 6 — Week 1-4") — since a lift program
-    // usually updates by phase, not by session, and athletes need to see
-    // when/whether it changed, same reason the dated sheets have one.
-    const liftEditing=isCoach&&st.liftEditing;
-    const liftText=st.liftLib.text||'';
-    const liftPhoto=st.liftLib.photo||'';
-    const liftDate=st.liftLib.date||'';
-    const liftPosted=!!(liftText||liftPhoto);
-    const liftCard={
-      textValue:liftText,photo:liftPhoto,hasPhoto:!!liftPhoto,
-      dateValue:liftDate,hasDate:!!liftDate,
-      onDateChange:e=>this.saveLiftLib({date:e.target.value}),
-      showEmptyText:!liftPosted&&!liftEditing,
-      emptyText:isCoach?'Nothing posted yet':'Coach will post exercises & lift times here — none yet',
-      showEmptyBadge:!isCoach&&!liftPosted,
-      showEditBtn:isCoach&&!liftEditing,editBtnLabel:liftPosted?'Edit ✎':'＋ Add',
-      showDoneBtn:isCoach&&liftEditing,
-      toggleEdit:()=>this.setState({liftEditing:!st.liftEditing}),
-      editing:liftEditing,notEditingCard:!liftEditing,
-      onTextChange:e=>this.saveLiftLib({text:e.target.value}),
-      fileInputId:'liftLibFile',
-      photoBtnLabel:liftPhoto?'Change photo':'＋ Add photo',
-      onPhotoPick:e=>{
-        const f=e.target.files&&e.target.files[0];
-        if(f)this.readPhotoFile(f,d=>this.saveLiftLib({photo:d}),640,0.72);
-        e.target.value='';
-      },
-      removePhoto:()=>this.saveLiftLib({photo:''}),
-      showTextReadout:!!liftText&&!liftEditing,
-      showDateReadout:!!liftDate&&!liftEditing,
-      showDeleteBtn:isCoach&&liftPosted&&!liftEditing,
-      deleteLift:()=>this.deleteLiftLib()
-    };
+      ?[buildLibCard('DIVE'),buildLibCard('POOL'),buildLibCard('DRY'),buildLibCard('LIFT')]
+      :[buildLibCard('POOL'),buildLibCard('DRY'),buildLibCard('LIFT')];
     const annPostChange=e=>this.setState({annPost:e.target.value});
     const annPostSubmit=()=>this.postAnnouncement();
     const anns=st.announcements.map(a=>({id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),remove:()=>this.deleteAnnouncement(a.id)}));
@@ -3675,7 +3573,7 @@ class Component extends DCLogic {
     return {
       isLogin,isApp,isCoach,
       coachWelcome:isDivingCoach?'Welcome, Coach Stone':'Welcome, Coach Hamstra',
-      coachSubtitle:isDivingCoach?'Alma Scots · Diving · Diving Coach':'Alma Scots · Swimming · Head Coach',
+      coachSubtitle:isDivingCoach?'Alma Scots · Diving · Head Coach':'Alma Scots · Swimming · Head Coach',
       heroIsCoachDiver:isDivingCoach,heroIsCoachMen:!isDivingCoach,
       uname:st.uname,pass:st.pass,
       onU:e=>this.setState({uname:e.target.value,authErr:'',authMsg:''}),
@@ -3798,7 +3696,7 @@ class Component extends DCLogic {
       allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
       allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
       rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,rivalNoEvent,rivalNoOpponent,
-      workoutLib,liftCard,
+      workoutLib,
       oppGroups,
       goalCount:String(user.primary.filter(ev=>(st.goalDelta[user.id+'|'+ev]||0)!==0).length),
       goMeets:()=>this.setState({tab:'meets'}),
