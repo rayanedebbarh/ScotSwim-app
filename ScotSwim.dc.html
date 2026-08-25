@@ -3677,9 +3677,16 @@ class Component extends DCLogic {
       musicTrackName:curTrackName,
       // Full title/artist never gets cut off — past this length it scrolls
       // (marquee) instead of ellipsizing, so nothing about the panel's own
-      // size has to grow to fit a long "Title — Artist" string.
-      musicTrackScroll:curTrackName.length>26,
-      musicTrackShort:curTrackName.length<=26,
+      // size has to grow to fit a long "Title — Artist" string. This
+      // threshold is tuned to the info column's actual available width,
+      // which shrank when the Previous button was added alongside
+      // Play/Pause and Next — 26 was correct for the old two-button
+      // layout, but at the new width it let a couple of real "Title —
+      // Artist" strings render as static text wider than the box,
+      // silently clipping them. 20 is the largest length that still
+      // measures flush in every real playlist entry at the current width.
+      musicTrackScroll:curTrackName.length>20,
+      musicTrackShort:curTrackName.length<=20,
       musicMarqueeAnim:((this._marqueeTick||0)%2)?'scotswimMarqueeB':'scotswimMarqueeA',
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
