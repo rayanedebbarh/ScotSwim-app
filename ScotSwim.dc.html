@@ -604,6 +604,42 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="width:38px;height:34px;border-radius:6px;background:#2A1218;color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.5px;flex:none">LIFT</div>
+          <div style="flex:1;min-width:0;font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LIFT PROGRAM</div>
+          <sc-if value="{{ liftCard.showEditBtn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ liftCard.toggleEdit }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:rgba(42,18,24,.55);border-radius:5px;padding:5px 10px;font-family:'Barlow';font-weight:700;font-size:11px;cursor:pointer;flex:none;white-space:nowrap">{{ liftCard.editBtnLabel }}</button>
+          </sc-if>
+          <sc-if value="{{ liftCard.showDoneBtn }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ liftCard.toggleEdit }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;flex:none;padding:4px">Done ✓</button>
+          </sc-if>
+          <sc-if value="{{ liftCard.showEmptyBadge }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);border:1px dashed rgba(42,18,24,.3);border-radius:3px;padding:4px 8px;flex:none">EMPTY</div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ liftCard.editing }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <textarea value="{{ liftCard.textValue }}" onChange="{{ liftCard.onTextChange }}" placeholder="e.g. Squat, bench, deadlift — Mon/Wed/Fri 3:30–4:30 PM" class="darkPh" style="width:100%;min-height:80px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+            <div style="display:flex;align-items:center;gap:12px">
+              <label for="{{ liftCard.fileInputId }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:#1B7A78;border-radius:6px;padding:7px 12px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">{{ liftCard.photoBtnLabel }}</label>
+              <input id="{{ liftCard.fileInputId }}" type="file" accept="image/*" onChange="{{ liftCard.onPhotoPick }}" style="display:none">
+              <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ liftCard.removePhoto }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:11.5px;cursor:pointer">Remove photo</button>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ liftCard.showEmptyText }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:10px">{{ liftCard.emptyText }}</div>
+        </sc-if>
+        <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
+          <img src="{{ liftCard.photo }}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:12px">
+        </sc-if>
+        <sc-if value="{{ liftCard.showTextReadout }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.8);white-space:pre-wrap;margin-top:10px;line-height:1.5">{{ liftCard.textValue }}</div>
+        </sc-if>
+      </div>
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">WEEKLY SCHEDULE</div>
         <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
@@ -1610,6 +1646,7 @@ class Component extends DCLogic {
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',text:'',photo:''},
+      liftLib:{text:'',photo:''},liftEditing:false,
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -2952,19 +2989,27 @@ class Component extends DCLogic {
     // session/day rather than maintaining one persistent blurb per
     // category (see postWorkoutSheet), so this is a growing collection
     // like announcements, not a singleton doc like training/week. One
-    // listener across all categories (POOL/DRY/DIVE; LIFT never gets a
-    // sheet) — cheap at this scale, filtered by category client-side in
-    // renderVals so there's no need for a Firestore composite index.
+    // listener across all three categories (POOL/DRY/DIVE) — cheap at
+    // this scale, filtered by category client-side in renderVals so
+    // there's no need for a Firestore composite index.
     if(this._libUnsub)this._libUnsub();
     this._libUnsub=this.db.collection('workoutSheets').orderBy('postedAt','desc').limit(90)
       .onSnapshot(snap=>{
         this.setState({workoutSheets:snap.docs.map(d=>({id:d.id,...d.data()}))});
       },()=>{});
+    // Lift is the opposite case — the exercises and session times barely
+    // change across a season, so it's one persistent doc a coach edits in
+    // place (like training/week), not a dated feed.
+    if(this._liftLibUnsub)this._liftLibUnsub();
+    this._liftLibUnsub=this.db.collection('workoutLibrary').doc('LIFT').onSnapshot(doc=>{
+      this.setState({liftLib:doc.exists?doc.data():{text:'',photo:''}});
+    },()=>{});
   }
   stopTeamContentSync(){
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
     if(this._trainUnsub){this._trainUnsub();this._trainUnsub=null;}
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
+    if(this._liftLibUnsub){this._liftLibUnsub();this._liftLibUnsub=null;}
   }
   postAnnouncement(){
     const text=(this.state.annPost||'').trim();
@@ -3021,6 +3066,19 @@ class Component extends DCLogic {
   deleteWorkoutSheet(id){
     if(!this.fbReady)return;
     this.db.collection('workoutSheets').doc(id).delete().catch(()=>{});
+  }
+  // Debounced in-place edit for the one persistent lift doc — coach types
+  // in the textarea or swaps the photo and it saves shortly after they
+  // stop, same reasoning as syncTrainingToCloud. Local state updates
+  // instantly regardless (see the closures in buildLiftCard).
+  saveLiftLib(patch){
+    const next={...this.state.liftLib,...patch,updatedAt:Date.now()};
+    this.setState({liftLib:next});
+    if(!this.fbReady)return;
+    clearTimeout(this._liftLibSaveTimer);
+    this._liftLibSaveTimer=setTimeout(()=>{
+      this.db.collection('workoutLibrary').doc('LIFT').set(next).catch(()=>{});
+    },700);
   }
   // One-time fetch (not a live listener — avoids a growing pile of open
   // subscriptions for every teammate a coach happens to click through)
@@ -3387,14 +3445,37 @@ class Component extends DCLogic {
         removeDraftPhoto:()=>this.setLibDraft({photo:''}),
         post:()=>this.postWorkoutSheet()};
     };
-    const liftLibCard={ab:'LIFT',c:'#2A1218',n:'Lift workouts',
-      sheets:[],sheetsEmpty:true,showEmptyText:true,emptyText:'Sherman S&C blocks land here — none yet',
-      showEmptyBadge:true,showNewBtn:false,composing:false,
-      openCompose:()=>{},closeCompose:()=>{},dayValue:'',onDayChange:()=>{},textValue:'',textPlaceholder:'',onTextChange:()=>{},
-      draftHasPhoto:false,draftPhoto:'',fileInputId:'libFileLIFT',photoBtnLabel:'',onPhotoPick:()=>{},removeDraftPhoto:()=>{},post:()=>{}};
     const workoutLib=isDivingCoach
-      ?[buildLibCard('DIVE'),buildLibCard('POOL'),buildLibCard('DRY'),liftLibCard]
-      :[buildLibCard('POOL'),buildLibCard('DRY'),liftLibCard];
+      ?[buildLibCard('DIVE'),buildLibCard('POOL'),buildLibCard('DRY')]
+      :[buildLibCard('POOL'),buildLibCard('DRY')];
+    // Lift program — one persistent card the coach edits in place, unlike
+    // the dated sheets above. The exercises and session times barely
+    // change across a season, so there's no reason to make a coach
+    // re-post the same thing every week.
+    const liftEditing=isCoach&&st.liftEditing;
+    const liftText=st.liftLib.text||'';
+    const liftPhoto=st.liftLib.photo||'';
+    const liftPosted=!!(liftText||liftPhoto);
+    const liftCard={
+      textValue:liftText,photo:liftPhoto,hasPhoto:!!liftPhoto,
+      showEmptyText:!liftPosted&&!liftEditing,
+      emptyText:isCoach?'Nothing posted yet':'Coach will post exercises & lift times here — none yet',
+      showEmptyBadge:!isCoach&&!liftPosted,
+      showEditBtn:isCoach&&!liftEditing,editBtnLabel:liftPosted?'Edit ✎':'＋ Add',
+      showDoneBtn:isCoach&&liftEditing,
+      toggleEdit:()=>this.setState({liftEditing:!st.liftEditing}),
+      editing:liftEditing,notEditingCard:!liftEditing,
+      onTextChange:e=>this.saveLiftLib({text:e.target.value}),
+      fileInputId:'liftLibFile',
+      photoBtnLabel:liftPhoto?'Change photo':'＋ Add photo',
+      onPhotoPick:e=>{
+        const f=e.target.files&&e.target.files[0];
+        if(f)this.readPhotoFile(f,d=>this.saveLiftLib({photo:d}),640,0.72);
+        e.target.value='';
+      },
+      removePhoto:()=>this.saveLiftLib({photo:''}),
+      showTextReadout:!!liftText&&!liftEditing
+    };
     const annPostChange=e=>this.setState({annPost:e.target.value});
     const annPostSubmit=()=>this.postAnnouncement();
     const anns=st.announcements.map(a=>({id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),remove:()=>this.deleteAnnouncement(a.id)}));
@@ -3681,7 +3762,7 @@ class Component extends DCLogic {
       allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
       allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
       rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,rivalNoEvent,rivalNoOpponent,
-      workoutLib,
+      workoutLib,liftCard,
       oppGroups,
       goalCount:String(user.primary.filter(ev=>(st.goalDelta[user.id+'|'+ev]||0)!==0).length),
       goMeets:()=>this.setState({tab:'meets'}),
