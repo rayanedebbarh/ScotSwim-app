@@ -603,42 +603,42 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </sc-for>
           </div>
         </sc-for>
-      </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:38px;height:34px;border-radius:6px;background:#2A1218;color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.5px;flex:none">LIFT</div>
-          <div style="flex:1;min-width:0;font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LIFT PROGRAM</div>
-          <sc-if value="{{ liftCard.showEditBtn }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ liftCard.toggleEdit }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:rgba(42,18,24,.55);border-radius:5px;padding:5px 10px;font-family:'Barlow';font-weight:700;font-size:11px;cursor:pointer;flex:none;white-space:nowrap">{{ liftCard.editBtnLabel }}</button>
+        <div style="padding:11px 0 0">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:38px;height:34px;border-radius:6px;background:#2A1218;color:#F5E9DC;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:.5px;flex:none">LIFT</div>
+            <div style="flex:1;min-width:0;font-weight:700;font-size:13.5px">Lift exercises &amp; schedule</div>
+            <sc-if value="{{ liftCard.showEditBtn }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ liftCard.toggleEdit }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:rgba(42,18,24,.55);border-radius:5px;padding:5px 10px;font-family:'Barlow';font-weight:700;font-size:11px;cursor:pointer;flex:none;white-space:nowrap">{{ liftCard.editBtnLabel }}</button>
+            </sc-if>
+            <sc-if value="{{ liftCard.showDoneBtn }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ liftCard.toggleEdit }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;flex:none;padding:4px">Done ✓</button>
+            </sc-if>
+            <sc-if value="{{ liftCard.showEmptyBadge }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);border:1px dashed rgba(42,18,24,.3);border-radius:3px;padding:4px 8px;flex:none">EMPTY</div>
+            </sc-if>
+          </div>
+          <sc-if value="{{ liftCard.editing }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+              <textarea value="{{ liftCard.textValue }}" onChange="{{ liftCard.onTextChange }}" placeholder="e.g. Squat, bench, deadlift — Mon/Wed/Fri 3:30–4:30 PM" class="darkPh" style="width:100%;min-height:80px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+              <div style="display:flex;align-items:center;gap:12px">
+                <label for="{{ liftCard.fileInputId }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:#1B7A78;border-radius:6px;padding:7px 12px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">{{ liftCard.photoBtnLabel }}</label>
+                <input id="{{ liftCard.fileInputId }}" type="file" accept="image/*" onChange="{{ liftCard.onPhotoPick }}" style="display:none">
+                <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ liftCard.removePhoto }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:11.5px;cursor:pointer">Remove photo</button>
+                </sc-if>
+              </div>
+            </div>
           </sc-if>
-          <sc-if value="{{ liftCard.showDoneBtn }}" hint-placeholder-val="{{ false }}">
-            <button onClick="{{ liftCard.toggleEdit }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;flex:none;padding:4px">Done ✓</button>
+          <sc-if value="{{ liftCard.showEmptyText }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:8px">{{ liftCard.emptyText }}</div>
           </sc-if>
-          <sc-if value="{{ liftCard.showEmptyBadge }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);border:1px dashed rgba(42,18,24,.3);border-radius:3px;padding:4px 8px;flex:none">EMPTY</div>
+          <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
+            <img src="{{ liftCard.photo }}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:10px">
+          </sc-if>
+          <sc-if value="{{ liftCard.showTextReadout }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12.5px;color:rgba(42,18,24,.8);white-space:pre-wrap;margin-top:8px;line-height:1.5">{{ liftCard.textValue }}</div>
           </sc-if>
         </div>
-        <sc-if value="{{ liftCard.editing }}" hint-placeholder-val="{{ false }}">
-          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
-            <textarea value="{{ liftCard.textValue }}" onChange="{{ liftCard.onTextChange }}" placeholder="e.g. Squat, bench, deadlift — Mon/Wed/Fri 3:30–4:30 PM" class="darkPh" style="width:100%;min-height:80px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
-            <div style="display:flex;align-items:center;gap:12px">
-              <label for="{{ liftCard.fileInputId }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:#1B7A78;border-radius:6px;padding:7px 12px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">{{ liftCard.photoBtnLabel }}</label>
-              <input id="{{ liftCard.fileInputId }}" type="file" accept="image/*" onChange="{{ liftCard.onPhotoPick }}" style="display:none">
-              <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
-                <button onClick="{{ liftCard.removePhoto }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:11.5px;cursor:pointer">Remove photo</button>
-              </sc-if>
-            </div>
-          </div>
-        </sc-if>
-        <sc-if value="{{ liftCard.showEmptyText }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:10px">{{ liftCard.emptyText }}</div>
-        </sc-if>
-        <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
-          <img src="{{ liftCard.photo }}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:12px">
-        </sc-if>
-        <sc-if value="{{ liftCard.showTextReadout }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12.5px;color:rgba(42,18,24,.8);white-space:pre-wrap;margin-top:10px;line-height:1.5">{{ liftCard.textValue }}</div>
-        </sc-if>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">WEEKLY SCHEDULE</div>
@@ -716,6 +716,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </select>
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:4px 16px">
+          <sc-if value="{{ rosterListEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:22px 8px">
+              <div style="font-size:12.5px;color:rgba(42,18,24,.5);line-height:1.45">{{ rosterEmptyText }}</div>
+            </div>
+          </sc-if>
           <sc-for list="{{ rosterList }}" as="p" hint-placeholder-count="10">
             <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
               <div style="min-width:20px;text-align:center;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:rgba(42,18,24,.4);flex:none">{{ p.rank }}</div>
@@ -3504,6 +3509,12 @@ class Component extends DCLogic {
         best:x.pts!=null?x.pts.toFixed(2):'—',bestEv:'SWIMCLOUD PTS',
         onTap:()=>this.setState({sel:s.id,meEvent:null})};
     });
+    // The diving coach's roster is filtered to divers only (see rosterSrc
+    // above) — a gender with no divers on it currently (e.g. no male
+    // divers this season) would otherwise just render a blank card with
+    // no explanation, which reads like a bug rather than an empty roster.
+    const rosterListEmpty=rosterList.length===0;
+    const rosterEmptyText='No '+(st.teamSeg==='W'?'female':'male')+' '+(isDivingCoach?'divers':'athletes')+' on the roster yet.';
     const det=this.detailFor(user,st.meEvent);
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
@@ -3786,7 +3797,7 @@ class Component extends DCLogic {
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
-      rosterList,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
+      rosterList,rosterListEmpty,rosterEmptyText,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
       showRecords:st.teamSeg!=='S'&&st.teamView==='records'&&!isDivingCoach,
       showTimes:st.teamSeg!=='S'&&st.teamView==='times'&&!isDivingCoach,
       showDiveTimes:st.teamSeg!=='S'&&st.teamView==='times'&&isDivingCoach,
