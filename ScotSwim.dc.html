@@ -619,6 +619,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
           <sc-if value="{{ liftCard.editing }}" hint-placeholder-val="{{ false }}">
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+              <input value="{{ liftCard.dateValue }}" onChange="{{ liftCard.onDateChange }}" placeholder="e.g. Effective Jan 6 — Week 1-4" class="darkPh" style="width:100%;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.5px;outline:none;box-sizing:border-box">
               <textarea value="{{ liftCard.textValue }}" onChange="{{ liftCard.onTextChange }}" placeholder="e.g. Squat, bench, deadlift — Mon/Wed/Fri 3:30–4:30 PM" class="darkPh" style="width:100%;min-height:80px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.5;resize:vertical;outline:none;box-sizing:border-box"></textarea>
               <div style="display:flex;align-items:center;gap:12px">
                 <label for="{{ liftCard.fileInputId }}" style="border:1.5px dashed rgba(42,18,24,.3);background:none;color:#1B7A78;border-radius:6px;padding:7px 12px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">{{ liftCard.photoBtnLabel }}</label>
@@ -632,11 +633,14 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <sc-if value="{{ liftCard.showEmptyText }}" hint-placeholder-val="{{ true }}">
             <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:8px">{{ liftCard.emptyText }}</div>
           </sc-if>
+          <sc-if value="{{ liftCard.showDateReadout }}" hint-placeholder-val="{{ true }}">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#1B7A78;margin-top:10px">{{ liftCard.dateValue }}</div>
+          </sc-if>
           <sc-if value="{{ liftCard.hasPhoto }}" hint-placeholder-val="{{ false }}">
-            <img src="{{ liftCard.photo }}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:10px">
+            <img src="{{ liftCard.photo }}" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:8px">
           </sc-if>
           <sc-if value="{{ liftCard.showTextReadout }}" hint-placeholder-val="{{ true }}">
-            <div style="font-size:12.5px;color:rgba(42,18,24,.8);white-space:pre-wrap;margin-top:8px;line-height:1.5">{{ liftCard.textValue }}</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.8);white-space:pre-wrap;margin-top:6px;line-height:1.5">{{ liftCard.textValue }}</div>
           </sc-if>
         </div>
       </div>
@@ -1651,7 +1655,7 @@ class Component extends DCLogic {
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',text:'',photo:''},
-      liftLib:{text:'',photo:''},liftEditing:false,
+      liftLib:{text:'',photo:'',date:''},liftEditing:false,
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -3007,7 +3011,7 @@ class Component extends DCLogic {
     // place (like training/week), not a dated feed.
     if(this._liftLibUnsub)this._liftLibUnsub();
     this._liftLibUnsub=this.db.collection('workoutLibrary').doc('LIFT').onSnapshot(doc=>{
-      this.setState({liftLib:doc.exists?doc.data():{text:'',photo:''}});
+      this.setState({liftLib:doc.exists?doc.data():{text:'',photo:'',date:''}});
     },()=>{});
   }
   stopTeamContentSync(){
@@ -3454,15 +3458,21 @@ class Component extends DCLogic {
       ?[buildLibCard('DIVE'),buildLibCard('POOL'),buildLibCard('DRY')]
       :[buildLibCard('POOL'),buildLibCard('DRY')];
     // Lift program — one persistent card the coach edits in place, unlike
-    // the dated sheets above. The exercises and session times barely
-    // change across a season, so there's no reason to make a coach
-    // re-post the same thing every week.
+    // the dated sheets above (no need to re-post the same thing every
+    // session just to keep a history). It still carries its own date
+    // field though — a coach-written note of when this version takes
+    // effect (e.g. "Effective Jan 6 — Week 1-4") — since a lift program
+    // usually updates by phase, not by session, and athletes need to see
+    // when/whether it changed, same reason the dated sheets have one.
     const liftEditing=isCoach&&st.liftEditing;
     const liftText=st.liftLib.text||'';
     const liftPhoto=st.liftLib.photo||'';
+    const liftDate=st.liftLib.date||'';
     const liftPosted=!!(liftText||liftPhoto);
     const liftCard={
       textValue:liftText,photo:liftPhoto,hasPhoto:!!liftPhoto,
+      dateValue:liftDate,hasDate:!!liftDate,
+      onDateChange:e=>this.saveLiftLib({date:e.target.value}),
       showEmptyText:!liftPosted&&!liftEditing,
       emptyText:isCoach?'Nothing posted yet':'Coach will post exercises & lift times here — none yet',
       showEmptyBadge:!isCoach&&!liftPosted,
@@ -3479,7 +3489,8 @@ class Component extends DCLogic {
         e.target.value='';
       },
       removePhoto:()=>this.saveLiftLib({photo:''}),
-      showTextReadout:!!liftText&&!liftEditing
+      showTextReadout:!!liftText&&!liftEditing,
+      showDateReadout:!!liftDate&&!liftEditing
     };
     const annPostChange=e=>this.setState({annPost:e.target.value});
     const annPostSubmit=()=>this.postAnnouncement();
