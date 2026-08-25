@@ -1223,6 +1223,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <div style="background:rgba(245,233,220,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
           <button onClick="{{ musicToggle }}" aria-label="{{ musicToggleLabel }}" title="{{ musicToggleLabel }}" style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">{{ musicIcon }}</button>
+          <button onClick="{{ musicPrev }}" aria-label="Previous track" title="Previous track" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">⏮</button>
           <button onClick="{{ musicNext }}" aria-label="Next track" title="Next track" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">⏭</button>
           <div style="flex:1;min-width:0">
             <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.5)">TEAM HYPE MUSIC</div>
@@ -1969,6 +1970,13 @@ class Component extends DCLogic {
     // every track plays once before any repeat. Derived rather than a
     // fixed number so adding/removing tracks keeps working.
     this._recentIdx=[];
+    // Stack of track indexes played before the current one, most recent
+    // last — lets Previous step back through actual play history rather
+    // than trying to "undo" the random picker (there's no fixed order to
+    // reverse). Only nextTrack/advanceTrack push onto it, right before
+    // they move off the current track — the very first track never gets
+    // pushed, so Previous is correctly a no-op until something's played.
+    this._history=[];
     this._audio=new Audio();
     this._audio.preload='auto';
     this._audio.volume=this.musicPrefs.volume;
@@ -2040,6 +2048,7 @@ class Component extends DCLogic {
       return;
     }
     this._suspended=false;
+    this._history.push(this._trackIdx);
     this.loadTrackAt(this.pickRandomTrack());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
@@ -2056,7 +2065,18 @@ class Component extends DCLogic {
   // track, fails once, and immediately re-hits the already-maxed
   // threshold — a single quiet failure, not a cascade.
   nextTrack(){
+    this._history.push(this._trackIdx);
     this.loadTrackAt(this.pickRandomTrack());
+    if(this.musicPrefs.playing)this.playAudio();
+    this.forceUpdate();
+  }
+  // Steps back to whatever was actually playing before the current track
+  // (see _history) rather than re-deriving a "previous" from the random
+  // picker, which has no fixed order to walk backwards through. A no-op
+  // before anything's played yet — nothing to go back to.
+  prevTrack(){
+    if(!this._history.length)return;
+    this.loadTrackAt(this._history.pop());
     if(this.musicPrefs.playing)this.playAudio();
     this.forceUpdate();
   }
@@ -3653,6 +3673,7 @@ class Component extends DCLogic {
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
       musicToggle:()=>this.toggleMusic(),
       musicNext:()=>this.nextTrack(),
+      musicPrev:()=>this.prevTrack(),
       musicTrackName:curTrackName,
       // Full title/artist never gets cut off — past this length it scrolls
       // (marquee) instead of ellipsizing, so nothing about the panel's own
