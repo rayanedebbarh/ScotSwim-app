@@ -544,10 +544,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ TRAIN ============ -->
   <sc-if value="{{ vTrain }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:13px;font-weight:600">Practice streak</div>
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
-      </div>
+      <sc-if value="{{ showPracticeStreak }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:13px;font-weight:600">Practice streak</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
+        </div>
+      </sc-if>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
         <sc-for list="{{ workoutLib }}" as="w" hint-placeholder-count="3">
@@ -3747,6 +3749,7 @@ class Component extends DCLogic {
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
+      showPracticeStreak:!isCoach,
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       rosterList,rosterListEmpty,rosterEmptyText,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
       showRecords:st.teamSeg!=='S'&&st.teamView==='records'&&!isDivingCoach,
