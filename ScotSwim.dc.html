@@ -2982,8 +2982,12 @@ class Component extends DCLogic {
       this.armMusicOnLogin();
       // Self-healing backfill for accounts created before emailIndex
       // existed — cheap, idempotent, and never blocks sign-in on it.
-      const idxEmail=(profile.email||user.email||'').toLowerCase();
-      if(idxEmail)this.db.collection('emailIndex').doc(idxEmail).set({uid:user.uid},{merge:true}).catch(()=>{});
+      // user.email (Firebase Auth's own record) is preferred over the
+      // Firestore profile copy since it's guaranteed to be the exact
+      // address this account actually signs in with.
+      const idxEmail=(user.email||profile.email||'').toLowerCase();
+      if(idxEmail)this.db.collection('emailIndex').doc(idxEmail).set({uid:user.uid},{merge:true})
+        .catch(err=>console.error('emailIndex backfill failed — check the emailIndex Firestore rule',err));
       this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
       if(profile.role==='athlete')this.startMyEventsSync(profile.rosterId);
       this.startTeamContentSync();
@@ -3218,7 +3222,7 @@ class Component extends DCLogic {
       this.setState({authBusy:true,authErr:''});
       this.auth.createUserWithEmailAndPassword(info.email,st.signupPass).then(cred=>
         this.db.collection('users').doc(cred.user.uid).set({email:info.email,role:info.role,rosterId:info.rosterId,createdAt:Date.now()})
-          .then(()=>this.db.collection('emailIndex').doc(info.email).set({uid:cred.user.uid},{merge:true}))
+          .then(()=>this.db.collection('emailIndex').doc((cred.user.email||info.email).toLowerCase()).set({uid:cred.user.uid},{merge:true}))
           .then(()=>this.db.collection('invites').doc(info.token).update({used:true}))
           .then(()=>{
             const goalSeg=info.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
