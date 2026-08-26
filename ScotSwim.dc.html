@@ -908,6 +908,24 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-for>
         </div>
       </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TRAINING VOLUME</div>
+        <sc-if value="{{ det.trainingLogEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log your miles and time under Progression → Training Log, and your totals will show up here — and on your profile for everyone to see.</div>
+        </sc-if>
+        <sc-if value="{{ det.hasTrainingLog }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+            <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:14px 8px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ det.totalMiles }}</div>
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">MILES SWUM</div>
+            </div>
+            <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:14px 8px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ det.totalTime }}</div>
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">TIME IN THE POOL</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
     </div>
   </sc-if>
 
@@ -990,6 +1008,38 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
               </div>
             </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TRAINING LOG</div>
+          <button onClick="{{ det.addTrainingLogEntry }}" style="border:1.5px solid #1B7A78;background:none;color:#1B7A78;border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">＋ Add session</button>
+        </div>
+        <sc-if value="{{ det.trainingLogEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log how far and how long you swam each session — your totals show up on your profile for everyone to see.</div>
+        </sc-if>
+        <sc-if value="{{ det.hasTrainingLog }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;font-weight:700;color:#6B1F33">
+            <span>{{ det.totalMiles }} mi total</span>
+            <span>{{ det.totalTime }} total</span>
+          </div>
+        </sc-if>
+        <sc-for list="{{ det.trainingLogRows }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:flex-end;gap:8px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="flex:1.4;min-width:0">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
+              <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">MILES</div>
+              <input value="{{ r.milesValue }}" onChange="{{ r.onMilesChange }}" placeholder="3.1" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">MIN</div>
+              <input value="{{ r.minutesValue }}" onChange="{{ r.onMinutesChange }}" placeholder="90" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+            </div>
+            <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
           </div>
         </sc-for>
       </div>
@@ -1420,6 +1470,24 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </div>
           </sc-if>
         </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">TRAINING VOLUME</div>
+          <sc-if value="{{ selDet.trainingLogEmpty }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:8px;line-height:1.45">No training logged yet.</div>
+          </sc-if>
+          <sc-if value="{{ selDet.hasTrainingLog }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:12px 6px">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:24px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ selDet.totalMiles }}</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">MILES SWUM</div>
+              </div>
+              <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:12px 6px">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:24px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ selDet.totalTime }}</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">TIME IN THE POOL</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:8px 16px">
           <sc-if value="{{ selDet.pbsEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0;line-height:1.45">No times entered yet — once they log one, it'll show up here.</div>
@@ -1643,7 +1711,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
-      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -1679,6 +1747,12 @@ class Component extends DCLogic {
     try{
       const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEventEntries')||'null');
       if(savedMyEvents)this.state.myEvents=savedMyEvents;
+    }catch(e){}
+    // Restore each athlete's logged training-session miles/minutes — same
+    // self-reported, cloud-synced pattern as myEvents (see startTrainingLogSync).
+    try{
+      const savedTrainingLog=JSON.parse(localStorage.getItem('scotswim.trainingLog')||'null');
+      if(savedTrainingLog)this.state.trainingLog=savedTrainingLog;
     }catch(e){}
     // Restore each athlete's own profile-photo replacement + framing
     // (see saveMyPhotos) — self-uploaded, only ever touched by that
@@ -2160,6 +2234,14 @@ class Component extends DCLogic {
   }
   fmtEv(ev,t){return this.evMap[ev]&&this.evMap[ev].dive?t.toFixed(1)+' pts':this.fmt(t)}
   fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+  // Total training minutes -> "Xh Ym" (or just "Ym" under an hour) — used
+  // by the Training Volume stat card, never a raw minute count.
+  fmtDuration(totalMin){
+    const m=Math.round(totalMin);
+    if(m<=0)return '0m';
+    const h=Math.floor(m/60),rem=m%60;
+    return h>0?(h+'h '+rem+'m'):(rem+'m');
+  }
   goalOf(s,ev){const d=this.state.goalDelta[s.id+'|'+ev]||0;return Math.round((s.goals[ev]+d)*100)/100}
   // Coach-set goals (goalDelta) and athlete-set goals (selfGoals) otherwise
   // live only in React state — a reload or a fresh login wipes them. Persist
@@ -2552,6 +2634,34 @@ class Component extends DCLogic {
         onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
     });
+    // Self-logged training volume (miles + minutes per session) — same
+    // self-only-edit, everyone-sees-the-total pattern as My Events: the
+    // athlete owns the raw entries (canEditBio-gated below in the ME tab
+    // markup), while the totals computed here show up on every viewer's
+    // copy of this same profile, including the Team-tab modal.
+    if(!canEditBio)this.fetchOthersTrainingLog(s.id);
+    const tlEntries=this.state.trainingLog[s.id]||{};
+    const tlEntryIds=Object.keys(tlEntries);
+    const setTrainingLog=next=>{
+      const trainingLog={...this.state.trainingLog,[s.id]:next};
+      this.setState({trainingLog});this.saveTrainingLog(trainingLog);
+      this.syncTrainingLogToCloud(s.id,next);
+    };
+    const trainingLogRows=tlEntryIds.map(entryId=>{
+      const entry=tlEntries[entryId];
+      return {id:entryId,dateValue:entry.date||'',milesValue:entry.miles||'',minutesValue:entry.minutes||'',
+        onDateChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,date:e2.target.value}}),
+        onMilesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,miles:e2.target.value}}),
+        onMinutesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,minutes:e2.target.value}}),
+        remove:()=>{const next={...tlEntries};delete next[entryId];setTrainingLog(next);}};
+    });
+    const addTrainingLogEntry=()=>{
+      const entryId='t'+Date.now()+Math.random().toString(36).slice(2,6);
+      setTrainingLog({...tlEntries,[entryId]:{date:'',miles:'',minutes:''}});
+    };
+    const totalMiles=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].miles)||0),0);
+    const totalMinutes=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].minutes)||0),0);
+    const hasTrainingLog=tlEntryIds.length>0;
     const addEventSel=e2=>{
       const evId=e2.target.value;if(!evId)return;
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
@@ -2559,6 +2669,9 @@ class Component extends DCLogic {
     };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,
       myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
+      trainingLogRows,addTrainingLogEntry,trainingLogEmpty:tlEntryIds.length===0,
+      totalMiles:totalMiles>0?(Math.round(totalMiles*10)/10).toString():'0',
+      totalTime:this.fmtDuration(totalMinutes),hasTrainingLog,
       year:YEAR[effCls]||effCls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
       clsValue:effCls,clsOptions,onClsChange:e=>setStat('cls',e.target.value),
       homeValue:effHome,onHomeChange:e=>setStat('home',e.target.value),
@@ -2641,6 +2754,7 @@ class Component extends DCLogic {
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
+  saveTrainingLog(trainingLog){try{localStorage.setItem('scotswim.trainingLog',JSON.stringify(trainingLog))}catch(e){}}
   saveMyPhotos(myPhotos){try{localStorage.setItem('scotswim.myPhotos',JSON.stringify(myPhotos))}catch(e){}}
   // Downscale + re-encode an uploaded photo through a canvas so a phone
   // camera shot (several MB) doesn't blow up localStorage — 320px is
@@ -2952,7 +3066,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();this.stopTeamContentSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();this.stopTrainingLogSync();this.stopTeamContentSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -2981,7 +3095,7 @@ class Component extends DCLogic {
       const goalSeg=profile.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
       this.armMusicOnLogin();
       this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
-      if(profile.role==='athlete')this.startMyEventsSync(profile.rosterId);
+      if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);}
       this.startTeamContentSync();
     }).catch(()=>this.setState({authChecking:false}));
   }
@@ -3014,6 +3128,29 @@ class Component extends DCLogic {
   }
   stopMyEventsSync(){
     if(this._myEventsUnsub){this._myEventsUnsub();this._myEventsUnsub=null;}
+  }
+  // Each athlete's self-logged training miles/minutes — same live-listener
+  // + one-time local-to-cloud migration pattern as startMyEventsSync above.
+  startTrainingLogSync(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(this._trainingLogUnsub)this._trainingLogUnsub();
+    const ref=this.db.collection('trainingLog').doc(rosterId);
+    let migrated=false;
+    this._trainingLogUnsub=ref.onSnapshot(doc=>{
+      if(doc.exists){
+        const entries=doc.data().entries||{};
+        const trainingLog={...this.state.trainingLog,[rosterId]:entries};
+        this.setState({trainingLog});
+        this.saveTrainingLog(trainingLog);
+      }else if(!migrated){
+        migrated=true;
+        const local=this.state.trainingLog[rosterId];
+        if(local&&Object.keys(local).length)ref.set({entries:local});
+      }
+    });
+  }
+  stopTrainingLogSync(){
+    if(this._trainingLogUnsub){this._trainingLogUnsub();this._trainingLogUnsub=null;}
   }
   // Team announcements + the weekly training schedule — both shared,
   // team-wide content only a coach can write, kept live for every signed-in
@@ -3134,6 +3271,29 @@ class Component extends DCLogic {
       this.db.collection('myEvents').doc(rosterId).set({entries}).catch(()=>{});
     },700);
   }
+  // One-time fetch for viewing someone ELSE's training log, e.g. from the
+  // Team tab — same cached-per-session pattern as fetchOthersMyEvents.
+  fetchOthersTrainingLog(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._fetchedTrainingLog)this._fetchedTrainingLog=new Set();
+    if(this._fetchedTrainingLog.has(rosterId))return;
+    this._fetchedTrainingLog.add(rosterId);
+    this.db.collection('trainingLog').doc(rosterId).get().then(doc=>{
+      if(!doc.exists)return;
+      const entries=doc.data().entries||{};
+      const trainingLog={...this.state.trainingLog,[rosterId]:entries};
+      this.setState({trainingLog});
+    }).catch(()=>{});
+  }
+  // Debounced — same reasoning as syncMyEventsToCloud above.
+  syncTrainingLogToCloud(rosterId,entries){
+    if(!this.fbReady)return;
+    if(!this._trainingLogSaveTimers)this._trainingLogSaveTimers={};
+    clearTimeout(this._trainingLogSaveTimers[rosterId]);
+    this._trainingLogSaveTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('trainingLog').doc(rosterId).set({entries}).catch(()=>{});
+    },700);
+  }
   authErrMsg(err){
     const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.'};
     return m[err.code]||'Something went wrong — try again.';
@@ -3221,7 +3381,7 @@ class Component extends DCLogic {
             this.armMusicOnLogin();
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
-            if(info.role==='athlete')this.startMyEventsSync(info.rosterId);
+            if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);}
             this.startTeamContentSync();
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
@@ -3678,7 +3838,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -3741,7 +3901,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       musicPlaying:this.musicPrefs.playing,
       musicIcon:this.musicPrefs.playing?'❚❚':'▶',
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
