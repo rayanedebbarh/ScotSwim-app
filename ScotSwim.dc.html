@@ -2980,14 +2980,6 @@ class Component extends DCLogic {
       const profile=doc.data();
       const goalSeg=profile.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
       this.armMusicOnLogin();
-      // Self-healing backfill for accounts created before emailIndex
-      // existed — cheap, idempotent, and never blocks sign-in on it.
-      // user.email (Firebase Auth's own record) is preferred over the
-      // Firestore profile copy since it's guaranteed to be the exact
-      // address this account actually signs in with.
-      const idxEmail=(user.email||profile.email||'').toLowerCase();
-      if(idxEmail)this.db.collection('emailIndex').doc(idxEmail).set({uid:user.uid},{merge:true})
-        .catch(err=>console.error('emailIndex backfill failed — check the emailIndex Firestore rule',err));
       this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
       if(profile.role==='athlete')this.startMyEventsSync(profile.rosterId);
       this.startTeamContentSync();
@@ -3190,17 +3182,18 @@ class Component extends DCLogic {
     // typed, specifically so callers can't use it to probe which emails
     // have accounts. That's the right call for a public sign-up product,
     // but it means we can no longer tell a real account from a typo here —
-    // so we check existence ourselves first, against our own emailIndex
-    // collection (see onAuthChange/doSignup for how it's kept populated),
-    // and only call Firebase's reset email for an email we know exists.
+    // so we check existence ourselves first, directly against the `users`
+    // collection (every account's email has lived there since signup, so
+    // there's no separate index to keep in sync or backfill), and only
+    // call Firebase's reset email for an email a real account has.
     const doForgotPassword=()=>{
       if(st.authBusy)return;
       if(!this.fbReady){this.setState({authErr:"That isn't available right now — try again in a moment."});return;}
       const email=st.uname.trim().toLowerCase();
       if(!email){this.setState({authErr:'Enter your email above first, then tap "Forgot password?" again.'});return;}
       this.setState({authBusy:true,authErr:'',authMsg:''});
-      this.db.collection('emailIndex').doc(email).get().then(doc=>{
-        if(!doc.exists){
+      this.db.collection('users').where('email','==',email).limit(1).get().then(snap=>{
+        if(snap.empty){
           this.setState({authBusy:false,authErr:'No account found for that email.'});
           return;
         }
@@ -3222,7 +3215,6 @@ class Component extends DCLogic {
       this.setState({authBusy:true,authErr:''});
       this.auth.createUserWithEmailAndPassword(info.email,st.signupPass).then(cred=>
         this.db.collection('users').doc(cred.user.uid).set({email:info.email,role:info.role,rosterId:info.rosterId,createdAt:Date.now()})
-          .then(()=>this.db.collection('emailIndex').doc((cred.user.email||info.email).toLowerCase()).set({uid:cred.user.uid},{merge:true}))
           .then(()=>this.db.collection('invites').doc(info.token).update({used:true}))
           .then(()=>{
             const goalSeg=info.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
