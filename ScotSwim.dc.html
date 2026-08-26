@@ -679,13 +679,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </sc-if>
       <sc-if value="{{ showProgression }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-          <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ progressionTitle }}</div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <div style="width:9px;height:9px;border-radius:2px;background:#6B1F33"></div>
-              <div style="font-size:11px;font-weight:700;color:rgba(42,18,24,.55)">Alma College</div>
-            </div>
-          </div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ progressionTitle }}</div>
           <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:4px">Team season points, 2016-2017 – 2025-2026 · via SwimCloud</div>
           <svg width="100%" viewBox="0 0 320 220" style="margin-top:8px">
             <sc-for list="{{ progressionChart.yTicks }}" as="g" hint-placeholder-count="5">
