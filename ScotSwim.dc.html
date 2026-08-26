@@ -992,22 +992,25 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
         </sc-if>
-        <sc-for list="{{ det.myEventRows }}" as="r" hint-placeholder-count="3">
-          <div style="padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
-              <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
-            </div>
-            <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px">
-              <div style="flex:1;min-width:0">
-                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
-                <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+        <sc-for list="{{ det.myEventGroups }}" as="g" hint-placeholder-count="3">
+          <div style="margin-top:14px">
+            <div style="font-size:11.5px;font-weight:800;letter-spacing:1px;color:#6B1F33">{{ g.n }}</div>
+            <sc-for list="{{ g.visibleRows }}" as="r" hint-placeholder-count="2">
+              <div style="display:flex;align-items:flex-end;gap:8px;padding:8px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">DATE</div>
+                  <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">TIME</div>
+                  <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+                </div>
+                <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
               </div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">TIME</div>
-                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
-              </div>
-            </div>
+            </sc-for>
+            <sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ g.toggleExpand }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;padding:7px 0 0">{{ g.moreLabel }}</button>
+            </sc-if>
           </div>
         </sc-for>
       </div>
@@ -1711,7 +1714,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
-      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -2634,6 +2637,40 @@ class Component extends DCLogic {
         onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
     });
+    // Grouped by event (50 Free entries with 50 Free, etc.) rather than
+    // one long flat list — an athlete who's logged a meet's worth of
+    // times otherwise buries the Training Log card below a wall of
+    // scrolling. Each group shows its 2 most recent entries by default
+    // (entries without a parseable date sort last, so real dates always
+    // surface first); a "See all" toggle reveals the rest. Grouped in
+    // the same canonical event order as the Add-time dropdown, not
+    // insertion order, so it always reads top-to-bottom the same way
+    // every other event list in this app does.
+    const rowsByEvent={};
+    myEventRows.forEach(r=>{
+      const entry=myEntries[r.id];
+      (rowsByEvent[entry.eventId]=rowsByEvent[entry.eventId]||[]).push(r);
+    });
+    Object.keys(rowsByEvent).forEach(evId=>{
+      rowsByEvent[evId].sort((a,b)=>{
+        const ta=Date.parse(a.dateValue)||-Infinity,tb=Date.parse(b.dateValue)||-Infinity;
+        return tb-ta;
+      });
+    });
+    const VISIBLE_CAP=2;
+    const myEventGroups=evChoices.filter(e=>rowsByEvent[e.id]).map(e=>{
+      const rows=rowsByEvent[e.id];
+      const key=s.id+'|'+e.id;
+      const expanded=!!this.state.myEventsExpanded[key];
+      return {eventId:e.id,n:e.n,count:rows.length,
+        visibleRows:expanded?rows:rows.slice(0,VISIBLE_CAP),
+        hasMore:rows.length>VISIBLE_CAP,expanded,
+        moreLabel:expanded?'Show less':'See all ('+rows.length+')',
+        toggleExpand:()=>{
+          const myEventsExpanded={...this.state.myEventsExpanded,[key]:!expanded};
+          this.setState({myEventsExpanded});
+        }};
+    });
     // Self-logged training volume (miles + minutes per session) — same
     // self-only-edit, everyone-sees-the-total pattern as My Events: the
     // athlete owns the raw entries (canEditBio-gated below in the ME tab
@@ -2668,7 +2705,7 @@ class Component extends DCLogic {
       setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
     };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,
-      myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
+      myEventGroups,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
       trainingLogRows,addTrainingLogEntry,trainingLogEmpty:tlEntryIds.length===0,
       totalMiles:totalMiles>0?(Math.round(totalMiles*10)/10).toString():'0',
       totalTime:this.fmtDuration(totalMinutes),hasTrainingLog,
