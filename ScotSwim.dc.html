@@ -932,9 +932,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ PROGRESSION (athlete) ============ -->
   <sc-if value="{{ vProgress }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+        <sc-for list="{{ progressSegs }}" as="s" hint-placeholder-count="2">
+          <button onClick="{{ s.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ s.bg }};color:{{ s.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1.5px;cursor:pointer">{{ s.n }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showProgressTimes }}" hint-placeholder-val="{{ true }}">
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PROGRESSION</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TIMES</div>
           <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }}</div>
         </div>
         <sc-if value="{{ det.chartEmpty }}" hint-placeholder-val="{{ false }}">
@@ -1014,6 +1020,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
+      </sc-if>
+      <sc-if value="{{ showProgressTraining }}" hint-placeholder-val="{{ false }}">
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TRAINING LOG</div>
@@ -1046,6 +1054,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -1714,7 +1723,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
-      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -3729,6 +3738,14 @@ class Component extends DCLogic {
     const showProgression=(st.teamSeg==='M'||st.teamSeg==='W')&&st.teamView==='roster'&&!isDivingCoach;
     const progressionTitle=st.teamSeg==='W'?'WOMEN PROGRESSION':'MEN PROGRESSION';
     const progressionChart=showProgression?this.teamProgressionChart(this.teamProgressionOf(st.teamSeg),st.teamSeg==='M'?50:undefined):null;
+    // The Progression tab's own two-way toggle — same pill-toggle pattern
+    // as the Team tab's segs — splitting times (the chart + My Events)
+    // from self-logged training volume into two short-named blocks,
+    // rather than one long scroll under a title ("PROGRESSION") that
+    // would otherwise repeat the tab's own name.
+    const progressSegList=[['times','TIMES'],['training','TRAINING']];
+    const progressSegs=progressSegList.map(([id,n])=>({n,bg:st.progressSeg===id?T:'transparent',fg:st.progressSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({progressSeg:id})}));
+    const showProgressTimes=st.progressSeg==='times',showProgressTraining=st.progressSeg==='training';
     const det=this.detailFor(user,st.meEvent);
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
@@ -4038,6 +4055,7 @@ class Component extends DCLogic {
       // before and would have silently shown men's records under Women.
       swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213',
       swimcloudTimesUrl:'https://www.swimcloud.com/times/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213&hide_gender=1',
+      progressSegs,showProgressTimes,showProgressTraining,
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,
