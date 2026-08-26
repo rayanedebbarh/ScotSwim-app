@@ -677,6 +677,35 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-for>
         </div>
       </sc-if>
+      <sc-if value="{{ showProgression }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ progressionTitle }}</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:9px;height:9px;border-radius:2px;background:#6B1F33"></div>
+              <div style="font-size:11px;font-weight:700;color:rgba(42,18,24,.55)">Alma College</div>
+            </div>
+          </div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:4px">Team season points, 2016-2017 – 2025-2026 · via SwimCloud</div>
+          <svg width="100%" viewBox="0 0 320 220" style="margin-top:8px">
+            <sc-for list="{{ progressionChart.yTicks }}" as="g" hint-placeholder-count="5">
+              <line x1="{{ progressionChart.plotLeft }}" x2="{{ progressionChart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
+              <foreignObject x="0" y="{{ g.ly }}" width="{{ progressionChart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ progressionChart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+              </foreignObject>
+            </sc-for>
+            <polyline points="{{ progressionChart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
+            <sc-for list="{{ progressionChart.dots }}" as="p" hint-placeholder-count="10">
+              <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:#6B1F33;stroke:#FFFDF9;stroke-width:2"></circle>
+            </sc-for>
+          </svg>
+          <div style="position:relative;height:24px;margin-top:2px">
+            <sc-for list="{{ progressionChart.labs }}" as="l" hint-placeholder-count="10">
+              <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:8.5px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
       <sc-if value="{{ showSwimList }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;justify-content:flex-end">
           <select value="{{ teamSort }}" onChange="{{ teamSortSel }}" style="background:#fff;color:#2A1218;border:1px solid rgba(42,18,24,.2);border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600;font-family:'Barlow';outline:none">
@@ -2126,6 +2155,15 @@ class Component extends DCLogic {
       'Abi Spitzley':448.85,'Hannah Sullivan':492.85,'Valerie Vinci':441.15,'Delilah Zingelewicz':506.00};
     return R[s.id]??null;
   }
+  // Real SwimCloud team season-points totals, 2016-17 through 2025-26.
+  teamProgressionOf(gender){
+    const seasons=['2016-2017','2017-2018','2018-2019','2019-2020','2020-2021','2021-2022','2022-2023','2023-2024','2024-2025','2025-2026'];
+    const shorts=['16-17','17-18','18-19','19-20','20-21','21-22','22-23','23-24','24-25','25-26'];
+    const men=[332,430,478,464,496,488,524,520,502,532];
+    const women=[471,467,525,502,493,505,520,528,506,500];
+    const pts=gender==='W'?women:men;
+    return seasons.map((season,i)=>({season,short:shorts[i],pts:pts[i]}));
+  }
   fmtEv(ev,t){return this.evMap[ev]&&this.evMap[ev].dive?t.toFixed(1)+' pts':this.fmt(t)}
   fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
   goalOf(s,ev){const d=this.state.goalDelta[s.id+'|'+ev]||0;return Math.round((s.goals[ev]+d)*100)/100}
@@ -2156,6 +2194,27 @@ class Component extends DCLogic {
     const ticks=[];
     for(let v=niceMin;v<=niceMax+niceStep*0.001;v+=niceStep)ticks.push(Math.round(v*1000)/1000);
     return ticks;
+  }
+  // Simple fixed-10-season line chart for the Team tab's Progression
+  // cards — no per-point labels or goal line, unlike the athlete
+  // PROGRESSION chart, since every point here is a known historical total.
+  teamProgressionChart(data){
+    const vals=data.map(d=>d.pts);
+    let mn=Math.min(...vals),mx=Math.max(...vals);
+    const pad=(mx-mn)*0.18||10;mn-=pad;mx+=pad;
+    const tickVals=this.niceTicks(mn,mx,5);
+    mn=tickVals[0];mx=tickVals[tickVals.length-1];
+    const tickLabels=tickVals.map(v=>String(Math.round(v)));
+    const axisPad=8;
+    const maxTickW=Math.max(22,...tickLabels.map(t=>Math.round(t.length*5.6)));
+    const PL=Math.max(30,axisPad+maxTickW+6),PR=312,PT=14,PH=190;
+    const Y=v=>PT+((mx-v)/(mx-mn))*PH;
+    const X=i=>PL+i*((PR-PL)/(data.length-1));
+    const yTicks=tickVals.map((v,i)=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:tickLabels[i]}));
+    const pts=data.map((d,i)=>X(i).toFixed(1)+','+Y(d.pts).toFixed(1)).join(' ');
+    const dots=data.map((d,i)=>({x:X(i).toFixed(1),y:Y(d.pts).toFixed(1)}));
+    const labs=data.map((d,i)=>({x:(X(i)/320*100).toFixed(2)+'%',n:d.short}));
+    return {pts,dots,yTicks,labs,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px'};
   }
   chartFor(s,ev){
     const dive=this.evMap[ev].dive;
@@ -3460,6 +3519,11 @@ class Component extends DCLogic {
     // no explanation, which reads like a bug rather than an empty roster.
     const rosterListEmpty=rosterList.length===0;
     const rosterEmptyText='No '+(st.teamSeg==='W'?'female':'male')+' '+(isDivingCoach?'divers':'athletes')+' on the roster yet.';
+    // Team-wide season-points progression (Men/Women only — Staff has no
+    // roster, and this is a swimming stat so the diving coach doesn't see it).
+    const showProgression=(st.teamSeg==='M'||st.teamSeg==='W')&&st.teamView==='roster'&&!isDivingCoach;
+    const progressionTitle=st.teamSeg==='W'?'WOMEN PROGRESSION':'MEN PROGRESSION';
+    const progressionChart=showProgression?this.teamProgressionChart(this.teamProgressionOf(st.teamSeg)):null;
     const det=this.detailFor(user,st.meEvent);
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
@@ -3751,6 +3815,7 @@ class Component extends DCLogic {
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
       showPracticeStreak:!isCoach,
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
+      showProgression,progressionTitle,progressionChart,
       rosterList,rosterListEmpty,rosterEmptyText,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
       showRecords:st.teamSeg!=='S'&&st.teamView==='records'&&!isDivingCoach,
       showTimes:st.teamSeg!=='S'&&st.teamView==='times'&&!isDivingCoach,
