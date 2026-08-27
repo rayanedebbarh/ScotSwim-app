@@ -1266,6 +1266,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="margin-top:8px;height:6px;border-radius:3px;background:rgba(42,18,24,.08);overflow:hidden"><div style="height:100%;width:{{ r.pct }}%;background:linear-gradient(90deg,#1B7A78,#6B1F33)"></div></div>
             <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-top:10px">PRESCRIBED WORKOUT</div>
             <textarea value="{{ r.workoutValue }}" onChange="{{ r.onWorkoutChange }}" placeholder="e.g. 7×50 Free @ race pace, :10 rest" style="width:100%;min-height:44px;margin-top:5px;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.4;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:6px">
+              <button onClick="{{ r.saveWorkout }}" disabled="{{ r.saveBusy }}" style="border:1.5px solid #1B7A78;background:{{ r.saveBg }};color:{{ r.saveFg }};border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s">{{ r.saveLabel }}</button>
+            </div>
           </div>
         </sc-for>
       </div>
@@ -1730,7 +1733,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
-      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -3389,7 +3392,10 @@ class Component extends DCLogic {
       this.setState({goalWorkouts});
     }).catch(()=>{});
   }
-  // Debounced — same reasoning as syncMyEventsToCloud above.
+  // Debounced — same reasoning as syncMyEventsToCloud above. Typing alone
+  // still saves (nothing is lost if the coach navigates away), but the
+  // explicit Save button below reuses flushGoalWorkoutsToCloud to write
+  // immediately and confirm once it's actually landed.
   syncGoalWorkoutsToCloud(rosterId,workouts){
     if(!this.fbReady)return;
     if(!this._goalWorkoutsSaveTimers)this._goalWorkoutsSaveTimers={};
@@ -3397,6 +3403,14 @@ class Component extends DCLogic {
     this._goalWorkoutsSaveTimers[rosterId]=setTimeout(()=>{
       this.db.collection('goalWorkouts').doc(rosterId).set({workouts}).catch(()=>{});
     },700);
+  }
+  // Immediate (non-debounced) write, returning the Firestore promise so a
+  // caller can show "Saved" only once it's actually confirmed rather than
+  // optimistically.
+  flushGoalWorkoutsToCloud(rosterId,workouts){
+    if(!this.fbReady)return Promise.reject(new Error('offline'));
+    if(this._goalWorkoutsSaveTimers)clearTimeout(this._goalWorkoutsSaveTimers[rosterId]);
+    return this.db.collection('goalWorkouts').doc(rosterId).set({workouts});
   }
   authErrMsg(err){
     const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.'};
@@ -3941,9 +3955,37 @@ class Component extends DCLogic {
       const pct=gSel.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
       const step=e.dive?2:0.1;
       const bump=d=>{const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;this.setState({goalDelta:gd});this.saveGoalPrefs(gd,this.state.selfGoals);};
+      // Explicit Save button — typing already auto-saves (debounced), but
+      // a coach can't see that from the screen, and they're handing this
+      // straight to an athlete, so they want to know for sure it landed.
+      // Clicking it writes immediately and only shows "Saved" once
+      // Firestore actually confirms the write, not optimistically.
+      const wKey=gSel.id+'|'+ev;
+      const saveState=st.goalWorkoutSaveState[wKey]||'idle';
+      const saveWorkout=()=>{
+        const workouts=this.state.goalWorkouts[gSel.id]||{};
+        this.setState({goalWorkoutSaveState:{...this.state.goalWorkoutSaveState,[wKey]:'saving'}});
+        this.flushGoalWorkoutsToCloud(gSel.id,workouts).then(()=>{
+          this.setState({goalWorkoutSaveState:{...this.state.goalWorkoutSaveState,[wKey]:'saved'}});
+          this.toastMsg('Workout saved — '+gSel.name.split(' ')[0]+' will see it on their Goals.');
+          if(!this._workoutSavedTimers)this._workoutSavedTimers={};
+          clearTimeout(this._workoutSavedTimers[wKey]);
+          this._workoutSavedTimers[wKey]=setTimeout(()=>{
+            const gws={...this.state.goalWorkoutSaveState};delete gws[wKey];
+            this.setState({goalWorkoutSaveState:gws});
+          },2200);
+        }).catch(()=>{
+          const gws={...this.state.goalWorkoutSaveState};delete gws[wKey];
+          this.setState({goalWorkoutSaveState:gws});
+          this.toastMsg("Couldn't save that — check your connection and try again.");
+        });
+      };
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),
         workoutValue:gWorkouts[ev]||'',
         onWorkoutChange:e2=>setGoalWorkout(ev,e2.target.value),
+        saveWorkout,saveBusy:saveState==='saving',
+        saveLabel:saveState==='saving'?'Saving…':saveState==='saved'?'Saved ✓':'Save',
+        saveBg:saveState==='saved'?'#1B7A78':'none',saveFg:saveState==='saved'?'#F5E9DC':'#1B7A78',
         dec:()=>bump(e.dive?step:-step),inc:()=>bump(e.dive?-step:step)};
     });
     const goalDet={name:gSel.name,ini:gSel.ini,cls:gSel.cls,pos:gSel.pos,
