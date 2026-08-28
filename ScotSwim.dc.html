@@ -3539,8 +3539,16 @@ class Component extends DCLogic {
     // rows, and a nudge meant for one audience shouldn't leak into the
     // other — NAV_X_OFFSET applies only to athletes, NAV_X_OFFSET_COACH
     // only to swim/diving coach.
+    // flex:1 alone only equalizes each tab's *slot* width, not the actual
+    // whitespace between the rendered words — a wide label (MEETS,
+    // ATTEND) eats into its neighbors' gap more than a narrow one (SIM,
+    // TEAM) does, so naive equal centering still reads as uneven. The
+    // coach dict below was solved for actual equal edge-to-edge gaps
+    // between every adjacent label (HOME and GOALS left untouched as
+    // anchors, the 5 tabs between them solved together) — measured via
+    // real rendered getBoundingClientRect(), not eyeballed.
     const NAV_X_OFFSET={train:-4,progress:8,team:15};
-    const NAV_X_OFFSET_COACH={meets:-6.92,train:-3};
+    const NAV_X_OFFSET_COACH={sim:-10.66,meets:-18.23,train:-14.96,attendance:-6.81,team:-0.94};
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
       sz:'14px',ls:'1.5px',off:!isCoach?(NAV_X_OFFSET[id]||0):(NAV_X_OFFSET_COACH[id]||0),
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
