@@ -560,6 +560,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
         </div>
       </sc-if>
+      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+        <sc-for list="{{ trainSegs }}" as="s" hint-placeholder-count="2">
+          <button onClick="{{ s.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ s.bg }};color:{{ s.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer">{{ s.n }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showTrainLibrary }}" hint-placeholder-val="{{ false }}">
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
         <sc-for list="{{ workoutLib }}" as="w" hint-placeholder-count="3">
@@ -625,6 +631,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
+      </sc-if>
+      <sc-if value="{{ showTrainSchedule }}" hint-placeholder-val="{{ true }}">
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">WEEKLY SCHEDULE</div>
         <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
@@ -675,6 +683,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-if>
         </div>
       </sc-for>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -1742,7 +1751,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
+      announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,trainSeg:'schedule',
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
@@ -3844,6 +3853,12 @@ class Component extends DCLogic {
     const progressSegList=[['times','TIMES'],['training','TRAINING']];
     const progressSegs=progressSegList.map(([id,n])=>({n,bg:st.progressSeg===id?T:'transparent',fg:st.progressSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({progressSeg:id})}));
     const showProgressTimes=st.progressSeg==='times',showProgressTraining=st.progressSeg==='training';
+    // The Train tab's own two-way toggle — same pattern, separating the
+    // day-by-day Weekly Schedule from the Workout Library (which used to
+    // just stack on top of each other in one long scroll).
+    const trainSegList=[['schedule','WEEKLY SCHEDULE'],['library','WORKOUT LIBRARY']];
+    const trainSegs=trainSegList.map(([id,n])=>({n,bg:st.trainSeg===id?T:'transparent',fg:st.trainSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({trainSeg:id})}));
+    const showTrainSchedule=st.trainSeg==='schedule',showTrainLibrary=st.trainSeg==='library';
     const det=this.detailFor(user,st.meEvent);
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
@@ -4196,6 +4211,7 @@ class Component extends DCLogic {
       swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213',
       swimcloudTimesUrl:'https://www.swimcloud.com/times/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213&hide_gender=1',
       progressSegs,showProgressTimes,showProgressTraining,
+      trainSegs,showTrainSchedule,showTrainLibrary,
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,
