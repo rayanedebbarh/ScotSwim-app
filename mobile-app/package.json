@@ -17,5 +17,8 @@
     "@capacitor/core": "^8.5.0",
     "@capacitor/ios": "^8.5.0",
     "@capgo/capacitor-updater": "^8.51.14"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
   }
 }
