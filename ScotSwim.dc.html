@@ -296,6 +296,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="margin-top:6px;height:6px;border-radius:3px;background:rgba(42,18,24,.08);overflow:hidden">
               <div style="height:100%;width:{{ g.pct }}%;border-radius:3px;background:linear-gradient(90deg,#1B7A78,#6B1F33)"></div>
             </div>
+            <sc-if value="{{ g.hasWorkout }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:8px;padding:8px 10px;background:rgba(27,122,120,.08);border-left:2.5px solid #1B7A78;border-radius:4px">
+                <div style="font-size:9px;font-weight:800;letter-spacing:1px;color:#1B7A78">COACH'S WORKOUT</div>
+                <div style="font-size:12px;color:#1B4744;line-height:1.4;margin-top:2px">{{ g.workout }}</div>
+              </div>
+            </sc-if>
           </div>
         </sc-for>
       </div>
@@ -544,10 +550,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ TRAIN ============ -->
   <sc-if value="{{ vTrain }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:13px;font-weight:600">Practice streak</div>
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
-      </div>
+      <sc-if value="{{ showPracticeStreak }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:13px;font-weight:600">Practice streak</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
+        </div>
+      </sc-if>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">WORKOUT LIBRARY</div>
         <sc-for list="{{ workoutLib }}" as="w" hint-placeholder-count="3">
@@ -673,6 +681,29 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <sc-for list="{{ viewSegs }}" as="v" hint-placeholder-count="3">
             <button onClick="{{ v.onTap }}" style="flex:1;border:none;border-radius:999px;padding:8px 0;background:{{ v.bg }};color:{{ v.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:1px;cursor:pointer">{{ v.n }}</button>
           </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showProgression }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ progressionTitle }}</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:4px">Team season points, 2016-2017 – 2025-2026 · via SwimCloud</div>
+          <svg width="100%" viewBox="0 0 320 220" style="margin-top:8px">
+            <sc-for list="{{ progressionChart.yTicks }}" as="g" hint-placeholder-count="5">
+              <line x1="{{ progressionChart.plotLeft }}" x2="{{ progressionChart.plotRight }}" y1="{{ g.y }}" y2="{{ g.y }}" style="stroke:rgba(42,18,24,.08);stroke-width:1"></line>
+              <foreignObject x="0" y="{{ g.ly }}" width="{{ progressionChart.plotLeft }}" height="12" style="overflow:visible;pointer-events:none">
+                <div xmlns="http://www.w3.org/1999/xhtml" style="text-align:right;padding-right:{{ progressionChart.axisPad }};font-size:9px;font-weight:600;color:rgba(42,18,24,.45);font-variant-numeric:tabular-nums;white-space:nowrap;box-sizing:border-box">{{ g.label }}</div>
+              </foreignObject>
+            </sc-for>
+            <polyline points="{{ progressionChart.pts }}" style="fill:none;stroke:#6B1F33;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"></polyline>
+            <sc-for list="{{ progressionChart.dots }}" as="p" hint-placeholder-count="10">
+              <circle cx="{{ p.x }}" cy="{{ p.y }}" r="4" style="fill:#6B1F33;stroke:#FFFDF9;stroke-width:2"></circle>
+            </sc-for>
+          </svg>
+          <div style="position:relative;height:24px;margin-top:2px">
+            <sc-for list="{{ progressionChart.labs }}" as="l" hint-placeholder-count="10">
+              <div style="position:absolute;top:0;left:{{ l.x }};transform:translateX(-50%);text-align:center;white-space:nowrap;font-size:8.5px;font-weight:600;color:rgba(42,18,24,.45)">{{ l.n }}</div>
+            </sc-for>
+          </div>
         </div>
       </sc-if>
       <sc-if value="{{ showSwimList }}" hint-placeholder-val="{{ true }}">
@@ -883,15 +914,39 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-for>
         </div>
       </div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TRAINING VOLUME</div>
+        <sc-if value="{{ det.trainingLogEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log your miles and time under Progression → Training Log, and your totals will show up here — and on your profile for everyone to see.</div>
+        </sc-if>
+        <sc-if value="{{ det.hasTrainingLog }}" hint-placeholder-val="{{ false }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+            <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:14px 8px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ det.totalMiles }}</div>
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">MILES SWUM</div>
+            </div>
+            <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:14px 8px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:27px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ det.totalTime }}</div>
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">TIME IN THE POOL</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
     </div>
   </sc-if>
 
   <!-- ============ PROGRESSION (athlete) ============ -->
   <sc-if value="{{ vProgress }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+        <sc-for list="{{ progressSegs }}" as="s" hint-placeholder-count="2">
+          <button onClick="{{ s.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ s.bg }};color:{{ s.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1.5px;cursor:pointer">{{ s.n }}</button>
+        </sc-for>
+      </div>
+      <sc-if value="{{ showProgressTimes }}" hint-placeholder-val="{{ true }}">
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">PROGRESSION</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TIMES</div>
           <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }}</div>
         </div>
         <sc-if value="{{ det.chartEmpty }}" hint-placeholder-val="{{ false }}">
@@ -949,25 +1004,63 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
         </sc-if>
-        <sc-for list="{{ det.myEventRows }}" as="r" hint-placeholder-count="3">
-          <div style="padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-              <div style="font-size:13.5px;font-weight:600">{{ r.n }}</div>
-              <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px">✕</button>
-            </div>
-            <div style="display:flex;align-items:flex-end;gap:8px;margin-top:6px">
-              <div style="flex:1;min-width:0">
-                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
-                <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+        <sc-for list="{{ det.myEventGroups }}" as="g" hint-placeholder-count="3">
+          <div style="margin-top:14px">
+            <div style="font-size:11.5px;font-weight:800;letter-spacing:1px;color:#6B1F33">{{ g.n }}</div>
+            <sc-for list="{{ g.visibleRows }}" as="r" hint-placeholder-count="2">
+              <div style="display:flex;align-items:flex-end;gap:8px;padding:8px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">DATE</div>
+                  <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">TIME</div>
+                  <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+                </div>
+                <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
               </div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">TIME</div>
-                <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
-              </div>
-            </div>
+            </sc-for>
+            <sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ g.toggleExpand }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;padding:7px 0 0">{{ g.moreLabel }}</button>
+            </sc-if>
           </div>
         </sc-for>
       </div>
+      </sc-if>
+      <sc-if value="{{ showProgressTraining }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TRAINING LOG</div>
+          <button onClick="{{ det.addTrainingLogEntry }}" style="border:1.5px solid #1B7A78;background:none;color:#1B7A78;border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap">＋ Add session</button>
+        </div>
+        <sc-if value="{{ det.trainingLogEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log how far and how long you swam each session — your totals show up on your profile for everyone to see.</div>
+        </sc-if>
+        <sc-if value="{{ det.hasTrainingLog }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;font-weight:700;color:#6B1F33">
+            <span>{{ det.totalMiles }} mi total</span>
+            <span>{{ det.totalTime }} total</span>
+          </div>
+        </sc-if>
+        <sc-for list="{{ det.trainingLogRows }}" as="r" hint-placeholder-count="3">
+          <div style="display:flex;align-items:flex-end;gap:8px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div style="flex:1.4;min-width:0">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">DATE</div>
+              <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">MILES</div>
+              <input value="{{ r.milesValue }}" onChange="{{ r.onMilesChange }}" placeholder="3.1" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-bottom:3px">MIN</div>
+              <input value="{{ r.minutesValue }}" onChange="{{ r.onMinutesChange }}" placeholder="90" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+            </div>
+            <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -1171,7 +1264,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
               </div>
             </div>
             <div style="margin-top:8px;height:6px;border-radius:3px;background:rgba(42,18,24,.08);overflow:hidden"><div style="height:100%;width:{{ r.pct }}%;background:linear-gradient(90deg,#1B7A78,#6B1F33)"></div></div>
-            <div style="font-size:11px;color:rgba(42,18,24,.5);margin-top:5px">{{ r.note }}</div>
+            <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:#6B1F33;margin-top:10px">PRESCRIBED WORKOUT</div>
+            <textarea value="{{ r.workoutValue }}" onChange="{{ r.onWorkoutChange }}" placeholder="{{ r.workoutPlaceholder }}" style="width:100%;min-height:44px;margin-top:5px;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12.5px;line-height:1.4;resize:vertical;outline:none;box-sizing:border-box"></textarea>
+            <div style="display:flex;justify-content:flex-end;margin-top:6px">
+              <button onClick="{{ r.saveWorkout }}" disabled="{{ r.saveBusy }}" style="border:1.5px solid #1B7A78;background:{{ r.saveBg }};color:{{ r.saveFg }};border-radius:999px;padding:6px 14px;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s">{{ r.saveLabel }}</button>
+            </div>
           </div>
         </sc-for>
       </div>
@@ -1392,6 +1489,24 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-top:10px">
               <span style="color:rgba(42,18,24,.6)">Best <span style="color:#6B1F33;font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.pb }}</span></span>
               <span style="color:#1B7A78">Goal <span style="font-weight:800;font-variant-numeric:tabular-nums">{{ selDet.chart.goal }}</span></span>
+            </div>
+          </sc-if>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">TRAINING VOLUME</div>
+          <sc-if value="{{ selDet.trainingLogEmpty }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:8px;line-height:1.45">No training logged yet.</div>
+          </sc-if>
+          <sc-if value="{{ selDet.hasTrainingLog }}" hint-placeholder-val="{{ false }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:12px 6px">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:24px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ selDet.totalMiles }}</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">MILES SWUM</div>
+              </div>
+              <div style="text-align:center;background:#FDFBF7;border:1px solid rgba(107,31,51,.18);border-radius:8px;padding:12px 6px">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:24px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ selDet.totalTime }}</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.5);margin-top:3px">TIME IN THE POOL</div>
+              </div>
             </div>
           </sc-if>
         </div>
@@ -1618,7 +1733,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,
-      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
@@ -1654,6 +1769,19 @@ class Component extends DCLogic {
     try{
       const savedMyEvents=JSON.parse(localStorage.getItem('scotswim.myEventEntries')||'null');
       if(savedMyEvents)this.state.myEvents=savedMyEvents;
+    }catch(e){}
+    // Restore each athlete's logged training-session miles/minutes — same
+    // self-reported, cloud-synced pattern as myEvents (see startTrainingLogSync).
+    try{
+      const savedTrainingLog=JSON.parse(localStorage.getItem('scotswim.trainingLog')||'null');
+      if(savedTrainingLog)this.state.trainingLog=savedTrainingLog;
+    }catch(e){}
+    // Restore each athlete's coach-prescribed workouts (per goal event) —
+    // cloud-synced the same way, but coach-authored rather than
+    // self-reported (see startGoalWorkoutsSync/syncGoalWorkoutsToCloud).
+    try{
+      const savedGoalWorkouts=JSON.parse(localStorage.getItem('scotswim.goalWorkouts')||'null');
+      if(savedGoalWorkouts)this.state.goalWorkouts=savedGoalWorkouts;
     }catch(e){}
     // Restore each athlete's own profile-photo replacement + framing
     // (see saveMyPhotos) — self-uploaded, only ever touched by that
@@ -2124,8 +2252,25 @@ class Component extends DCLogic {
       'Abi Spitzley':448.85,'Hannah Sullivan':492.85,'Valerie Vinci':441.15,'Delilah Zingelewicz':506.00};
     return R[s.id]??null;
   }
+  // Real SwimCloud team season-points totals, 2016-17 through 2025-26.
+  teamProgressionOf(gender){
+    const seasons=['2016-2017','2017-2018','2018-2019','2019-2020','2020-2021','2021-2022','2022-2023','2023-2024','2024-2025','2025-2026'];
+    const shorts=['16-17','17-18','18-19','19-20','20-21','21-22','22-23','23-24','24-25','25-26'];
+    const men=[332,430,478,464,496,488,524,520,502,532];
+    const women=[471,467,525,502,493,505,520,528,506,500];
+    const pts=gender==='W'?women:men;
+    return seasons.map((season,i)=>({season,short:shorts[i],pts:pts[i]}));
+  }
   fmtEv(ev,t){return this.evMap[ev]&&this.evMap[ev].dive?t.toFixed(1)+' pts':this.fmt(t)}
   fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+  // Total training minutes -> "Xh Ym" (or just "Ym" under an hour) — used
+  // by the Training Volume stat card, never a raw minute count.
+  fmtDuration(totalMin){
+    const m=Math.round(totalMin);
+    if(m<=0)return '0m';
+    const h=Math.floor(m/60),rem=m%60;
+    return h>0?(h+'h '+rem+'m'):(rem+'m');
+  }
   goalOf(s,ev){const d=this.state.goalDelta[s.id+'|'+ev]||0;return Math.round((s.goals[ev]+d)*100)/100}
   // Coach-set goals (goalDelta) and athlete-set goals (selfGoals) otherwise
   // live only in React state — a reload or a fresh login wipes them. Persist
@@ -2154,6 +2299,27 @@ class Component extends DCLogic {
     const ticks=[];
     for(let v=niceMin;v<=niceMax+niceStep*0.001;v+=niceStep)ticks.push(Math.round(v*1000)/1000);
     return ticks;
+  }
+  // Simple fixed-10-season line chart for the Team tab's Progression
+  // cards — no per-point labels or goal line, unlike the athlete
+  // PROGRESSION chart, since every point here is a known historical total.
+  teamProgressionChart(data,forceStep){
+    const vals=data.map(d=>d.pts);
+    let mn=Math.min(...vals),mx=Math.max(...vals);
+    const pad=(mx-mn)*0.18||10;mn-=pad;mx+=pad;
+    const tickVals=this.niceTicks(mn,mx,5,forceStep);
+    mn=tickVals[0];mx=tickVals[tickVals.length-1];
+    const tickLabels=tickVals.map(v=>String(Math.round(v)));
+    const axisPad=8;
+    const maxTickW=Math.max(22,...tickLabels.map(t=>Math.round(t.length*5.6)));
+    const PL=Math.max(30,axisPad+maxTickW+6),PR=312,PT=14,PH=190;
+    const Y=v=>PT+((mx-v)/(mx-mn))*PH;
+    const X=i=>PL+i*((PR-PL)/(data.length-1));
+    const yTicks=tickVals.map((v,i)=>({y:Y(v).toFixed(1),ly:(Y(v)-6).toFixed(1),label:tickLabels[i]}));
+    const pts=data.map((d,i)=>X(i).toFixed(1)+','+Y(d.pts).toFixed(1)).join(' ');
+    const dots=data.map((d,i)=>({x:X(i).toFixed(1),y:Y(d.pts).toFixed(1)}));
+    const labs=data.map((d,i)=>({x:(X(i)/320*100).toFixed(2)+'%',n:d.short}));
+    return {pts,dots,yTicks,labs,plotLeft:PL,plotRight:PR,axisPad:axisPad+'px'};
   }
   chartFor(s,ev){
     const dive=this.evMap[ev].dive;
@@ -2497,13 +2663,78 @@ class Component extends DCLogic {
         onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
     });
+    // Grouped by event (50 Free entries with 50 Free, etc.) rather than
+    // one long flat list — an athlete who's logged a meet's worth of
+    // times otherwise buries the Training Log card below a wall of
+    // scrolling. Each group shows its 2 most recent entries by default
+    // (entries without a parseable date sort last, so real dates always
+    // surface first); a "See all" toggle reveals the rest. Grouped in
+    // the same canonical event order as the Add-time dropdown, not
+    // insertion order, so it always reads top-to-bottom the same way
+    // every other event list in this app does.
+    const rowsByEvent={};
+    myEventRows.forEach(r=>{
+      const entry=myEntries[r.id];
+      (rowsByEvent[entry.eventId]=rowsByEvent[entry.eventId]||[]).push(r);
+    });
+    Object.keys(rowsByEvent).forEach(evId=>{
+      rowsByEvent[evId].sort((a,b)=>{
+        const ta=Date.parse(a.dateValue)||-Infinity,tb=Date.parse(b.dateValue)||-Infinity;
+        return tb-ta;
+      });
+    });
+    const VISIBLE_CAP=2;
+    const myEventGroups=evChoices.filter(e=>rowsByEvent[e.id]).map(e=>{
+      const rows=rowsByEvent[e.id];
+      const key=s.id+'|'+e.id;
+      const expanded=!!this.state.myEventsExpanded[key];
+      return {eventId:e.id,n:e.n,count:rows.length,
+        visibleRows:expanded?rows:rows.slice(0,VISIBLE_CAP),
+        hasMore:rows.length>VISIBLE_CAP,expanded,
+        moreLabel:expanded?'Show less':'See all ('+rows.length+')',
+        toggleExpand:()=>{
+          const myEventsExpanded={...this.state.myEventsExpanded,[key]:!expanded};
+          this.setState({myEventsExpanded});
+        }};
+    });
+    // Self-logged training volume (miles + minutes per session) — same
+    // self-only-edit, everyone-sees-the-total pattern as My Events: the
+    // athlete owns the raw entries (canEditBio-gated below in the ME tab
+    // markup), while the totals computed here show up on every viewer's
+    // copy of this same profile, including the Team-tab modal.
+    if(!canEditBio)this.fetchOthersTrainingLog(s.id);
+    const tlEntries=this.state.trainingLog[s.id]||{};
+    const tlEntryIds=Object.keys(tlEntries);
+    const setTrainingLog=next=>{
+      const trainingLog={...this.state.trainingLog,[s.id]:next};
+      this.setState({trainingLog});this.saveTrainingLog(trainingLog);
+      this.syncTrainingLogToCloud(s.id,next);
+    };
+    const trainingLogRows=tlEntryIds.map(entryId=>{
+      const entry=tlEntries[entryId];
+      return {id:entryId,dateValue:entry.date||'',milesValue:entry.miles||'',minutesValue:entry.minutes||'',
+        onDateChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,date:e2.target.value}}),
+        onMilesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,miles:e2.target.value}}),
+        onMinutesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,minutes:e2.target.value}}),
+        remove:()=>{const next={...tlEntries};delete next[entryId];setTrainingLog(next);}};
+    });
+    const addTrainingLogEntry=()=>{
+      const entryId='t'+Date.now()+Math.random().toString(36).slice(2,6);
+      setTrainingLog({...tlEntries,[entryId]:{date:'',miles:'',minutes:''}});
+    };
+    const totalMiles=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].miles)||0),0);
+    const totalMinutes=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].minutes)||0),0);
+    const hasTrainingLog=tlEntryIds.length>0;
     const addEventSel=e2=>{
       const evId=e2.target.value;if(!evId)return;
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
       setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
     };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,
-      myEventRows,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
+      myEventGroups,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
+      trainingLogRows,addTrainingLogEntry,trainingLogEmpty:tlEntryIds.length===0,
+      totalMiles:totalMiles>0?(Math.round(totalMiles*10)/10).toString():'0',
+      totalTime:this.fmtDuration(totalMinutes),hasTrainingLog,
       year:YEAR[effCls]||effCls,height:statVal.height||'—',weight:statVal.weight||'—',hs:statVal.hs||'—',
       clsValue:effCls,clsOptions,onClsChange:e=>setStat('cls',e.target.value),
       homeValue:effHome,onHomeChange:e=>setStat('home',e.target.value),
@@ -2586,6 +2817,8 @@ class Component extends DCLogic {
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
+  saveTrainingLog(trainingLog){try{localStorage.setItem('scotswim.trainingLog',JSON.stringify(trainingLog))}catch(e){}}
+  saveGoalWorkouts(goalWorkouts){try{localStorage.setItem('scotswim.goalWorkouts',JSON.stringify(goalWorkouts))}catch(e){}}
   saveMyPhotos(myPhotos){try{localStorage.setItem('scotswim.myPhotos',JSON.stringify(myPhotos))}catch(e){}}
   // Downscale + re-encode an uploaded photo through a canvas so a phone
   // camera shot (several MB) doesn't blow up localStorage — 320px is
@@ -2897,7 +3130,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();this.stopTeamContentSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -2926,7 +3159,7 @@ class Component extends DCLogic {
       const goalSeg=profile.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
       this.armMusicOnLogin();
       this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
-      if(profile.role==='athlete')this.startMyEventsSync(profile.rosterId);
+      if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
       this.startTeamContentSync();
     }).catch(()=>this.setState({authChecking:false}));
   }
@@ -2959,6 +3192,47 @@ class Component extends DCLogic {
   }
   stopMyEventsSync(){
     if(this._myEventsUnsub){this._myEventsUnsub();this._myEventsUnsub=null;}
+  }
+  // Each athlete's self-logged training miles/minutes — same live-listener
+  // + one-time local-to-cloud migration pattern as startMyEventsSync above.
+  startTrainingLogSync(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(this._trainingLogUnsub)this._trainingLogUnsub();
+    const ref=this.db.collection('trainingLog').doc(rosterId);
+    let migrated=false;
+    this._trainingLogUnsub=ref.onSnapshot(doc=>{
+      if(doc.exists){
+        const entries=doc.data().entries||{};
+        const trainingLog={...this.state.trainingLog,[rosterId]:entries};
+        this.setState({trainingLog});
+        this.saveTrainingLog(trainingLog);
+      }else if(!migrated){
+        migrated=true;
+        const local=this.state.trainingLog[rosterId];
+        if(local&&Object.keys(local).length)ref.set({entries:local});
+      }
+    });
+  }
+  stopTrainingLogSync(){
+    if(this._trainingLogUnsub){this._trainingLogUnsub();this._trainingLogUnsub=null;}
+  }
+  // Coach-prescribed workouts, one per (athlete, goal event) — same live-
+  // listener pattern as startTrainingLogSync, so a workout the coach
+  // writes shows up for the athlete without them needing to reload.
+  startGoalWorkoutsSync(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(this._goalWorkoutsUnsub)this._goalWorkoutsUnsub();
+    const ref=this.db.collection('goalWorkouts').doc(rosterId);
+    this._goalWorkoutsUnsub=ref.onSnapshot(doc=>{
+      if(!doc.exists)return;
+      const workouts=doc.data().workouts||{};
+      const goalWorkouts={...this.state.goalWorkouts,[rosterId]:workouts};
+      this.setState({goalWorkouts});
+      this.saveGoalWorkouts(goalWorkouts);
+    });
+  }
+  stopGoalWorkoutsSync(){
+    if(this._goalWorkoutsUnsub){this._goalWorkoutsUnsub();this._goalWorkoutsUnsub=null;}
   }
   // Team announcements + the weekly training schedule — both shared,
   // team-wide content only a coach can write, kept live for every signed-in
@@ -3079,6 +3353,65 @@ class Component extends DCLogic {
       this.db.collection('myEvents').doc(rosterId).set({entries}).catch(()=>{});
     },700);
   }
+  // One-time fetch for viewing someone ELSE's training log, e.g. from the
+  // Team tab — same cached-per-session pattern as fetchOthersMyEvents.
+  fetchOthersTrainingLog(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._fetchedTrainingLog)this._fetchedTrainingLog=new Set();
+    if(this._fetchedTrainingLog.has(rosterId))return;
+    this._fetchedTrainingLog.add(rosterId);
+    this.db.collection('trainingLog').doc(rosterId).get().then(doc=>{
+      if(!doc.exists)return;
+      const entries=doc.data().entries||{};
+      const trainingLog={...this.state.trainingLog,[rosterId]:entries};
+      this.setState({trainingLog});
+    }).catch(()=>{});
+  }
+  // Debounced — same reasoning as syncMyEventsToCloud above.
+  syncTrainingLogToCloud(rosterId,entries){
+    if(!this.fbReady)return;
+    if(!this._trainingLogSaveTimers)this._trainingLogSaveTimers={};
+    clearTimeout(this._trainingLogSaveTimers[rosterId]);
+    this._trainingLogSaveTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('trainingLog').doc(rosterId).set({entries}).catch(()=>{});
+    },700);
+  }
+  // One-time fetch for a coach viewing/editing one athlete's prescribed
+  // workouts from the Goals tab — same cached-per-session pattern as
+  // fetchOthersTrainingLog (the athlete themselves gets these live via
+  // startGoalWorkoutsSync instead, so this is coach-side only).
+  fetchOthersGoalWorkouts(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._fetchedGoalWorkouts)this._fetchedGoalWorkouts=new Set();
+    if(this._fetchedGoalWorkouts.has(rosterId))return;
+    this._fetchedGoalWorkouts.add(rosterId);
+    this.db.collection('goalWorkouts').doc(rosterId).get().then(doc=>{
+      if(!doc.exists)return;
+      const workouts=doc.data().workouts||{};
+      const goalWorkouts={...this.state.goalWorkouts,[rosterId]:workouts};
+      this.setState({goalWorkouts});
+    }).catch(()=>{});
+  }
+  // Debounced — same reasoning as syncMyEventsToCloud above. Typing alone
+  // still saves (nothing is lost if the coach navigates away), but the
+  // explicit Save button below reuses flushGoalWorkoutsToCloud to write
+  // immediately and confirm once it's actually landed.
+  syncGoalWorkoutsToCloud(rosterId,workouts){
+    if(!this.fbReady)return;
+    if(!this._goalWorkoutsSaveTimers)this._goalWorkoutsSaveTimers={};
+    clearTimeout(this._goalWorkoutsSaveTimers[rosterId]);
+    this._goalWorkoutsSaveTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('goalWorkouts').doc(rosterId).set({workouts}).catch(()=>{});
+    },700);
+  }
+  // Immediate (non-debounced) write, returning the Firestore promise so a
+  // caller can show "Saved" only once it's actually confirmed rather than
+  // optimistically.
+  flushGoalWorkoutsToCloud(rosterId,workouts){
+    if(!this.fbReady)return Promise.reject(new Error('offline'));
+    if(this._goalWorkoutsSaveTimers)clearTimeout(this._goalWorkoutsSaveTimers[rosterId]);
+    return this.db.collection('goalWorkouts').doc(rosterId).set({workouts});
+  }
   authErrMsg(err){
     const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.'};
     return m[err.code]||'Something went wrong — try again.';
@@ -3120,17 +3453,31 @@ class Component extends DCLogic {
         this.setState({authBusy:false,authErr:this.authErrMsg(err)});
       });
     };
-    // Firebase's own "forgot password" flow — emails a reset link straight
-    // from Firebase, no backend of ours involved. Uses whatever's already
-    // typed in the email field above it.
+    // Firebase's own "forgot password" flow emails a reset link straight
+    // from Firebase — but modern Firebase projects have email-enumeration
+    // protection on by default, which makes sendPasswordResetEmail resolve
+    // successfully (no auth/user-not-found error) no matter what email is
+    // typed, specifically so callers can't use it to probe which emails
+    // have accounts. That's the right call for a public sign-up product,
+    // but it means we can no longer tell a real account from a typo here —
+    // so we check existence ourselves first, directly against the `users`
+    // collection (every account's email has lived there since signup, so
+    // there's no separate index to keep in sync or backfill), and only
+    // call Firebase's reset email for an email a real account has.
     const doForgotPassword=()=>{
       if(st.authBusy)return;
       if(!this.fbReady){this.setState({authErr:"That isn't available right now — try again in a moment."});return;}
-      const email=st.uname.trim();
+      const email=st.uname.trim().toLowerCase();
       if(!email){this.setState({authErr:'Enter your email above first, then tap "Forgot password?" again.'});return;}
       this.setState({authBusy:true,authErr:'',authMsg:''});
-      this.auth.sendPasswordResetEmail(email).then(()=>{
-        this.setState({authBusy:false,authMsg:'Check your email for a link to reset your password.'});
+      this.db.collection('users').where('email','==',email).limit(1).get().then(snap=>{
+        if(snap.empty){
+          this.setState({authBusy:false,authErr:'No account found for that email.'});
+          return;
+        }
+        return this.auth.sendPasswordResetEmail(email).then(()=>{
+          this.setState({authBusy:false,authMsg:'Check your email for a link to reset your password.'});
+        });
       }).catch(err=>{
         this.setState({authBusy:false,authErr:this.authErrMsg(err)});
       });
@@ -3152,7 +3499,7 @@ class Component extends DCLogic {
             this.armMusicOnLogin();
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
-            if(info.role==='athlete')this.startMyEventsSync(info.rosterId);
+            if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);this.startGoalWorkoutsSync(info.rosterId);}
             this.startTeamContentSync();
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
@@ -3192,8 +3539,16 @@ class Component extends DCLogic {
     // rows, and a nudge meant for one audience shouldn't leak into the
     // other — NAV_X_OFFSET applies only to athletes, NAV_X_OFFSET_COACH
     // only to swim/diving coach.
+    // flex:1 alone only equalizes each tab's *slot* width, not the actual
+    // whitespace between the rendered words — a wide label (MEETS,
+    // ATTEND) eats into its neighbors' gap more than a narrow one (SIM,
+    // TEAM) does, so naive equal centering still reads as uneven. The
+    // coach dict below was solved for actual equal edge-to-edge gaps
+    // between every adjacent label (HOME and GOALS left untouched as
+    // anchors, the 5 tabs between them solved together) — measured via
+    // real rendered getBoundingClientRect(), not eyeballed.
     const NAV_X_OFFSET={train:-4,progress:8,team:15};
-    const NAV_X_OFFSET_COACH={train:-3};
+    const NAV_X_OFFSET_COACH={sim:-10.66,meets:-18.23,train:-14.96,attendance:-6.81,team:-0.94};
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
       sz:'14px',ls:'1.5px',off:!isCoach?(NAV_X_OFFSET[id]||0):(NAV_X_OFFSET_COACH[id]||0),
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
@@ -3273,12 +3628,14 @@ class Component extends DCLogic {
     // Same real-data-only rule as everywhere else — a goal target measured
     // against a made-up PB isn't a real goal, so this stays empty until
     // the athlete has logged a real time to measure progress against.
+    const myWorkouts=this.state.goalWorkouts[user.id]||{};
     const myGoals=(hasRealHome?(st.showAllCoach?user.primary:user.primary.slice(0,3)):[]).map(ev=>{
       const pb=user.diver?Math.max(...user.hist[ev]):user.pbs[ev];
       const goal=this.goalOf(user,ev);
       const start_=user.hist[ev]?user.hist[ev][0]:pb*1.05;
       const pct=user.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
-      return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0)};
+      const workout=myWorkouts[ev]||'';
+      return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),workout,hasWorkout:!!workout};
     });
     const myGoalsEmpty=myGoals.length===0;
     // A rivalry needs a real time on both sides — comparing a made-up PB
@@ -3458,6 +3815,19 @@ class Component extends DCLogic {
     // no explanation, which reads like a bug rather than an empty roster.
     const rosterListEmpty=rosterList.length===0;
     const rosterEmptyText='No '+(st.teamSeg==='W'?'female':'male')+' '+(isDivingCoach?'divers':'athletes')+' on the roster yet.';
+    // Team-wide season-points progression (Men/Women only — Staff has no
+    // roster, and this is a swimming stat so the diving coach doesn't see it).
+    const showProgression=(st.teamSeg==='M'||st.teamSeg==='W')&&st.teamView==='roster'&&!isDivingCoach;
+    const progressionTitle=st.teamSeg==='W'?'WOMEN PROGRESSION':'MEN PROGRESSION';
+    const progressionChart=showProgression?this.teamProgressionChart(this.teamProgressionOf(st.teamSeg),st.teamSeg==='M'?50:undefined):null;
+    // The Progression tab's own two-way toggle — same pill-toggle pattern
+    // as the Team tab's segs — splitting times (the chart + My Events)
+    // from self-logged training volume into two short-named blocks,
+    // rather than one long scroll under a title ("PROGRESSION") that
+    // would otherwise repeat the tab's own name.
+    const progressSegList=[['times','TIMES'],['training','TRAINING']];
+    const progressSegs=progressSegList.map(([id,n])=>({n,bg:st.progressSeg===id?T:'transparent',fg:st.progressSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({progressSeg:id})}));
+    const showProgressTimes=st.progressSeg==='times',showProgressTraining=st.progressSeg==='training';
     const det=this.detailFor(user,st.meEvent);
     const selS=st.sel?this.byId[st.sel]:null;
     const selDet=selS?this.detailFor(selS,st.meEvent):det;
@@ -3572,7 +3942,19 @@ class Component extends DCLogic {
     }
     const gSel=this.byId[st.goalSel]&&this.byId[st.goalSel].gender===st.goalSeg&&(!isDivingCoach||this.byId[st.goalSel].diver)?this.byId[st.goalSel]:gPool[0];
     const goalChips=gPool.map(s=>({n:s.name.split(' ')[0]+' '+s.name.split(' ')[1][0]+'.',bg:gSel.id===s.id?I:'#fff',fg:gSel.id===s.id?C:'rgba(42,18,24,.7)',onTap:()=>this.setState({goalSel:s.id})}));
-    const NOTES=['Hold your streamline off every wall.','Negative-split the back half.','Attack the third 25.','Clean entry — keep the rip.','Faster turns buy you a body length.'];
+    // Coach-prescribed workout per goal — e.g. "7x50 Free @ race pace,
+    // :10 rest" for a swimmer targeting 25.0 in the 50 Free. Real,
+    // coach-written content (cloud-synced, see fetchOthersGoalWorkouts/
+    // syncGoalWorkoutsToCloud), replacing what used to be a canned,
+    // made-up coaching tip here.
+    this.fetchOthersGoalWorkouts(gSel.id);
+    const gWorkouts=this.state.goalWorkouts[gSel.id]||{};
+    const setGoalWorkout=(ev,text)=>{
+      const next={...gWorkouts,[ev]:text};
+      const goalWorkouts={...this.state.goalWorkouts,[gSel.id]:next};
+      this.setState({goalWorkouts});this.saveGoalWorkouts(goalWorkouts);
+      this.syncGoalWorkoutsToCloud(gSel.id,next);
+    };
     const goalRows=gSel.primary.map((ev,i)=>{
       const e=this.evMap[ev];
       const pb=gSel.diver?Math.max(...gSel.hist[ev]):gSel.pbs[ev];
@@ -3581,8 +3963,38 @@ class Component extends DCLogic {
       const pct=gSel.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
       const step=e.dive?2:0.1;
       const bump=d=>{const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;this.setState({goalDelta:gd});this.saveGoalPrefs(gd,this.state.selfGoals);};
+      // Explicit Save button — typing already auto-saves (debounced), but
+      // a coach can't see that from the screen, and they're handing this
+      // straight to an athlete, so they want to know for sure it landed.
+      // Clicking it writes immediately and only shows "Saved" once
+      // Firestore actually confirms the write, not optimistically.
+      const wKey=gSel.id+'|'+ev;
+      const saveState=st.goalWorkoutSaveState[wKey]||'idle';
+      const saveWorkout=()=>{
+        const workouts=this.state.goalWorkouts[gSel.id]||{};
+        this.setState({goalWorkoutSaveState:{...this.state.goalWorkoutSaveState,[wKey]:'saving'}});
+        this.flushGoalWorkoutsToCloud(gSel.id,workouts).then(()=>{
+          this.setState({goalWorkoutSaveState:{...this.state.goalWorkoutSaveState,[wKey]:'saved'}});
+          this.toastMsg('Workout saved — '+gSel.name.split(' ')[0]+' will see it on their Goals.');
+          if(!this._workoutSavedTimers)this._workoutSavedTimers={};
+          clearTimeout(this._workoutSavedTimers[wKey]);
+          this._workoutSavedTimers[wKey]=setTimeout(()=>{
+            const gws={...this.state.goalWorkoutSaveState};delete gws[wKey];
+            this.setState({goalWorkoutSaveState:gws});
+          },2200);
+        }).catch(()=>{
+          const gws={...this.state.goalWorkoutSaveState};delete gws[wKey];
+          this.setState({goalWorkoutSaveState:gws});
+          this.toastMsg("Couldn't save that — check your connection and try again.");
+        });
+      };
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),
-        note:NOTES[(this.hs(gSel.id+ev)+i)%NOTES.length],
+        workoutValue:gWorkouts[ev]||'',
+        workoutPlaceholder:e.dive?'e.g. 10x forward dives off 1M, focus on the rip entry':'e.g. 7×50 Free @ race pace, :10 rest',
+        onWorkoutChange:e2=>setGoalWorkout(ev,e2.target.value),
+        saveWorkout,saveBusy:saveState==='saving',
+        saveLabel:saveState==='saving'?'Saving…':saveState==='saved'?'Saved ✓':'Save',
+        saveBg:saveState==='saved'?'#1B7A78':'none',saveFg:saveState==='saved'?'#F5E9DC':'#1B7A78',
         dec:()=>bump(e.dive?step:-step),inc:()=>bump(e.dive?-step:step)};
     });
     const goalDet={name:gSel.name,ini:gSel.ini,cls:gSel.cls,pos:gSel.pos,
@@ -3604,7 +4016,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -3667,7 +4079,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       musicPlaying:this.musicPrefs.playing,
       musicIcon:this.musicPrefs.playing?'❚❚':'▶',
       musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
@@ -3677,9 +4089,16 @@ class Component extends DCLogic {
       musicTrackName:curTrackName,
       // Full title/artist never gets cut off — past this length it scrolls
       // (marquee) instead of ellipsizing, so nothing about the panel's own
-      // size has to grow to fit a long "Title — Artist" string.
-      musicTrackScroll:curTrackName.length>26,
-      musicTrackShort:curTrackName.length<=26,
+      // size has to grow to fit a long "Title — Artist" string. This
+      // threshold is tuned to the info column's actual available width,
+      // which shrank when the Previous button was added alongside
+      // Play/Pause and Next — 26 was correct for the old two-button
+      // layout, but at the new width it let a couple of real "Title —
+      // Artist" strings render as static text wider than the box,
+      // silently clipping them. 20 is the largest length that still
+      // measures flush in every real playlist entry at the current width.
+      musicTrackScroll:curTrackName.length>20,
+      musicTrackShort:curTrackName.length<=20,
       musicMarqueeAnim:((this._marqueeTick||0)%2)?'scotswimMarqueeB':'scotswimMarqueeA',
       musicVolume:String(this.musicPrefs.volume),
       musicVolumeChange:e=>this.setMusicVolume(e.target.value),
@@ -3740,7 +4159,9 @@ class Component extends DCLogic {
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
+      showPracticeStreak:!isCoach,
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
+      showProgression,progressionTitle,progressionChart,
       rosterList,rosterListEmpty,rosterEmptyText,showSwimList:st.teamSeg!=='S'&&st.teamView==='roster',
       showRecords:st.teamSeg!=='S'&&st.teamView==='records'&&!isDivingCoach,
       showTimes:st.teamSeg!=='S'&&st.teamView==='times'&&!isDivingCoach,
@@ -3758,6 +4179,7 @@ class Component extends DCLogic {
       // before and would have silently shown men's records under Women.
       swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213',
       swimcloudTimesUrl:'https://www.swimcloud.com/times/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213&hide_gender=1',
+      progressSegs,showProgressTimes,showProgressTraining,
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,
