@@ -3760,7 +3760,7 @@ class Component extends DCLogic {
     // the same hasTime-flagged extra field rather than special-cased
     // separately.
     const libMeta={
-      POOL:{n:'Pool team workouts',c:'#1B7A78',ph:'e.g. 4×100 kick, 6×50 build, 3×200 pull…',fallback:'Coach will post sets here — none yet'},
+      POOL:{n:'Pool workouts',c:'#1B7A78',ph:'e.g. 4×100 kick, 6×50 build, 3×200 pull…',fallback:'Coach will post sets here — none yet'},
       DRY:{n:'Dryland workouts',c:'#6B1F33',ph:'e.g. Core circuit — 3 rounds: plank, band pulls, med-ball throws',fallback:'Coach will post circuits here — none yet'},
       DIVE:{n:'Diving workouts',c:'#8C6B1F',ph:'e.g. Approach + hurdle drills, list dives off 1M',fallback:'Coach will post board work here — none yet'},
       LIFT:{n:'Lift workouts',c:'#2A1218',ph:'e.g. Squat 5x5, Bench 5x5, Deadlift 3x5 (or add a screenshot from TeamBuildr instead)',fallback:'No exercises posted for this session yet',hasTime:true}
@@ -3803,8 +3803,12 @@ class Component extends DCLogic {
         removeDraftPhoto:()=>this.setLibDraft({photo:''}),
         post:()=>this.postWorkoutSheet()};
     };
+    // Pool sits last for diving coaches/divers — it's their least relevant
+    // block, and DIVE/DRY/LIFT are what they actually check first.
     const workoutLib=isDivingCoach
-      ?[buildLibCard('DIVE'),buildLibCard('POOL'),buildLibCard('DRY'),buildLibCard('LIFT')]
+      ?[buildLibCard('DIVE'),buildLibCard('DRY'),buildLibCard('LIFT'),buildLibCard('POOL')]
+      :(!isCoach&&user.diver)
+      ?[buildLibCard('DRY'),buildLibCard('LIFT'),buildLibCard('POOL')]
       :[buildLibCard('POOL'),buildLibCard('DRY'),buildLibCard('LIFT')];
     const annPostChange=e=>this.setState({annPost:e.target.value});
     const annPostSubmit=()=>this.postAnnouncement();
