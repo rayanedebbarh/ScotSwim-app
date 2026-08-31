@@ -574,6 +574,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);border:1px dashed rgba(42,18,24,.3);border-radius:3px;padding:4px 8px;flex:none">EMPTY</div>
               </sc-if>
             </div>
+            <sc-if value="{{ w.showSchedule }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:9px;padding:7px 10px;background:rgba(27,122,120,.08);border-left:2.5px solid #1B7A78;border-radius:4px">
+                <div style="font-size:9px;font-weight:800;letter-spacing:1px;color:#1B7A78">LIFT SCHEDULE</div>
+                <div style="font-size:12px;color:#1B4744;line-height:1.4;margin-top:1px">{{ w.scheduleText }}</div>
+              </div>
+            </sc-if>
             <sc-if value="{{ w.composing }}" hint-placeholder-val="{{ false }}">
               <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;background:rgba(27,122,120,.05);border:1.5px dashed rgba(42,18,24,.2);border-radius:8px;padding:10px">
                 <input value="{{ w.dayValue }}" onChange="{{ w.onDayChange }}" placeholder="e.g. Monday, Feb 3" class="darkPh" style="width:100%;padding:8px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:.5px;outline:none;box-sizing:border-box">
@@ -3748,7 +3754,7 @@ class Component extends DCLogic {
       POOL:{n:'Pool team workouts',c:'#1B7A78',ph:'e.g. 4×100 kick, 6×50 build, 3×200 pull…',fallback:'Coach will post sets here — none yet'},
       DRY:{n:'Dryland workouts',c:'#6B1F33',ph:'e.g. Core circuit — 3 rounds: plank, band pulls, med-ball throws',fallback:'Coach will post circuits here — none yet'},
       DIVE:{n:'Diving workouts',c:'#8C6B1F',ph:'e.g. Approach + hurdle drills, list dives off 1M',fallback:'Coach will post board work here — none yet'},
-      LIFT:{n:'Lift workouts',c:'#2A1218',ph:'e.g. Squat 5x5, Bench 5x5, Deadlift 3x5 (or add a screenshot from TeamBuildr instead)',fallback:'Coach will post exercises & lift times here — none yet',hasTime:true}
+      LIFT:{n:'Lift workouts',c:'#2A1218',ph:'e.g. Squat 5x5, Bench 5x5, Deadlift 3x5 (or add a screenshot from TeamBuildr instead)',fallback:'No exercises posted for this session yet',hasTime:true}
     };
     const buildLibCard=cat=>{
       const meta=libMeta[cat];
@@ -3760,6 +3766,12 @@ class Component extends DCLogic {
       const composing=isCoach&&st.libComposeCat===cat;
       const draft=st.libDraft;
       return {ab:cat,c:meta.c,n:meta.n,
+        // Lift is the one category with a real, fixed weekly meeting time
+        // (unlike POOL/DRY/DIVE, which vary day to day) — shown as its own
+        // permanent line, independent of whatever exercises happen to be
+        // posted underneath it. Update scheduleText here if the actual
+        // lift time ever changes.
+        showSchedule:cat==='LIFT',scheduleText:'Every Monday & Wednesday · 6:00–7:00 AM',
         sheets,sheetsEmpty,
         showEmptyText:sheetsEmpty&&!composing,
         emptyText:isCoach?'Nothing posted yet':meta.fallback,
