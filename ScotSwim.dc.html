@@ -2997,8 +2997,12 @@ class Component extends DCLogic {
         return;
       }
       const profile=doc.data();
-      const goalSeg=profile.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
-      this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
+      // Diving coach lands on Women by default across every M/W segmented
+      // tab (Goals, Team, Attend) — there are no male divers on the roster,
+      // so Men would just open on an empty, unexplained-looking screen.
+      const divingDefaultW=profile.role==='dcoach'&&!this.men.some(s=>s.diver);
+      const goalSeg=divingDefaultW?'W':'M',teamSeg=divingDefaultW?'W':'M',attSeg=divingDefaultW?'W':'M';
+      this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg});
       if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
       this.startTeamContentSync();
     }).catch(()=>this.setState({authChecking:false}));
@@ -3335,9 +3339,10 @@ class Component extends DCLogic {
         this.db.collection('users').doc(cred.user.uid).set({email:info.email,role:info.role,rosterId:info.rosterId,createdAt:Date.now()})
           .then(()=>this.db.collection('invites').doc(info.token).update({used:true}))
           .then(()=>{
-            const goalSeg=info.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
+            const divingDefaultW=info.role==='dcoach'&&!this.men.some(s=>s.diver);
+            const goalSeg=divingDefaultW?'W':'M',teamSeg=divingDefaultW?'W':'M',attSeg=divingDefaultW?'W':'M';
             history.replaceState(null,'',location.pathname+location.hash);
-            this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
+            this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
             if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);this.startGoalWorkoutsSync(info.rosterId);}
             this.startTeamContentSync();
           })
@@ -3635,7 +3640,9 @@ class Component extends DCLogic {
     const anns=st.announcements.map(a=>({id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),remove:()=>this.deleteAnnouncement(a.id)}));
     const annsEmpty=anns.length===0;
     // team
-    const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
+    // Diving coach: no male divers currently on the roster, so Women leads
+    // instead of Men — same reasoning goalSeg already uses at login.
+    const segList=isDivingCoach?[['W','WOMEN'],['M','MEN'],['S','STAFF']]:[['M','MEN'],['W','WOMEN'],['S','STAFF']];
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
     // Diving has no records page — Alma doesn't keep program records for
     // diving — so the diving coach never gets a RECORDS sub-tab at all.
@@ -3728,7 +3735,8 @@ class Component extends DCLogic {
     // right now) still wants to see that confirmed rather than have the
     // tab disappear.
     const attSegActive=st.attSeg==='W'?'W':'M';
-    const attSegs=['M','W'].map(id=>({n:id==='M'?'MEN':'WOMEN',bg:attSegActive===id?M:'transparent',fg:attSegActive===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({attSeg:id})}));
+    // Diving coach: Women leads here too — same reasoning as the Team tab.
+    const attSegs=(isDivingCoach?['W','M']:['M','W']).map(id=>({n:id==='M'?'MEN':'WOMEN',bg:attSegActive===id?M:'transparent',fg:attSegActive===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({attSeg:id})}));
     const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
     const attRosterEmptyLabel=(isDivingCoach?'divers':'swimmers')+' on the '+(attSegActive==='M'?"men's":"women's")+' roster';
     const attDateRec=this.state.attendance[attDateKey]||{};
