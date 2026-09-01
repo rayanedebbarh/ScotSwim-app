@@ -3824,9 +3824,13 @@ class Component extends DCLogic {
     // roster (divers, or swimmers) has logged a new personal best via My
     // Events this season. Real data only, same "hasLogged" rule as Top
     // Improvers — starts at 0 and only grows once athletes actually log.
+    // Gated on SEASON_STARTED like Attendance: any entries already sitting
+    // in Firestore right now predate the season (dev/test data from
+    // building the feature), not a real PB, so this stays 0 until practices
+    // actually begin rather than surface that noise.
     const seasonPbRoster=isDivingCoach?this.all.filter(s=>s.diver):this.all.filter(s=>!s.diver);
     seasonPbRoster.forEach(s=>this.fetchOthersMyEvents(s.id));
-    const seasonPbCount=seasonPbRoster.filter(s=>s.hasLogged).reduce((sum,s)=>{
+    const seasonPbCount=!SEASON_STARTED?0:seasonPbRoster.filter(s=>s.hasLogged).reduce((sum,s)=>{
       let c=0;
       s.primary.forEach(evId=>{
         const h=s.hist[evId]||[];
