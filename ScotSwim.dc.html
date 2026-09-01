@@ -355,9 +355,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">TOTAL ATHLETES</div>
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">{{ totalTileLabel }}</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ nAll }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ nMen }} Men · {{ nWomen }} Women</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ nBreakdown }}</div>
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DAYS TO OPENER</div>
@@ -1145,11 +1145,13 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ SIMULATOR (coach) ============ -->
   <sc-if value="{{ vSim }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="display:flex;gap:8px">
-        <sc-for list="{{ simGenders }}" as="g" hint-placeholder-count="2">
-          <button onClick="{{ g.onTap }}" style="flex:1;border:1.5px solid #6B1F33;background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:9px 0;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">{{ g.n }}</button>
-        </sc-for>
-      </div>
+      <sc-if value="{{ simShowGenderToggle }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;gap:8px">
+          <sc-for list="{{ simGenders }}" as="g" hint-placeholder-count="2">
+            <button onClick="{{ g.onTap }}" style="flex:1;border:1.5px solid #6B1F33;background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:9px 0;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">{{ g.n }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
       <div style="position:relative;border-radius:10px;overflow:hidden;height:130px">
         <sc-if value="{{ simIsMen }}" hint-placeholder-val="{{ true }}">
           <image-slot id="sim-hero-men" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
@@ -1175,7 +1177,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ m.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ m.bg }};color:{{ m.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:14.5px;letter-spacing:1px;cursor:pointer">{{ m.n }}</button>
         </sc-for>
       </div>
-      <div style="font-size:11px;color:rgba(42,18,24,.5);line-height:1.4">Pick events &amp; participants in Build Lineup.</div>
+      <div style="font-size:11px;color:rgba(42,18,24,.5);line-height:1.4">{{ simHintText }}</div>
       <sc-if value="{{ simIsEstimate }}" hint-placeholder-val="{{ false }}">
         <div style="background:#FFF4E5;border:1px solid rgba(180,120,20,.35);border-radius:8px;padding:10px 12px;font-size:11.5px;line-height:1.45;color:#7a5210">
           <strong>Uncalibrated opponent.</strong> This team's projected times aren't based on real results yet, so treat the score as a rough placeholder. Their actual times are shown at the bottom for comparison.
@@ -1214,6 +1216,22 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 </div>
               </div>
               <div style="font-size:12px;color:rgba(42,18,24,.6);margin-top:3px">{{ e.detail }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ simShowLineup }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LINEUP</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:2px">Divers entered for {{ simOppUp }} · 1M &amp; 3M personal bests</div>
+          <sc-for list="{{ simLineupRows }}" as="p" hint-placeholder-count="2">
+            <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+              <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:{{ p.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ p.slotId }}" src="{{ p.photo }}" minimal="true" shape="circle" placeholder="{{ p.ini }}"></image-slot></div>
+              <div style="flex:1"><div style="font-weight:600;font-size:14.5px">{{ p.name }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ p.cls }} · {{ p.home }}</div></div>
+              <div style="text-align:right;font-variant-numeric:tabular-nums">
+                <div style="font-size:12.5px;font-weight:700;color:#6B1F33">1M · {{ p.dv1 }}</div>
+                <div style="font-size:12.5px;font-weight:700;color:#1B7A78">3M · {{ p.dv3 }}</div>
+              </div>
             </div>
           </sc-for>
         </div>
@@ -2881,11 +2899,16 @@ class Component extends DCLogic {
     return pool.map(s=>({s,t:s.pbs[ev]})).filter(x=>x.t).sort((a,b)=>e.dive?b.t-a.t:a.t-b.t).slice(0,n);
   }
   simCalc(){
-    const g=this.state.simGender;
+    // The diving coach's sim is diving-only — no male divers exist yet, so
+    // gender is forced to Women, and the event list drops to just the two
+    // boards instead of the full dual-meet program.
+    const isDivingCoach=this.state.role==='dcoach';
+    const g=isDivingCoach?'W':this.state.simGender;
     const opp=this.opps.find(o=>o.n===this.state.simOpp)||this.opps[0];
-    const useLineup=this.state.simMode==='lineup';
+    const useLineup=!isDivingCoach&&this.state.simMode==='lineup';
     let A=0,O=0;const rows=[];
-    this.DUAL.forEach(ev=>{
+    const events=isDivingCoach?['DV1','DV3']:this.DUAL;
+    events.forEach(ev=>{
       if(ev==='MR'||ev==='FRR'){
         const rel=ev==='MR';
         const bs=this.evMap['100BK'].b[g]+this.evMap['100BR'].b[g]+this.evMap['100FL'].b[g]+this.evMap['100FR'].b[g];
@@ -3625,6 +3648,9 @@ class Component extends DCLogic {
       .map((r,i)=>({rank:String(i+1),name:r.name,meet:r.meet,t:r.t.toFixed(2)}));
     let rosterSrc=st.teamSeg==='W'?this.women:this.men;
     if(isDivingCoach)rosterSrc=rosterSrc.filter(s=>s.diver);
+    // Swim coach's roster excludes divers — they're the diving coach's
+    // responsibility now, same split as attendance/improvers already use.
+    else if(role==='coach')rosterSrc=rosterSrc.filter(s=>!s.diver);
     let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
     if(st.teamSort==='pts')rl=rl.slice().sort((a,b)=>(b.pts??-1)-(a.pts??-1));
     else rl=rl.slice().sort((a,b)=>this.hs(a.s.id+'shuffle')-this.hs(b.s.id+'shuffle'));
@@ -3719,19 +3745,27 @@ class Component extends DCLogic {
     const attPctDisplay=attPct==null?'—':attPct+'%';
     const onMarkAllPresent=SEASON_STARTED?()=>this.markAllPresent(attDateKey,attRoster):null;
     const sim=this.simCalc();
+    // Diving coach: sim is forced to Women (no male divers yet) regardless
+    // of the stale simGender/simMode state a swim coach view might leave
+    // behind, and the Auto/Build Lineup toggle collapses to a two-way
+    // LINEUP / COMPARE toggle since there's no lineup to build.
+    const simG=isDivingCoach?'W':st.simGender;
+    const simModeEff=isDivingCoach?(st.simMode==='compare'?'compare':'roster'):st.simMode;
     const simGenders=[['M','MEN'],['W','WOMEN']].map(([id,n])=>({n,bg:st.simGender===id?M:'transparent',fg:st.simGender===id?C:M,onTap:()=>this.setState({simGender:id,lineup:{},pickerEv:null})}));
     const oppGroups=[['MIAA','MIAA'],['D3','NATIONAL D3']].map(([id,n])=>({n,bg:st.oppGroup===id?'#2A1218':'#fff',fg:st.oppGroup===id?C:'rgba(42,18,24,.6)',
       onTap:()=>{
-        const first=this.opps.find(o=>o.grp===id&&(st.simGender==='W'||!o.wOnly));
+        const first=this.opps.find(o=>o.grp===id&&(simG==='W'||!o.wOnly));
         // D3 National is intentionally empty right now (awaiting the real
         // schedule list) — switch the tab but don't crash trying to
         // auto-pick an opponent that doesn't exist yet.
         if(!first)return this.setState({oppGroup:id});
         this.setState({oppGroup:id,simOpp:first.n,lineup:{}});
       }}));
-    const oppList=this.opps.filter(o=>o.grp===st.oppGroup&&(st.simGender==='W'||!o.wOnly));
+    const oppList=this.opps.filter(o=>o.grp===st.oppGroup&&(simG==='W'||!o.wOnly));
     const simOpps=oppList.map(o=>({n:o.n,bg:st.simOpp===o.n?I:'#fff',fg:st.simOpp===o.n?C:'rgba(42,18,24,.7)',onTap:()=>this.setState({simOpp:o.n,lineup:{}})}));
-    const simModes=[['auto','AUTO LINEUP'],['lineup','BUILD LINEUP'],['compare','COMPARE']].map(([id,n])=>({n,bg:st.simMode===id?'#6B1F33':'transparent',fg:st.simMode===id?C:'rgba(42,18,24,.55)',onTap:()=>this.setState({simMode:id,pickerEv:null})}));
+    const simModes=isDivingCoach
+      ?[['roster','LINEUP'],['compare','COMPARE']].map(([id,n])=>({n,bg:simModeEff===id?'#6B1F33':'transparent',fg:simModeEff===id?C:'rgba(42,18,24,.55)',onTap:()=>this.setState({simMode:id,pickerEv:null})}))
+      :[['auto','AUTO LINEUP'],['lineup','BUILD LINEUP'],['compare','COMPARE']].map(([id,n])=>({n,bg:st.simMode===id?'#6B1F33':'transparent',fg:st.simMode===id?C:'rgba(42,18,24,.55)',onTap:()=>this.setState({simMode:id,pickerEv:null})}));
     const aWin=sim.A>sim.O;
     const pk=st.pickerEv;
     let pickerList=[],pickerEvName='',pickerCount=0;
@@ -3751,14 +3785,31 @@ class Component extends DCLogic {
       });
     }
     const opp=sim.opp;
-    const cmpRows=this.EV.filter(e=>!e.dive).map(e=>{
-      const a=this.autoEntries(st.simGender,e.id,1)[0];
+    // Diving coach compares diving events only (a swim coach never sees
+    // diving events here); a higher dive score wins, so the edge sign
+    // flips relative to a swim time.
+    const cmpRows=this.EV.filter(e=>isDivingCoach?e.dive:!e.dive).map(e=>{
+      const a=this.autoEntries(simG,e.id,1)[0];
       const oT=this.oppTimes(opp.n,opp.f,e.id,1)[0];
       if(!a)return null;
-      const d=oT-a.t;
-      return {ev:e.n,aT:this.fmt(a.t),aN:a.s.name,oT:this.fmt(oT),
-        diff:(d>=0?'+':'−')+Math.abs(d).toFixed(2),col:d>=0?T:'#a04545'};
+      const d=e.dive?a.t-oT:oT-a.t;
+      return {ev:e.n,aT:this.fmtEv(e.id,a.t),aN:a.s.name,oT:this.fmtEv(e.id,oT),
+        diff:(d>=0?'+':'−')+Math.abs(d).toFixed(e.dive?1:2),col:d>=0?T:'#a04545'};
     }).filter(Boolean);
+    // "LINEUP" for the diving coach's sim — every diver's info and 1M/3M
+    // personal bests, replacing Auto/Build Lineup (there's no lineup to
+    // build when every diver on the roster enters every board).
+    const simLineupRows=this.women.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
+      slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+      dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',
+      onTap:()=>this.setState({sel:s.id,meEvent:null})}));
+    // Home "total athletes" tile: diving coach sees diver-only counts (no
+    // male divers yet, so the subtitle skips "0 Men" rather than show it),
+    // swim coach sees non-diver counts — the two rosters are now disjoint.
+    const homeMen=isDivingCoach?this.men.filter(s=>s.diver):this.men.filter(s=>!s.diver);
+    const homeWomen=isDivingCoach?this.women.filter(s=>s.diver):this.women.filter(s=>!s.diver);
+    const totalTileLabel=isDivingCoach?'TOTAL DIVERS':'TOTAL ATHLETES';
+    const nBreakdown=homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women');
     // Diving coach only ever has divers to manage — a gender with none
     // (Men, currently) isn't a real tab for them.
     const goalSegs=[['M','MEN'],['W','WOMEN']]
@@ -3959,7 +4010,8 @@ class Component extends DCLogic {
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
       todayName:week[dayIdx].day,todaySessions:week[dayIdx].s,todaySessionsEmpty:week[dayIdx].sEmpty,
       anns,annsEmpty,annPost:st.annPost,annPostChange,annPostSubmit,week,trainEditing,toggleTrainEdit,trainEditLabel,
-      nAll:String(this.all.length),nMen:String(this.men.length),nWomen:String(this.women.length),
+      nAll:String(homeMen.length+homeWomen.length),nMen:String(homeMen.length),nWomen:String(homeWomen.length),
+      totalTileLabel,nBreakdown,
       nDivers:String(this.all.filter(s=>s.diver).length),improvers,improversEmpty,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
@@ -3991,23 +4043,26 @@ class Component extends DCLogic {
       trainSegs,showTrainSchedule,showTrainLibrary,
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
-      simGenders,simOpps,simModes,
-      simIsMen:st.simGender==='M',simIsWomen:st.simGender==='W',
-      simGLabel:st.simGender==='M'?"MEN'S DUAL":"WOMEN'S DUAL",
+      simGenders,simOpps,simModes,simShowGenderToggle:!isDivingCoach,
+      simIsMen:simG==='M',simIsWomen:simG==='W',
+      simGLabel:isDivingCoach?"WOMEN'S DIVING":(simG==='M'?"MEN'S DUAL":"WOMEN'S DUAL"),
       simOppUp:(sim.opp.n).toUpperCase(),
       simScoreA:String(sim.A),simScoreO:String(sim.O),
       simACol:aWin?'#7fd0cd':C,simOCol:aWin?C:'#7fd0cd',
-      simVerdict:aWin?'SCOTS TAKE IT · GO ALMA':sim.A===sim.O?'DEAD HEAT':'UPHILL SWIM — TIGHTEN THE LINEUP',
+      simVerdict:aWin?'SCOTS TAKE IT · GO ALMA':sim.A===sim.O?'DEAD HEAT':(isDivingCoach?'UPHILL SWIM — KEEP CHASING PBS':'UPHILL SWIM — TIGHTEN THE LINEUP'),
       simVerdictCol:aWin?'#7fd0cd':'rgba(245,233,220,.75)',
-      simShowScore:st.simMode!=='compare',
-      simShowEvents:st.simMode!=='compare',
-      simShowCompare:st.simMode==='compare',
+      simShowScore:simModeEff!=='compare',
+      simShowEvents:!isDivingCoach&&simModeEff!=='compare',
+      simShowLineup:isDivingCoach&&simModeEff==='roster',
+      simLineupRows,
+      simShowCompare:simModeEff==='compare',
+      simHintText:isDivingCoach?'Every diver on the roster is auto-entered for both boards — tap LINEUP for the full list.':'Pick events & participants in Build Lineup.',
       // Uncalibrated opponents still simulate normally — we just say so,
       // and show their real times underneath so the projection can be
       // sanity-checked against actual data.
       simIsEstimate:!!sim.opp.est,
       simShowRealTimes:!!sim.opp.teamId,
-      simTimesUrl:sim.opp.teamId?'https://www.swimcloud.com/times/iframe/?gender='+(st.simGender==='W'?'F':'M')+'&team='+sim.opp.teamId:'',
+      simTimesUrl:sim.opp.teamId?'https://www.swimcloud.com/times/iframe/?gender='+(simG==='W'?'F':'M')+'&team='+sim.opp.teamId:'',
       simRows:sim.rows,cmpRows,
       hasPicker:!!pk,pickerEv:pickerEvName,pickerCount:String(pickerCount),pickerList,
       closePicker:()=>this.setState({pickerEv:null}),
