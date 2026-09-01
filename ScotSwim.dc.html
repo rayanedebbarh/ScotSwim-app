@@ -370,9 +370,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ attStatSubtitle }}</div>
          </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DIVERS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ nDivers }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">1M &amp; 3M boards</div>
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">SEASON PBS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ seasonPbCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">Logged this season</div>
         </div>
       </div>
       <div style="display:flex;gap:10px">
@@ -3810,6 +3810,27 @@ class Component extends DCLogic {
     const homeWomen=isDivingCoach?this.women.filter(s=>s.diver):this.women.filter(s=>!s.diver);
     const totalTileLabel=isDivingCoach?'TOTAL DIVERS':'TOTAL ATHLETES';
     const nBreakdown=homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women');
+    // Season PBs — replaces the old redundant "DIVERS" tile (diving coach)
+    // and the swim-coach-inappropriate diver-only tile (swim coach) with a
+    // real, role-scoped activity counter: how many times this coach's own
+    // roster (divers, or swimmers) has logged a new personal best via My
+    // Events this season. Real data only, same "hasLogged" rule as Top
+    // Improvers — starts at 0 and only grows once athletes actually log.
+    const seasonPbRoster=isDivingCoach?this.all.filter(s=>s.diver):this.all.filter(s=>!s.diver);
+    seasonPbRoster.forEach(s=>this.fetchOthersMyEvents(s.id));
+    const seasonPbCount=seasonPbRoster.filter(s=>s.hasLogged).reduce((sum,s)=>{
+      let c=0;
+      s.primary.forEach(evId=>{
+        const h=s.hist[evId]||[];
+        const dive=this.evMap[evId].dive;
+        let best=dive?-Infinity:Infinity;
+        h.forEach(t=>{
+          const isNew=dive?t>best:t<best;
+          if(isNew){c++;best=t;}
+        });
+      });
+      return sum+c;
+    },0);
     // Diving coach only ever has divers to manage — a gender with none
     // (Men, currently) isn't a real tab for them.
     const goalSegs=[['M','MEN'],['W','WOMEN']]
@@ -4012,7 +4033,7 @@ class Component extends DCLogic {
       anns,annsEmpty,annPost:st.annPost,annPostChange,annPostSubmit,week,trainEditing,toggleTrainEdit,trainEditLabel,
       nAll:String(homeMen.length+homeWomen.length),nMen:String(homeMen.length),nWomen:String(homeWomen.length),
       totalTileLabel,nBreakdown,
-      nDivers:String(this.all.filter(s=>s.diver).length),improvers,improversEmpty,
+      seasonPbCount:String(seasonPbCount),improvers,improversEmpty,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
@@ -4061,7 +4082,10 @@ class Component extends DCLogic {
       // and show their real times underneath so the projection can be
       // sanity-checked against actual data.
       simIsEstimate:!!sim.opp.est,
-      simShowRealTimes:!!sim.opp.teamId,
+      // SwimCloud's times embed is swim-only — it has no diving results,
+      // so showing it to the diving coach would mean opponent swim times
+      // under a diving sim, which is wrong data, not just extra data.
+      simShowRealTimes:!isDivingCoach&&!!sim.opp.teamId,
       simTimesUrl:sim.opp.teamId?'https://www.swimcloud.com/times/iframe/?gender='+(simG==='W'?'F':'M')+'&team='+sim.opp.teamId:'',
       simRows:sim.rows,cmpRows,
       hasPicker:!!pk,pickerEv:pickerEvName,pickerCount:String(pickerCount),pickerList,
