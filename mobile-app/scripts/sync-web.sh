@@ -12,7 +12,6 @@ cp "$ROOT/ScotSwim.dc.html" www/index.html
 cp "$ROOT/support.js" www/
 cp "$ROOT/image-slot.js" www/
 cp "$ROOT/ios-frame.jsx" www/
-cp -r "$ROOT/music" www/
 cp -r "$ROOT/uploads" www/
 cp -r "$ROOT/photos" www/
 echo "www/ synced from repo root"

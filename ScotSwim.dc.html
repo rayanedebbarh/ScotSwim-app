@@ -24,13 +24,6 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{display:none}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
-/* Two identical marquees on purpose. Changing animation-name is what makes
-   CSS restart an animation, so the now-playing line alternates between A and
-   B on every track change — otherwise the new title would appear part-way
-   through the previous title's scroll instead of at its beginning. The
-   0%-12% hold keeps the start of the title readable before it moves. */
-@keyframes scotswimMarqueeA{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-@keyframes scotswimMarqueeB{0%,12%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 input::placeholder{color:rgba(245,233,220,.5)}
 /* Overrides the cream placeholder above for inputs that sit on light
    (white/cream) card backgrounds instead of the dark login screen —
@@ -1337,26 +1330,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.5)">SEASON</div>
           <div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">2026–2027</div>
         </div>
-        <div style="background:rgba(245,233,220,.06);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px">
-          <button onClick="{{ musicPrev }}" aria-label="Previous track" title="Previous track" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">⏮</button>
-          <button onClick="{{ musicToggle }}" aria-label="{{ musicToggleLabel }}" title="{{ musicToggleLabel }}" style="width:34px;height:34px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">{{ musicIcon }}</button>
-          <button onClick="{{ musicNext }}" aria-label="Next track" title="Next track" style="width:30px;height:30px;border-radius:50%;border:1px solid rgba(245,233,220,.3);background:rgba(245,233,220,.08);color:#F5E9DC;font-size:12px;line-height:1;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center">⏭</button>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.5)">TEAM HYPE MUSIC</div>
-            <div style="font-size:12.5px;font-weight:600;color:rgba(245,233,220,.85);white-space:nowrap;overflow:hidden;margin-top:2px">
-              <sc-if value="{{ musicTrackShort }}" hint-placeholder-val="{{ true }}">
-                <span>{{ musicTrackName }}</span>
-              </sc-if>
-              <sc-if value="{{ musicTrackScroll }}" hint-placeholder-val="{{ false }}">
-                <div style="display:inline-flex;animation:{{ musicMarqueeAnim }} 10s linear infinite">
-                  <span style="white-space:nowrap;padding-right:36px">{{ musicTrackName }}</span>
-                  <span style="white-space:nowrap;padding-right:36px">{{ musicTrackName }}</span>
-                </div>
-              </sc-if>
-            </div>
-            <input type="range" min="0" max="1" step="0.05" value="{{ musicVolume }}" onChange="{{ musicVolumeChange }}" aria-label="Music volume" style="width:100%;margin-top:5px;accent-color:#1B7A78">
-          </div>
-        </div>
         <sc-if value="{{ canInvite }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ openInvitePanel }}" style="width:100%;border:1px solid rgba(127,208,205,.4);background:rgba(127,208,205,.1);color:#7fd0cd;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">INVITE ATHLETE</button>
         </sc-if>
@@ -1769,7 +1742,7 @@ class Component extends DCLogic {
       this.db=window.firebase.firestore();
     }
     // Restore any bios written in a previous session — self-authored text,
-    // same persistence pattern as goals/music (see saveBios).
+    // same persistence pattern as goals (see saveBios).
     try{
       const savedBios=JSON.parse(localStorage.getItem('scotswim.bios')||'null');
       if(savedBios)this.state.bios=savedBios;
@@ -2084,180 +2057,6 @@ class Component extends DCLogic {
       {n:'Saginaw Valley State',f:1.0,est:true,teamId:'10004316',grp:'D3'}
     ];
     this.DUAL=['MR','200FR','100BK','100BR','200FL','50FR','DV1','100FR','200BK','200BR','500FR','DV3','100FL','200IM','FRR'];
-    // Background music — drop MP3s into /music using these exact filenames
-    // (team-picked playlist, awaiting files) and they play automatically;
-    // missing files just get skipped (see advanceTrack). Built in the
-    // constructor (not componentDidMount) so musicPrefs/playlist already
-    // exist for the very first render.
-    this.playlist=[
-      {id:'turn-down-for-what',title:'Turn Down for What',artist:'DJ Snake & Lil Jon',src:'music/01-turn-down-for-what.mp3'},
-      {id:'nuevayol',title:'Nuevayol',artist:'Bad Bunny',src:'music/02-nuevayol.mp3'},
-      {id:'squabble-up',title:'Squabble Up',artist:'Kendrick Lamar',src:'music/03-squabble-up.mp3'},
-      {id:'all-the-stars',title:'All the Stars',artist:'Kendrick Lamar & SZA',src:'music/04-all-the-stars.mp3'},
-      {id:'pepas',title:'Pepas',artist:'Farruko',src:'music/05-pepas.mp3'},
-      {id:'xo-tour-llif3',title:'XO Tour Llif3',artist:'Lil Uzi Vert',src:'music/06-xo-tour-llif3.mp3'},
-      {id:'panda',title:'Panda',artist:'Desiigner',src:'music/07-panda-desiigner.mp3'},
-      {id:'sicko-mode',title:'Sicko Mode',artist:'Travis Scott',src:'music/08-sicko-mode.mp3'},
-      {id:'temperature',title:'Temperature',artist:'Sean Paul',src:'music/09-temperature.mp3'},
-      {id:'in-da-club',title:'In da Club',artist:'50 Cent',src:'music/10-in-da-club.mp3'}
-    ];
-    this.musicKey='scotswim.music.prefs';
-    this.initMusic();
-  }
-  initMusic(){
-    let saved=null;
-    try{saved=JSON.parse(localStorage.getItem(this.musicKey)||'null')}catch(e){}
-    this.musicPrefs=Object.assign({playing:true,volume:0.55,lastTrackId:null},saved||{});
-    this.musicPrefs.volume=Math.min(1,Math.max(0,Number(this.musicPrefs.volume)));
-    if(!Number.isFinite(this.musicPrefs.volume))this.musicPrefs.volume=0.55;
-    this._trackIdx=0;
-    this._trackFails=0;
-    // Recently-played track indexes, most recent last. pickRandomTrack
-    // avoids everything in here, and the window is playlist.length-1, so
-    // every track plays once before any repeat. Derived rather than a
-    // fixed number so adding/removing tracks keeps working.
-    this._recentIdx=[];
-    // Stack of track indexes played before the current one, most recent
-    // last — lets Previous step back through actual play history rather
-    // than trying to "undo" the random picker (there's no fixed order to
-    // reverse). Only nextTrack/advanceTrack push onto it, right before
-    // they move off the current track — the very first track never gets
-    // pushed, so Previous is correctly a no-op until something's played.
-    this._history=[];
-    this._audio=new Audio();
-    this._audio.preload='auto';
-    this._audio.volume=this.musicPrefs.volume;
-    // A track that "ends" almost instantly never actually played — treat
-    // that like a load failure rather than a real play-through. Otherwise
-    // a broken/mismatched file can cascade through the whole playlist
-    // endlessly: 'ended' always reset the fail counter to 0 regardless of
-    // why it fired, bypassing the give-up-after-a-full-cycle guard below.
-    this._audio.addEventListener('ended',()=>this.advanceTrack(this._audio.currentTime>1.5));
-    this._audio.addEventListener('error',()=>this.advanceTrack(false));
-    // Audio actually started producing sound — that, and only that, clears
-    // the consecutive-failure counter. Clearing it on load instead (as
-    // loadTrackAt used to) capped the counter at 1 and made the
-    // give-up guard in advanceTrack unreachable, so a playlist whose files
-    // were all missing would cascade through tracks forever at full speed.
-    this._audio.addEventListener('playing',()=>{this._trackFails=0});
-    // Open on something other than whatever was playing when the last
-    // session ended, so back-to-back logins don't repeat.
-    const lastIdx=this.playlist.findIndex(t=>t.id===this.musicPrefs.lastTrackId);
-    if(lastIdx>=0)this._recentIdx=[lastIdx];
-    this.loadTrackAt(this.pickRandomTrack());
-  }
-  saveMusicPrefs(){
-    try{localStorage.setItem(this.musicKey,JSON.stringify(this.musicPrefs))}catch(e){}
-  }
-  // Plain random pick, no fixed rotation/order — just avoids the last 5
-  // tracks actually played (this._recentIdx, kept up to date by
-  // loadTrackAt) so skipping repeatedly can't land back on anything
-  // heard recently, while everything else stays fully random.
-  pickRandomTrack(){
-    const pool=this.playlist.map((_,i)=>i).filter(i=>!this._recentIdx.includes(i));
-    // Playlist too small to satisfy the exclusion — fall back to just
-    // avoiding the current one.
-    const choices=pool.length?pool:this.playlist.map((_,i)=>i).filter(i=>i!==this._trackIdx);
-    if(!choices.length)return 0;
-    return choices[Math.floor(Math.random()*choices.length)];
-  }
-  loadTrackAt(i){
-    this._trackIdx=i;
-    // Flips the now-playing marquee between the A/B keyframes so its scroll
-    // restarts from the start of the new title. Counting changes (rather
-    // than using the track index) guarantees the name always alternates.
-    this._marqueeTick=(this._marqueeTick||0)+1;
-    // NB: _trackFails is deliberately NOT reset here — only the 'playing'
-    // event clears it (see initMusic).
-    this._recentIdx=[...this._recentIdx,i].slice(-Math.max(1,this.playlist.length-1));
-    const track=this.playlist[i];
-    this._audio.src=track.src;
-    // Remembered across reloads/logins (see initMusic) so the next session
-    // doesn't open on the same track this one ended on.
-    this.musicPrefs.lastTrackId=track.id;
-    this.saveMusicPrefs();
-  }
-  advanceTrack(playedThrough){
-    this._trackFails=playedThrough?0:this._trackFails+1;
-    // Every track failed back-to-back (e.g. none of the MP3s are present,
-    // as on a deployment where the audio isn't published) — stop cycling
-    // instead of spinning through the playlist forever. This is a
-    // transient "nothing is loadable right now" state, NOT the same thing
-    // as the user's saved preference — it must never touch/persist
-    // musicPrefs.playing, or the next login/Next click would come back
-    // permanently silenced (that was the actual bug: this used to set
-    // musicPrefs.playing=false and save it, so a Next click after one
-    // failed cycle would look at that stale flag and refuse to even try).
-    if(!playedThrough&&this._trackFails>=this.playlist.length){
-      this._audio.pause();
-      this._suspended=true;
-      this.forceUpdate();
-      return;
-    }
-    this._suspended=false;
-    this._history.push(this._trackIdx);
-    this.loadTrackAt(this.pickRandomTrack());
-    if(this.musicPrefs.playing)this.playAudio();
-    this.forceUpdate();
-  }
-  // Manual "skip" from the menu — jumps to a new random track, keeping
-  // whatever play/pause preference was already in effect.
-  // Deliberately does NOT reset _trackFails/_suspended. It used to, as a
-  // "give it a fresh shot" idea — but when nothing is loadable at all
-  // (e.g. the audio files aren't published), that reset re-armed the full
-  // give-up-after-a-cycle counter on every single click, so each Next
-  // burned through the whole playlist rapid-fire before giving up again
-  // instead of just failing once. Leaving the counter alone means: once a
-  // cycle has already given up, one more click tries exactly the one new
-  // track, fails once, and immediately re-hits the already-maxed
-  // threshold — a single quiet failure, not a cascade.
-  nextTrack(){
-    this._history.push(this._trackIdx);
-    this.loadTrackAt(this.pickRandomTrack());
-    if(this.musicPrefs.playing)this.playAudio();
-    this.forceUpdate();
-  }
-  // Steps back to whatever was actually playing before the current track
-  // (see _history) rather than re-deriving a "previous" from the random
-  // picker, which has no fixed order to walk backwards through. A no-op
-  // before anything's played yet — nothing to go back to.
-  prevTrack(){
-    if(!this._history.length)return;
-    this.loadTrackAt(this._history.pop());
-    if(this.musicPrefs.playing)this.playAudio();
-    this.forceUpdate();
-  }
-  playAudio(){
-    const p=this._audio.play();
-    // play() rejects when it isn't tied to a user gesture, or when the
-    // (placeholder) source 404s — fail silently either way and let the UI
-    // just show "paused" rather than throwing an unhandled rejection.
-    if(p&&p.catch)p.catch(()=>this.forceUpdate());
-  }
-  // Call synchronously from the login button's click handler so play()
-  // inherits that click's user-activation instead of being blocked by the
-  // browser's autoplay policy.
-  armMusicOnLogin(){
-    if(this.musicPrefs.playing)this.playAudio();
-  }
-  pauseMusicForSignOut(){
-    if(this._audio)this._audio.pause();
-  }
-  toggleMusic(){
-    this.musicPrefs.playing=!this.musicPrefs.playing;
-    // Same reasoning as nextTrack — don't reset the fail counter here,
-    // or pressing Play after a give-up re-triggers the full cascade
-    // instead of a single quiet retry.
-    if(this.musicPrefs.playing)this.playAudio();
-    else this._audio.pause();
-    this.saveMusicPrefs();
-    this.forceUpdate();
-  }
-  setMusicVolume(v){
-    this.musicPrefs.volume=Math.min(1,Math.max(0,Number(v)||0));
-    this._audio.volume=this.musicPrefs.volume;
-    this.saveMusicPrefs();
-    this.forceUpdate();
   }
   fmt(t){if(t>=60){const m=Math.floor(t/60);const s=t-m*60;return m+':'+s.toFixed(2).padStart(5,'0')}return t.toFixed(2)}
   ptsOf(s){
@@ -3149,7 +2948,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);if(this._audio){this._audio.pause();this._audio.src=''}this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -3176,7 +2975,6 @@ class Component extends DCLogic {
       }
       const profile=doc.data();
       const goalSeg=profile.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
-      this.armMusicOnLogin();
       this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg});
       if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
       this.startTeamContentSync();
@@ -3515,7 +3313,6 @@ class Component extends DCLogic {
           .then(()=>this.db.collection('invites').doc(info.token).update({used:true}))
           .then(()=>{
             const goalSeg=info.role==='dcoach'&&!this.men.some(s=>s.diver)?'W':'M';
-            this.armMusicOnLogin();
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
             if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);this.startGoalWorkoutsSync(info.rosterId);}
@@ -4035,8 +3832,6 @@ class Component extends DCLogic {
     const goalDet={name:gSel.name,ini:gSel.ini,cls:gSel.cls,pos:gSel.pos,
       slotId:this.slotIdOf(gSel.id),photo:this.photoOf(gSel.id),
       onView:()=>this.setState({sel:gSel.id,meEvent:null})};
-    const curTrack=this.playlist[this._trackIdx];
-    const curTrackName=curTrack.artist?curTrack.title+' — '+curTrack.artist:curTrack.title;
     return {
       isLogin,isApp,isCoach,
       coachWelcome:isDivingCoach?'Welcome, Coach Stone':'Welcome, Coach Hamstra',
@@ -4051,7 +3846,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -4114,29 +3909,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.pauseMusicForSignOut();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
-      musicPlaying:this.musicPrefs.playing,
-      musicIcon:this.musicPrefs.playing?'❚❚':'▶',
-      musicToggleLabel:this.musicPrefs.playing?'Pause background music':'Play background music',
-      musicToggle:()=>this.toggleMusic(),
-      musicNext:()=>this.nextTrack(),
-      musicPrev:()=>this.prevTrack(),
-      musicTrackName:curTrackName,
-      // Full title/artist never gets cut off — past this length it scrolls
-      // (marquee) instead of ellipsizing, so nothing about the panel's own
-      // size has to grow to fit a long "Title — Artist" string. This
-      // threshold is tuned to the info column's actual available width,
-      // which shrank when the Previous button was added alongside
-      // Play/Pause and Next — 26 was correct for the old two-button
-      // layout, but at the new width it let a couple of real "Title —
-      // Artist" strings render as static text wider than the box,
-      // silently clipping them. 20 is the largest length that still
-      // measures flush in every real playlist entry at the current width.
-      musicTrackScroll:curTrackName.length>20,
-      musicTrackShort:curTrackName.length<=20,
-      musicMarqueeAnim:((this._marqueeTick||0)%2)?'scotswimMarqueeB':'scotswimMarqueeA',
-      musicVolume:String(this.musicPrefs.volume),
-      musicVolumeChange:e=>this.setMusicVolume(e.target.value),
+      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
       menuItems:(isDivingCoach
         ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
         :isCoach
