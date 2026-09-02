@@ -70,7 +70,11 @@ Canvas preview.
 
 ## Local development
 
+Run these from inside this `mobile-app` folder, not the repo root —
+`package.json` lives here, one level down from where you cloned the repo:
+
 ```
+cd mobile-app        # skip if your terminal is already in mobile-app/
 npm install
 npm run sync        # copies the root web app into www/, then cap syncs both platforms
 npx cap open android # requires Android Studio
