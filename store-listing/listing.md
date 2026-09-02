@@ -1,18 +1,16 @@
 # ScotSwim — store listing draft
 
 Everything below is ready to paste into Play Console and App Store Connect.
-Two things still need your input before either submission — marked
-**[TBD]** — everything else is final.
 
 ---
 
 ## App identity
 
 - **App name**: ScotSwim
-- **Publisher / developer name**: Alma College Swimming & Diving **[TBD — or your own name, if you're enrolling as an individual developer rather than the college]**
+- **Publisher / developer name**: Rayane Debbarh
 - **Bundle ID / package name**: `edu.alma.scotswim` (already set in `capacitor.config.json` — this is permanent once submitted, changing it later means a new listing, not an update)
 - **Category**: Sports
-- **Support email**: **[TBD]** — required by both stores, shown publicly on the listing
+- **Support email**: ardebbarh@gmail.com
 - **Privacy policy URL**: `https://rayanedebbarh.github.io/ScotSwim-app/privacy.html` (live once `privacy.html` is merged — already written, see that file)
 
 ---
@@ -98,13 +96,8 @@ swimming,diving,alma college,scots,team,roster,times,meet,coach,training,goals,n
 
 ---
 
-## What's still needed from you
+## Still to do
 
-1. **Support email [TBD above]** — pick the address you want listed
-   publicly on both stores (a college athletics address is usually a
-   better fit than a personal one, but it's your call).
-2. **Publisher name [TBD above]** — same question: submit as "Alma
-   College Swimming & Diving" or as yourself.
-
-Screenshots for both stores are being generated separately (see
-`store-listing/screenshots/`).
+Everything above is final. Screenshots for both stores are already
+generated (see `store-listing/screenshots/`). What's left is entirely on
+the account/submission side — see the main reply for the checklist.
