@@ -133,7 +133,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
         <sc-if value="{{ heroIsDiver }}" hint-placeholder-val="{{ false }}">
-          <image-slot id="home-hero-divers" shape="rect" fit="cover" src="uploads/women-dive.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+          <image-slot id="home-hero-divers" shape="rect" fit="cover" src="uploads/divers.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         </sc-if>
         <sc-if value="{{ heroIsMen }}" hint-placeholder-val="{{ true }}">
           <image-slot id="home-hero-men" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
@@ -341,7 +341,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
         <sc-if value="{{ heroIsCoachDiver }}" hint-placeholder-val="{{ false }}">
-          <image-slot id="home-hero-coach-divers" shape="rect" fit="cover" src="uploads/women-dive.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+          <image-slot id="home-hero-coach-divers" shape="rect" fit="cover" src="uploads/divers.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         </sc-if>
         <sc-if value="{{ heroIsCoachMen }}" hint-placeholder-val="{{ true }}">
           <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
@@ -1161,6 +1161,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </sc-if>
         <sc-if value="{{ simIsDivingWomen }}" hint-placeholder-val="{{ false }}">
           <image-slot id="sim-hero-women-dive" shape="rect" fit="cover" src="uploads/women-dive.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+          <button onClick="{{ simDiveHeroEdit }}" style="position:absolute;top:8px;right:8px;z-index:3;border:0;border-radius:6px;padding:5px 10px;cursor:pointer;background:rgba(0,0,0,.65);color:#fff;font:11px/1 'Barlow Condensed',system-ui,sans-serif;font-weight:700;letter-spacing:.5px;backdrop-filter:blur(6px)">EDIT</button>
         </sc-if>
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.05),rgba(42,18,24,.4));pointer-events:none"></div>
         <div style="position:absolute;left:14px;bottom:10px;font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#F5E9DC;text-shadow:0 2px 6px rgba(0,0,0,.7)">{{ simGLabel }}</div>
@@ -4081,6 +4082,14 @@ class Component extends DCLogic {
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,simShowGenderToggle:!isDivingCoach,
       simIsMen:simG==='M',simIsSwimWomen:!isDivingCoach&&simG==='W',simIsDivingWomen:isDivingCoach&&simG==='W',
+      // image-slot's own Replace/Edit controls only reveal on :hover, which
+      // never fires on a touchscreen — this button dispatches the same
+      // dblclick the component listens for itself, so reframe mode opens
+      // from a plain tap instead of being stranded behind a hover state.
+      simDiveHeroEdit:()=>{
+        const el=document.getElementById('sim-hero-women-dive');
+        if(el)el.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
+      },
       simGLabel:isDivingCoach?"WOMEN'S DIVING":(simG==='M'?"MEN'S DUAL":"WOMEN'S DUAL"),
       simOppUp:(sim.opp.n).toUpperCase(),
       simScoreA:String(sim.A),simScoreO:String(sim.O),
