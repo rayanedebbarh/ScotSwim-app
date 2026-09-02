@@ -77,20 +77,67 @@ npx cap open android # requires Android Studio
 npx cap open ios     # requires Xcode (macOS only)
 ```
 
+## Android: signed release build (Play Store-ready)
+
+`.github/workflows/android-release.yml` builds a signed `.aab` (upload this
+to Play Console) and a signed `.apk` (for sideload testing) — manually
+triggered from GitHub → Actions → "Android Release Build (signed)" → Run
+workflow. It needs a one-time signing keystore, generated **on your own
+machine** (not in CI, not by Claude) since losing it means you can never
+publish an update to the same Play Store listing again:
+
+```
+keytool -genkeypair -v -keystore scotswim-release.keystore -alias scotswim \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
+
+It'll prompt for a store password, a key password (fine to reuse the same
+value for both), and some identity fields (name/org/etc. — cosmetic, not
+verified by anyone). **Keep this file and its passwords somewhere safe and
+backed up outside this repo** — that's the only copy.
+
+Then add four repo secrets (GitHub → repo Settings → Secrets and variables
+→ Actions → New repository secret):
+
+| Secret | Value |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | `base64 -w0 scotswim-release.keystore` (Linux) or `base64 -i scotswim-release.keystore \| pbcopy` (macOS) |
+| `ANDROID_KEYSTORE_PASSWORD` | the store password you set above |
+| `ANDROID_KEY_ALIAS` | `scotswim` (or whatever `-alias` you used) |
+| `ANDROID_KEY_PASSWORD` | the key password you set above |
+
+Once those exist, run the workflow — the signed `.aab`/`.apk` show up as a
+downloadable workflow artifact a few minutes later.
+
+## iOS: needs a Mac
+
+Apple's build/signing toolchain (Xcode, code signing, provisioning
+profiles, TestFlight/App Store Connect upload) only runs on macOS — there's
+no way around that from a Linux CI runner or this session. `ios-build.yml`
+proves the native project compiles (simulator only, unsigned), but the
+actual signed build for a real device or App Store submission needs to
+happen on a Mac: either your own, or a cloud Mac CI service (Codemagic and
+Bitrise both have Capacitor-specific docs; GitHub itself offers
+`macos-latest` runners, which `ios-build.yml` already uses — that job could
+be extended the same way as the Android one once you have an Apple
+Developer account, a Distribution certificate, and a provisioning profile
+to feed it as secrets).
+
 ## Still needed before either store submission
 
 1. **Add the `CAPGO_API_KEY` repo secret** (see above) to actually turn on
    OTA updates — everything else for it is already wired up.
-2. **Real app icon** — replace `assets/icon-only.png` (and re-run
-   `npx @capacitor/assets generate`) with Alma's actual team logo/mark.
+2. ~~Real app icon~~ — done (Alma's real logo, generated into every
+   platform's icon set).
 3. **Apple Developer Program** account ($99/yr) — needed for App Store
    signing certificates and provisioning profiles.
-4. **Google Play Console** account ($25 one-time) — needed for a Play App
-   Signing key and to create the store listing.
-5. Once both exist, the CI workflows can be extended to produce signed,
-   submittable builds (a `.ipa` for TestFlight/App Store, an `.aab` for
-   Play Store) using credentials stored as GitHub Actions secrets — ask for
-   this once the accounts are ready.
+4. **Google Play Console** account ($25 one-time) — needed to create the
+   store listing and upload the signed `.aab` from `android-release.yml`
+   above. New developer accounts also go through a mandatory ~14-day closed
+   testing period (12+ testers) before Google allows a production release.
+5. Once the Apple account/certificates exist, `ios-build.yml` can be
+   extended the same way `android-release.yml` was, using credentials
+   stored as GitHub Actions secrets.
 6. Store listing assets: screenshots (several device sizes each store
    requires), an app description, a support URL, and a privacy policy URL
    (required by both stores since this app collects account data).
