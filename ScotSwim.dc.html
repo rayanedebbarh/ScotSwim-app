@@ -1160,11 +1160,18 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <image-slot id="sim-hero-women" shape="rect" fit="cover" src="uploads/women.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         </sc-if>
         <sc-if value="{{ simIsDivingWomen }}" hint-placeholder-val="{{ false }}">
-          <image-slot id="sim-hero-women-dive" shape="rect" fit="cover" src="uploads/women-dive.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
-          <button onClick="{{ simDiveHeroEdit }}" style="position:absolute;top:8px;right:8px;z-index:3;border:0;border-radius:6px;padding:5px 10px;cursor:pointer;background:rgba(0,0,0,.65);color:#fff;font:11px/1 'Barlow Condensed',system-ui,sans-serif;font-weight:700;letter-spacing:.5px;backdrop-filter:blur(6px)">EDIT</button>
+          <div onPointerDown="{{ simDiveHeroDragStart }}" style="position:absolute;inset:0;cursor:{{ simDiveHeroCursor }}">
+            <img src="uploads/women-dive.png" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:{{ simDiveHeroPos }};pointer-events:none;user-select:none">
+          </div>
+          <sc-if value="{{ simHeroEditing }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:10px;bottom:10px;font-size:11px;font-weight:700;letter-spacing:.5px;color:#F5E9DC;background:rgba(0,0,0,.55);border-radius:6px;padding:5px 9px;pointer-events:none;backdrop-filter:blur(6px)">DRAG TO REPOSITION</div>
+          </sc-if>
+          <button onClick="{{ simDiveHeroToggle }}" style="position:absolute;top:8px;right:8px;z-index:3;border:0;border-radius:6px;padding:5px 10px;cursor:pointer;background:{{ simDiveHeroBtnBg }};color:#fff;font:11px/1 'Barlow Condensed',system-ui,sans-serif;font-weight:700;letter-spacing:.5px;backdrop-filter:blur(6px)">{{ simDiveHeroBtnLabel }}</button>
         </sc-if>
         <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.05),rgba(42,18,24,.4));pointer-events:none"></div>
-        <div style="position:absolute;left:14px;bottom:10px;font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#F5E9DC;text-shadow:0 2px 6px rgba(0,0,0,.7)">{{ simGLabel }}</div>
+        <sc-if value="{{ simHeroLabelShown }}" hint-placeholder-val="{{ true }}">
+          <div style="position:absolute;left:14px;bottom:10px;font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#F5E9DC;text-shadow:0 2px 6px rgba(0,0,0,.7);pointer-events:none">{{ simGLabel }}</div>
+        </sc-if>
       </div>
       <div style="display:flex;gap:8px">
         <sc-for list="{{ oppGroups }}" as="g" hint-placeholder-count="2">
@@ -1749,7 +1756,8 @@ class Component extends DCLogic {
       announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,trainSeg:'schedule',
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
-      showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
+      showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:'',
+      simDiveHeroX:50,simDiveHeroY:50,simHeroEditing:false};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -1768,6 +1776,15 @@ class Component extends DCLogic {
     try{
       const savedBios=JSON.parse(localStorage.getItem('scotswim.bios')||'null');
       if(savedBios)this.state.bios=savedBios;
+    }catch(e){}
+    // Restore the diving coach's chosen crop for the sim hero photo — same
+    // persistence pattern as bios. image-slot's own Replace/Edit only works
+    // inside the Design Canvas editor (it needs window.omelette to save),
+    // so the sim hero uses a small custom drag-to-reframe control instead,
+    // with its own local persistence.
+    try{
+      const savedFrame=JSON.parse(localStorage.getItem('scotswim.simDiveHeroFrame')||'null');
+      if(savedFrame){this.state.simDiveHeroX=savedFrame.x;this.state.simDiveHeroY=savedFrame.y;}
     }catch(e){}
     // Restore any height/weight/high school entered in a previous session —
     // same persistence pattern as bios (see saveStats).
@@ -2655,6 +2672,32 @@ class Component extends DCLogic {
       mine,hasMine:this.state.role==='athlete'&&mine.length>0};
   }
   saveBios(bios){try{localStorage.setItem('scotswim.bios',JSON.stringify(bios))}catch(e){}}
+  saveDiveHeroFrame(x,y){try{localStorage.setItem('scotswim.simDiveHeroFrame',JSON.stringify({x,y}))}catch(e){}}
+  // Drag-to-reposition for the sim hero photo — pointer events cover mouse
+  // AND touch in one handler, unlike image-slot's own hover-only controls.
+  // Dragging right reveals more of the image's left side (grab-the-photo
+  // feel), so the delta subtracts from the starting object-position.
+  startDiveHeroPan(e){
+    if(!this.state.simHeroEditing)return;
+    e.preventDefault();
+    const rect=e.currentTarget.getBoundingClientRect();
+    const startX=e.clientX,startY=e.clientY;
+    const startPX=this.state.simDiveHeroX,startPY=this.state.simDiveHeroY;
+    const move=ev=>{
+      const dx=(ev.clientX-startX)/rect.width*100;
+      const dy=(ev.clientY-startY)/rect.height*100;
+      const x=Math.max(0,Math.min(100,startPX-dx));
+      const y=Math.max(0,Math.min(100,startPY-dy));
+      this.setState({simDiveHeroX:x,simDiveHeroY:y});
+    };
+    const up=()=>{
+      window.removeEventListener('pointermove',move);
+      window.removeEventListener('pointerup',up);
+      this.saveDiveHeroFrame(this.state.simDiveHeroX,this.state.simDiveHeroY);
+    };
+    window.addEventListener('pointermove',move);
+    window.addEventListener('pointerup',up);
+  }
   saveStats(stats){try{localStorage.setItem('scotswim.stats',JSON.stringify(stats))}catch(e){}}
   saveMyEvents(myEvents){try{localStorage.setItem('scotswim.myEventEntries',JSON.stringify(myEvents))}catch(e){}}
   saveTrainingLog(trainingLog){try{localStorage.setItem('scotswim.trainingLog',JSON.stringify(trainingLog))}catch(e){}}
@@ -4082,14 +4125,19 @@ class Component extends DCLogic {
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,simShowGenderToggle:!isDivingCoach,
       simIsMen:simG==='M',simIsSwimWomen:!isDivingCoach&&simG==='W',simIsDivingWomen:isDivingCoach&&simG==='W',
-      // image-slot's own Replace/Edit controls only reveal on :hover, which
-      // never fires on a touchscreen — this button dispatches the same
-      // dblclick the component listens for itself, so reframe mode opens
-      // from a plain tap instead of being stranded behind a hover state.
-      simDiveHeroEdit:()=>{
-        const el=document.getElementById('sim-hero-women-dive');
-        if(el)el.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
-      },
+      // Custom drag-to-reposition for the sim hero photo — image-slot's own
+      // Replace/Edit controls need window.omelette (the Design Canvas
+      // editor bridge) to save, which isn't present once this is deployed,
+      // so they silently do nothing there. This is a plain object-position
+      // drag with its own localStorage persistence (see saveDiveHeroFrame).
+      simDiveHeroPos:st.simDiveHeroX+'% '+st.simDiveHeroY+'%',
+      simHeroEditing:st.simHeroEditing,
+      simDiveHeroCursor:st.simHeroEditing?'grab':'default',
+      simDiveHeroToggle:()=>this.setState({simHeroEditing:!st.simHeroEditing}),
+      simDiveHeroBtnLabel:st.simHeroEditing?'DONE':'EDIT',
+      simDiveHeroBtnBg:st.simHeroEditing?'#1B7A78':'rgba(0,0,0,.65)',
+      simDiveHeroDragStart:e=>this.startDiveHeroPan(e),
+      simHeroLabelShown:!(st.simHeroEditing&&isDivingCoach),
       simGLabel:isDivingCoach?"WOMEN'S DIVING":(simG==='M'?"MEN'S DUAL":"WOMEN'S DUAL"),
       simOppUp:(sim.opp.n).toUpperCase(),
       simScoreA:String(sim.A),simScoreO:String(sim.O),
