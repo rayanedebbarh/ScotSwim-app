@@ -9,6 +9,10 @@ android/build/
 android/.gradle/
 android/local.properties
 android/captures/
+# The release signing keystore — CI decodes it from a secret at build time
+# (see .github/workflows/android-release.yml); it must never be committed.
+android/app/*.keystore
+android/app/*.jks
 ios/App/Pods/
 ios/App/build/
 ios/App/App.xcworkspace/xcuserdata/
