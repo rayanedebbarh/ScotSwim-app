@@ -133,7 +133,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
         <sc-if value="{{ heroIsDiver }}" hint-placeholder-val="{{ false }}">
-          <img src="uploads/women-dive.png" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:43% 42%;user-select:none">
+          <image-slot id="home-hero-divers" shape="rect" fit="cover" src="uploads/divers.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         </sc-if>
         <sc-if value="{{ heroIsMen }}" hint-placeholder-val="{{ true }}">
           <image-slot id="home-hero-men" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
@@ -341,7 +341,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s ease">
       <div style="position:relative;border-radius:10px;overflow:hidden;height:165px">
         <sc-if value="{{ heroIsCoachDiver }}" hint-placeholder-val="{{ false }}">
-          <img src="uploads/women-dive.png" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:43% 42%;user-select:none">
+          <image-slot id="home-hero-coach-divers" shape="rect" fit="cover" src="uploads/divers.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
         </sc-if>
         <sc-if value="{{ heroIsCoachMen }}" hint-placeholder-val="{{ true }}">
           <image-slot id="home-hero-coach" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
