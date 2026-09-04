@@ -3782,9 +3782,7 @@ class Component extends DCLogic {
     const anns=st.announcements.map(a=>({id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),remove:()=>this.deleteAnnouncement(a.id)}));
     const annsEmpty=anns.length===0;
     // team
-    // Diving coach: no male divers currently on the roster, so Women leads
-    // instead of Men — same reasoning goalSeg already uses at login.
-    const segList=isDivingCoach?[['W','WOMEN'],['M','MEN'],['S','STAFF']]:[['M','MEN'],['W','WOMEN'],['S','STAFF']];
+    const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
     const segs=segList.map(([id,n])=>({n,bg:st.teamSeg===id?M:'transparent',fg:st.teamSeg===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({teamSeg:id})}));
     // Diving has no records page — Alma doesn't keep program records for
     // diving — so the diving coach never gets a RECORDS sub-tab at all.
@@ -3795,11 +3793,11 @@ class Component extends DCLogic {
     const diveTimesDivesSel=e=>this.setState({diveTimesDives:e.target.value});
     const diveTimesRows=(((this.diveTopTimes[st.teamSeg]||{})[st.diveTimesEv]||{})[st.diveTimesDives]||[])
       .map((r,i)=>({rank:String(i+1),name:r.name,meet:r.meet,t:r.t.toFixed(2)}));
-    let rosterSrc=st.teamSeg==='W'?this.women:this.men;
-    if(isDivingCoach)rosterSrc=rosterSrc.filter(s=>s.diver);
-    // Swim coach's roster excludes divers — they're the diving coach's
-    // responsibility now, same split as attendance/improvers already use.
-    else if(role==='coach')rosterSrc=rosterSrc.filter(s=>!s.diver);
+    // Both coaches see the full roster — swimmers and divers together.
+    // The diving coach is effectively the swim coach's assistant and may
+    // need to run the whole team, so team visibility isn't split by sport
+    // (unlike GOALS and SIM, which stay diving-only for them).
+    const rosterSrc=st.teamSeg==='W'?this.women:this.men;
     let rl=rosterSrc.map(s=>({s,pts:this.ptsOf(s)}));
     if(st.teamSort==='pts')rl=rl.slice().sort((a,b)=>(b.pts??-1)-(a.pts??-1));
     else rl=rl.slice().sort((a,b)=>this.hs(a.s.id+'shuffle')-this.hs(b.s.id+'shuffle'));
@@ -3810,15 +3808,14 @@ class Component extends DCLogic {
         best:x.pts!=null?x.pts.toFixed(2):'—',bestEv:'SWIMCLOUD PTS',
         onTap:()=>this.setState({sel:s.id,meEvent:null})};
     });
-    // The diving coach's roster is filtered to divers only (see rosterSrc
-    // above) — a gender with no divers on it currently (e.g. no male
-    // divers this season) would otherwise just render a blank card with
-    // no explanation, which reads like a bug rather than an empty roster.
     const rosterListEmpty=rosterList.length===0;
-    const rosterEmptyText='No '+(st.teamSeg==='W'?'female':'male')+' '+(isDivingCoach?'divers':'athletes')+' on the roster yet.';
+    const rosterEmptyText='No '+(st.teamSeg==='W'?'female':'male')+' athletes on the roster yet.';
     // Team-wide season-points progression (Men/Women only — Staff has no
-    // roster, and this is a swimming stat so the diving coach doesn't see it).
-    const showProgression=(st.teamSeg==='M'||st.teamSeg==='W')&&st.teamView==='roster'&&!isDivingCoach;
+    // roster). Shown to both coaches now that the roster itself is
+    // unified — the diving coach sees the same swimmers here as the swim
+    // coach does, so hiding a swim stat while showing the swimmers
+    // themselves would just read as a gap, not a deliberate scope line.
+    const showProgression=(st.teamSeg==='M'||st.teamSeg==='W')&&st.teamView==='roster';
     const progressionTitle=st.teamSeg==='W'?'WOMEN PROGRESSION':'MEN PROGRESSION';
     const progressionChart=showProgression?this.teamProgressionChart(this.teamProgressionOf(st.teamSeg),st.teamSeg==='M'?50:undefined):null;
     // The Progression tab's own two-way toggle — same pill-toggle pattern
@@ -3871,16 +3868,24 @@ class Component extends DCLogic {
     // rows/Mark-all-present button below become interactive again with no
     // other changes needed.
     const SEASON_STARTED=false;
-    const attRosterRole=this.all.filter(s=>isDivingCoach?s.diver:!s.diver);
+    // Both coaches take attendance for the whole team — swimmers and
+    // divers together — same reasoning as the Team roster above: the
+    // diving coach may need to run the full team's practice, not just
+    // the divers'.
+    const attRosterRole=this.all;
     // Men/Women split — both tabs always show (unlike GOALS), since a
     // coach with nobody on one side of the roster (e.g. no men's divers
     // right now) still wants to see that confirmed rather than have the
     // tab disappear.
     const attSegActive=st.attSeg==='W'?'W':'M';
-    // Diving coach: Women leads here too — same reasoning as the Team tab.
+    // Diving coach: Women leads here too — same reasoning as the Team tab
+    // used to use (their side of the roster used to be divers-only, and
+    // there are currently no male divers). Attendance keeps this order
+    // even though Team itself reverted, since it's still true divers lead
+    // this coach's typical view.
     const attSegs=(isDivingCoach?['W','M']:['M','W']).map(id=>({n:id==='M'?'MEN':'WOMEN',bg:attSegActive===id?M:'transparent',fg:attSegActive===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({attSeg:id})}));
     const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
-    const attRosterEmptyLabel=(isDivingCoach?'divers':'swimmers')+' on the '+(attSegActive==='M'?"men's":"women's")+' roster';
+    const attRosterEmptyLabel='athletes on the '+(attSegActive==='M'?"men's":"women's")+' roster';
     const attDateRec=this.state.attendance[attDateKey]||{};
     const attRows=attRoster.map(s=>{
       const present=attDateRec[s.id]!==false;
