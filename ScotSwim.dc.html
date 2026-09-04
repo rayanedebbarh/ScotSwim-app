@@ -3966,12 +3966,13 @@ class Component extends DCLogic {
     const homeWomen=this.women;
     const totalTileLabel='TOTAL ATHLETES';
     const nDivers=this.all.filter(s=>s.diver).length;
-    // "2 Divers" gets its own line (via the \n + white-space:pre-line on
-    // the template div) rather than trailing the gender breakdown with a
-    // " · " — at the tile's narrow width that separator wraps mid-phrase
-    // ("18 Women ·" / "2" / "Divers"), splitting "2" from "Divers" across
-    // three lines instead of reading as one clean unit.
-    const nBreakdown=(homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women'))+(nDivers>0?'\n'+nDivers+' Divers':'');
+    const nSwimmers=this.all.length-nDivers;
+    // The swimmer/diver split gets its own line (via the \n +
+    // white-space:pre-line on the template div) rather than trailing the
+    // gender breakdown with a " · " — at the tile's narrow width that
+    // separator wraps mid-phrase, splitting a count from its label across
+    // lines instead of reading as one clean unit.
+    const nBreakdown=(homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women'))+(nDivers>0?'\n'+nSwimmers+' Swimmers · '+nDivers+' Divers':'');
     // Season PBs — replaces the old redundant "DIVERS" tile (diving coach)
     // and the swim-coach-inappropriate diver-only tile (swim coach) with a
     // real, role-scoped activity counter: how many times this coach's own
