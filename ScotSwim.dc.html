@@ -2187,7 +2187,12 @@ class Component extends DCLogic {
     const h=Math.floor(m/60),rem=m%60;
     return h>0?(h+'h '+rem+'m'):(rem+'m');
   }
-  goalOf(s,ev){const d=this.state.goalDelta[s.id+'|'+ev]||0;return Math.round((s.goals[ev]+d)*100)/100}
+  // Goals only ever move in 0.5 steps (see the +/- buttons in renderVals),
+  // so the base value is snapped to the nearest 0.5 before the delta is
+  // added — otherwise a coach-entered baseline that isn't itself on the
+  // 0.5 grid (e.g. 226.85) would drag every subsequent +/- off-grid too
+  // (227.35, 227.85, …) instead of landing on 227.0/227.5/228.0.
+  goalOf(s,ev){const d=this.state.goalDelta[s.id+'|'+ev]||0;return Math.round(s.goals[ev]*2)/2+d}
   // Coach-set goals (goalDelta) and athlete-set goals (selfGoals) otherwise
   // live only in React state — a reload or a fresh login wipes them. Persist
   // both together so a coach's adjustment actually survives to show up on
@@ -3591,7 +3596,7 @@ class Component extends DCLogic {
       const ev=key.split('|')[1];const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
       const step=0.5;
-      const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*100)/100;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
+      const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
         close:Math.abs(pb-val)/pb,
         inc:()=>setVal(val+(e.dive?-step:step)),
@@ -3606,7 +3611,7 @@ class Component extends DCLogic {
       const ev=e.target.value;if(!ev)return;
       const em=this.evMap[ev];const pb=pbOf(ev);
       const sg={...this.state.selfGoals};
-      sg[user.id+'|'+ev]=Math.round((em.dive?pb*1.04:pb*0.99)*100)/100;
+      sg[user.id+'|'+ev]=Math.round((em.dive?pb*1.04:pb*0.99)*2)/2;
       this.setState({selfGoals:sg});
       this.saveGoalPrefs(this.state.goalDelta,sg);
       this.toastMsg(em.n+' goal added — tune it with − / +');
