@@ -3590,7 +3590,7 @@ class Component extends DCLogic {
     let selfList=myKeys.map(key=>{
       const ev=key.split('|')[1];const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
-      const step=e.dive?2:0.1;
+      const step=0.5;
       const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*100)/100;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
         close:Math.abs(pb-val)/pb,
@@ -4019,7 +4019,7 @@ class Component extends DCLogic {
       const goal=this.goalOf(gSel,ev);
       const start_=gSel.hist[ev]?gSel.hist[ev][0]:pb*1.05;
       const pct=gSel.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
-      const step=e.dive?2:0.1;
+      const step=0.5;
       const bump=d=>{const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;this.setState({goalDelta:gd});this.saveGoalPrefs(gd,this.state.selfGoals);};
       // Explicit Save button — typing already auto-saves (debounced), but
       // a coach can't see that from the screen, and they're handing this
