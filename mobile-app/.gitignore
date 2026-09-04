@@ -9,10 +9,15 @@ android/build/
 android/.gradle/
 android/local.properties
 android/captures/
+android/.idea/
 # The release signing keystore — CI decodes it from a secret at build time
 # (see .github/workflows/android-release.yml); it must never be committed.
-android/app/*.keystore
-android/app/*.jks
+# Matched anywhere under mobile-app/, not just android/app/ — a keystore
+# generated per the README's instructions lands directly in mobile-app/
+# (its `keytool` command has no destination path), and a rule scoped only
+# to android/app/ silently misses it.
+*.keystore
+*.jks
 ios/App/Pods/
 ios/App/build/
 ios/App/App.xcworkspace/xcuserdata/
