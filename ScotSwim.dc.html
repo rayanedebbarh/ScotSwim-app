@@ -511,20 +511,66 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <button onClick="{{ openNextLineup }}" style="border:1px solid rgba(127,208,205,.5);background:rgba(127,208,205,.12);color:#7fd0cd;border-radius:8px;padding:9px 12px;font-family:'Barlow Condensed';font-weight:800;font-size:12.5px;letter-spacing:1px;cursor:pointer;flex:none;white-space:nowrap">LINEUP</button>
       </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 18px">
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 18px 6px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">SEASON SCHEDULE</div>
+          <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ toggleSchedEdit }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ schedEditLabel }}</button>
+          </sc-if>
+        </div>
         <sc-for list="{{ sched }}" as="m" hint-placeholder-count="8">
-          <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div style="min-width:48px;text-align:center">
-              <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
-              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
+          <sc-if value="{{ m.notEditing }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+              <div style="min-width:48px;text-align:center">
+                <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-weight:600;font-size:14px;line-height:1.25">{{ m.n }}</div>
+                <div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
+              </div>
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
             </div>
-            <div style="flex:1;min-width:0">
-              <div style="font-weight:600;font-size:14px;line-height:1.25">{{ m.n }}</div>
-              <div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
+          </sc-if>
+          <sc-if value="{{ m.editing }}" hint-placeholder-val="{{ false }}">
+            <div style="padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07);display:flex;flex-direction:column;gap:7px;background:rgba(27,122,120,.04);margin:0 -18px;padding-left:18px;padding-right:18px">
+              <div style="display:flex;gap:8px">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);margin-bottom:3px">DATE</div>
+                  <input type="date" value="{{ m.dateStartValue }}" onChange="{{ m.onDateStartChange }}" style="width:100%;padding:7px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);margin-bottom:3px">ENDS (IF MULTI-DAY)</div>
+                  <input type="date" value="{{ m.dateEndValue }}" onChange="{{ m.onDateEndChange }}" style="width:100%;padding:7px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
+                </div>
+                <div style="flex:none;width:100px">
+                  <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);margin-bottom:3px">TYPE</div>
+                  <select value="{{ m.kindValue }}" onChange="{{ m.onKindChange }}" style="width:100%;padding:7px 4px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;background:#fff">
+                    <sc-for list="{{ m.kindOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);margin-bottom:3px">MEET NAME</div>
+                <input value="{{ m.nValue }}" onChange="{{ m.onNChange }}" placeholder="e.g. Alma vs. Kalamazoo" class="darkPh" style="width:100%;padding:7px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow Condensed';font-weight:700;font-size:13px;outline:none;box-sizing:border-box">
+              </div>
+              <div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.45);margin-bottom:3px">LOCATION &amp; TIME</div>
+                <input value="{{ m.locValue }}" onChange="{{ m.onLocChange }}" placeholder="e.g. McClure Natatorium, Alma · 1:00 PM" class="darkPh" style="width:100%;padding:7px 9px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px">
+                <div style="display:flex;gap:6px">
+                  <button onClick="{{ m.moveUp }}" disabled="{{ m.cantMoveUp }}" style="border:1px solid rgba(42,18,24,.2);background:none;color:rgba(42,18,24,.6);border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:12px">↑</button>
+                  <button onClick="{{ m.moveDown }}" disabled="{{ m.cantMoveDown }}" style="border:1px solid rgba(42,18,24,.2);background:none;color:rgba(42,18,24,.6);border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:12px">↓</button>
+                </div>
+                <button onClick="{{ m.remove }}" style="border:none;background:none;color:#6B1F33;font-size:12px;font-weight:700;cursor:pointer">Remove meet ✕</button>
+              </div>
             </div>
-            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
-          </div>
+          </sc-if>
         </sc-for>
+        <sc-if value="{{ schedEditing }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ addMeet }}" style="width:100%;border:1.5px dashed rgba(42,18,24,.25);background:none;color:#1B7A78;border-radius:6px;padding:9px;margin:10px 0 12px;font-family:'Barlow';font-weight:600;font-size:12.5px;cursor:pointer">＋ Add meet</button>
+        </sc-if>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LAST SEASON — RESULTS</div>
@@ -1986,17 +2032,24 @@ class Component extends DCLogic {
       {name:'Erik Hartwell',role:'Associate Athletic Trainer',ini:'EH'},
       {name:'Fletcher Roberts',role:'Director of Sports Performance',ini:'FR'}
     ];
-    // ACSD Competition Schedule — 2026-27 season.
+    // ACSD Competition Schedule — 2026-27 season. This is only the seed:
+    // once a coach edits or adds a meet, the live copy lives in Firestore
+    // (schedule/meets — see startTeamContentSync/syncScheduleToCloud) and
+    // that fully replaces this array in renderVals. dateStart/dateEnd are
+    // real ISO dates so the chip/date-line text and the "days until next
+    // meet" countdown are always derived (see meetDateParts), never
+    // hand-typed strings that could drift out of sync with each other.
+    // kind is one of 'away'|'home'|'inv'|'champ' (see tagOf in renderVals).
     this.sched=[
-      {id:'2026-10-09',d1:'OCT',d2:'9',d:'Fri, Oct 9, 2026',n:'Alma at SVSU & LSSU',loc:'University Center, MI'},
-      {id:'2026-10-17',d1:'OCT',d2:'17',d:'Sat, Oct 17, 2026',n:'Alma at Albion',loc:'Albion, MI'},
-      {id:'2026-10-24',d1:'OCT',d2:'24',d:'Sat, Oct 24, 2026',n:'MIAA Invite',loc:'Holland, MI or Grand Rapids, MI (site TBD) · 11:30 AM',inv:true},
-      {id:'2026-11-07',d1:'NOV',d2:'7',d:'Sat, Nov 7, 2026',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',home:true},
-      {id:'2026-11-19',d1:'NOV',d2:'19–21',d:'Nov 19–21, 2026',n:'Cardinal Invitational',loc:'University Center, MI',inv:true},
-      {id:'2027-01-23',d1:'JAN',d2:'23',d:'Sat, Jan 23, 2027',n:'MIAA Invite',loc:'Grand Rapids, MI or Holland, MI (site TBD) · 11:30 AM',inv:true},
-      {id:'2027-01-30',d1:'JAN',d2:'30',d:'Sat, Jan 30, 2027',n:'Alma vs. Kalamazoo',loc:'McClure Natatorium, Alma',home:true},
-      {id:'2027-02-17',d1:'FEB',d2:'17–20',d:'Feb 17–20, 2027',n:'MIAA Championships',loc:'Grand Rapids, MI',champ:true},
-      {id:'2027-03-18',d1:'MAR',d2:'18–21',d:'Mar 18–21, 2027',n:'D3 National Championships',loc:'Greensboro, NC',champ:true}
+      {id:'2026-10-09',dateStart:'2026-10-09',n:'Alma at SVSU & LSSU',loc:'University Center, MI',kind:'away'},
+      {id:'2026-10-17',dateStart:'2026-10-17',n:'Alma at Albion',loc:'Albion, MI',kind:'away'},
+      {id:'2026-10-24',dateStart:'2026-10-24',n:'MIAA Invite',loc:'Holland, MI or Grand Rapids, MI (site TBD) · 11:30 AM',kind:'inv'},
+      {id:'2026-11-07',dateStart:'2026-11-07',n:'Alma vs. Manchester',loc:'McClure Natatorium, Alma',kind:'home'},
+      {id:'2026-11-19',dateStart:'2026-11-19',dateEnd:'2026-11-21',n:'Cardinal Invitational',loc:'University Center, MI',kind:'inv'},
+      {id:'2027-01-23',dateStart:'2027-01-23',n:'MIAA Invite',loc:'Grand Rapids, MI or Holland, MI (site TBD) · 11:30 AM',kind:'inv'},
+      {id:'2027-01-30',dateStart:'2027-01-30',n:'Alma vs. Kalamazoo',loc:'McClure Natatorium, Alma',kind:'home'},
+      {id:'2027-02-17',dateStart:'2027-02-17',dateEnd:'2027-02-20',n:'MIAA Championships',loc:'Grand Rapids, MI',kind:'champ'},
+      {id:'2027-03-18',dateStart:'2027-03-18',dateEnd:'2027-03-21',n:'D3 National Championships',loc:'Greensboro, NC',kind:'champ'}
     ];
     // Meet-day lineups (heat sheet replacement) — real data only, entered
     // per meet from the official heat sheet once it's posted. Keyed by
@@ -2102,6 +2155,30 @@ class Component extends DCLogic {
   }
   fmtEv(ev,t){return this.evMap[ev]&&this.evMap[ev].dive?t.toFixed(1)+' pts':this.fmt(t)}
   fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+  // Derives the meet-list display strings (month chip, day chip, full
+  // date line) from real date fields instead of a coach hand-typing them
+  // — so editing a meet's date can never leave d1/d2/d out of sync with
+  // each other. dateEnd is only set for multi-day invites/championships;
+  // parsed as local calendar dates (not UTC) so a date input's value
+  // never rolls back a day near midnight.
+  meetDateParts(startISO,endISO){
+    const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const cap=s=>s[0]+s.slice(1).toLowerCase();
+    const parse=iso=>{const [y,mo,d]=iso.split('-').map(Number);return new Date(y,mo-1,d)};
+    const s=parse(startISO);
+    const d1=MON[s.getMonth()];
+    if(!endISO||endISO===startISO){
+      return {d1,d2:String(s.getDate()),d:WD[s.getDay()]+', '+cap(d1)+' '+s.getDate()+', '+s.getFullYear()};
+    }
+    const e=parse(endISO);
+    const sameMonth=s.getMonth()===e.getMonth()&&s.getFullYear()===e.getFullYear();
+    if(sameMonth){
+      return {d1,d2:s.getDate()+'–'+e.getDate(),d:cap(d1)+' '+s.getDate()+'–'+e.getDate()+', '+s.getFullYear()};
+    }
+    const eMon=MON[e.getMonth()];
+    return {d1,d2:String(s.getDate()),d:cap(d1)+' '+s.getDate()+' – '+cap(eMon)+' '+e.getDate()+', '+e.getFullYear()};
+  }
   // Total training minutes -> "Xh Ym" (or just "Ym" under an hour) — used
   // by the Training Volume stat card, never a raw minute count.
   fmtDuration(totalMin){
@@ -2626,7 +2703,7 @@ class Component extends DCLogic {
   // and pulls a live name/photo for our own roster via athleteId (an
   // opposing swimmer is just the name+team text that was on the sheet).
   lineupFor(meetId,user){
-    const meet=this.sched.find(m=>m.id===meetId);
+    const meet=(this.state.meetsSchedule||this.sched).find(m=>m.id===meetId);
     if(!meet)return null;
     const rows=(this.lineups[meetId]||[]).map(r=>{
       const athlete=r.athleteId?this.byId[r.athleteId]:null;
@@ -2649,7 +2726,7 @@ class Component extends DCLogic {
     });
     const mine=rows.filter(r=>r.isMine).sort((a,b)=>a.evNum-b.evNum)
       .map(r=>({...r,evNum:String(r.evNum),heat:String(r.heat),lane:String(r.lane)}));
-    return {id:meetId,name:meet.n,date:meet.d,loc:meet.loc,
+    return {id:meetId,name:meet.n,date:this.meetDateParts(meet.dateStart,meet.dateEnd).d,loc:meet.loc,
       hasData:rows.length>0,noData:rows.length===0,events,
       mine,hasMine:this.state.role==='athlete'&&mine.length>0};
   }
@@ -3097,6 +3174,15 @@ class Component extends DCLogic {
       const data=doc.exists?doc.data():null;
       this.setState({trainingWeek:data?(data.days||{}):null,trainNotes:(data&&data.notes)||{}});
     },()=>{});
+    // Season meet schedule — coach-editable (see syncScheduleToCloud), same
+    // whole-doc-replace pattern as training/week above. null until a coach
+    // saves an edit for the first time, at which point renderVals falls
+    // back to this.sched (the seed data) — see meetsList there.
+    if(this._schedUnsub)this._schedUnsub();
+    this._schedUnsub=this.db.collection('schedule').doc('meets').onSnapshot(doc=>{
+      const data=doc.exists?doc.data():null;
+      this.setState({meetsSchedule:data?(data.items||null):null});
+    },()=>{});
     // Workout library sheets — coaches post a new dated sheet each
     // session/day rather than maintaining one persistent blurb per
     // category (see postWorkoutSheet), so this is a growing collection
@@ -3114,6 +3200,7 @@ class Component extends DCLogic {
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
     if(this._trainUnsub){this._trainUnsub();this._trainUnsub=null;}
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
+    if(this._schedUnsub){this._schedUnsub();this._schedUnsub=null;}
   }
   postAnnouncement(){
     const text=(this.state.annPost||'').trim();
@@ -3138,6 +3225,17 @@ class Component extends DCLogic {
     clearTimeout(this._trainSaveTimer);
     this._trainSaveTimer=setTimeout(()=>{
       this.db.collection('training').doc('week').set({days,notes}).catch(()=>{});
+    },700);
+  }
+  // Debounced whole-array write for the season meet schedule — same
+  // reasoning as syncTrainingToCloud: local state updates instantly as a
+  // coach types (see saveSched in renderVals), this just keeps Firestore
+  // from getting hit on every keystroke.
+  syncScheduleToCloud(items){
+    if(!this.fbReady)return;
+    clearTimeout(this._schedSaveTimer);
+    this._schedSaveTimer=setTimeout(()=>{
+      this.db.collection('schedule').doc('meets').set({items}).catch(()=>{});
     },700);
   }
   // Opens/closes the "new sheet" compose panel for one category (POOL/
@@ -3283,8 +3381,17 @@ class Component extends DCLogic {
     const isDivingCoach=role==='dcoach';
     const tab=st.tab;
     const user=this.byId[st.userId]||this.men[4];
-    const nextMeet=this.sched[0];
-    const cdDays=Math.max(0,Math.ceil((new Date('2026-10-09T13:00:00')-Date.now())/86400000));
+    // Season meet schedule — coach-editable (see syncScheduleToCloud);
+    // falls back to the seed data (this.sched) until a coach saves an
+    // edit for the first time. "Next meet" is whichever meet hasn't
+    // started yet, sorted by real date — not just index 0 — so adding or
+    // reordering meets can never desync the countdown from reality.
+    const meetsList=st.meetsSchedule||this.sched;
+    const meetsSorted=[...meetsList].sort((a,b)=>a.dateStart<b.dateStart?-1:a.dateStart>b.dateStart?1:0);
+    const todayISO=new Date().toISOString().slice(0,10);
+    const nextMeetRaw=meetsSorted.find(m=>(m.dateEnd||m.dateStart)>=todayISO)||meetsSorted[meetsSorted.length-1]||null;
+    const cdDays=nextMeetRaw?Math.max(0,Math.ceil((new Date(nextMeetRaw.dateStart+'T13:00:00')-Date.now())/86400000)):0;
+    const nextMeet=nextMeetRaw?{id:nextMeetRaw.id,n:nextMeetRaw.n,loc:nextMeetRaw.loc,d:this.meetDateParts(nextMeetRaw.dateStart,nextMeetRaw.dateEnd).d}:{id:null,n:'TBA',loc:'',d:''};
     const M='#6B1F33',C='#F5E9DC',T='#1B7A78',I='#2A1218';
     // Real sign-in — replaces the old fake name-matching login. Success
     // is handled by onAuthChange (the Firebase auth listener), not here,
@@ -3400,15 +3507,47 @@ class Component extends DCLogic {
       sz:'14px',ls:'1.5px',off:!isCoach?(NAV_X_OFFSET[id]||0):(NAV_X_OFFSET_COACH[id]||0),
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
     const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
-    const tagOf=m=>m.champ?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
-      :m.home?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
-      :m.inv?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
+    const tagOf=m=>m.kind==='champ'?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
+      :m.kind==='home'?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
+      :m.kind==='inv'?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
       :{tag:'AWAY',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'};
-    const schedT=this.sched.map(m=>({...m,...tagOf(m)}));
+    // Coach-editable season schedule — swim and diving coach both count
+    // (see isCoach), same instant-local/debounced-cloud pattern as the
+    // weekly training schedule below (saveSched -> syncScheduleToCloud).
+    // Meets can be added, reordered, or removed at any time, not just
+    // pre-season — a time, a site, or a whole meet can change after the
+    // schedule is already published, and the coach shouldn't need Claude/
+    // a developer to make that change for them.
+    const schedEditing=isCoach&&st.schedEditing;
+    const toggleSchedEdit=()=>this.setState({schedEditing:!st.schedEditing});
+    const schedEditLabel=schedEditing?'Done ✓':'Edit schedule ✎';
+    const saveSched=next=>{this.setState({meetsSchedule:next});this.syncScheduleToCloud(next);};
+    const KIND_OPTS=[{id:'away',n:'Away'},{id:'home',n:'Home'},{id:'inv',n:'Invite'},{id:'champ',n:'Championship'}];
+    const schedT=meetsList.map((m,i)=>{
+      const parts=this.meetDateParts(m.dateStart,m.dateEnd);
+      const update=patch=>saveSched(meetsList.map((x,k)=>k===i?{...x,...patch}:x));
+      return {...m,...parts,...tagOf(m),
+        editing:schedEditing,notEditing:!schedEditing,
+        dateStartValue:m.dateStart,dateEndValue:m.dateEnd||'',
+        nValue:m.n,locValue:m.loc,kindValue:m.kind||'away',kindOpts:KIND_OPTS,
+        onDateStartChange:e=>update({dateStart:e.target.value}),
+        onDateEndChange:e=>update({dateEnd:e.target.value||null}),
+        onNChange:e=>update({n:e.target.value}),
+        onLocChange:e=>update({loc:e.target.value}),
+        onKindChange:e=>update({kind:e.target.value}),
+        cantMoveUp:i===0,cantMoveDown:i===meetsList.length-1,
+        moveUp:()=>{if(i===0)return;const next=[...meetsList];[next[i-1],next[i]]=[next[i],next[i-1]];saveSched(next);},
+        moveDown:()=>{if(i===meetsList.length-1)return;const next=[...meetsList];[next[i+1],next[i]]=[next[i],next[i+1]];saveSched(next);},
+        remove:()=>saveSched(meetsList.filter((_,k)=>k!==i))};
+    });
+    const addMeet=()=>{
+      const id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'meet-'+Date.now();
+      saveSched([...meetsList,{id,dateStart:todayISO,n:'',loc:'',kind:'away'}]);
+    };
     // Lineups only ever get posted a day or two before a meet, so there's
     // no point offering one per row on the whole season's schedule — just
     // a single button on the next/closest meet banner up top.
-    const openNextLineup=()=>this.setState({lineupMeet:nextMeet.id});
+    const openNextLineup=()=>{if(nextMeet.id)this.setState({lineupMeet:nextMeet.id});};
     const lineup=st.lineupMeet?this.lineupFor(st.lineupMeet,user):null;
     const closeLineup=()=>this.setState({lineupMeet:null});
     // athlete home
@@ -4023,7 +4162,7 @@ class Component extends DCLogic {
       navItems,
       heroName:user.name.split(' ')[0],
       heroIsDiver:user.diver,heroIsMen:!user.diver&&user.gender==='M',heroIsWomen:!user.diver&&user.gender==='W',
-      nextMeet,cdDays:String(cdDays),nextShortName:'SVSU & LSSU Duals',
+      nextMeet,cdDays:String(cdDays),nextShortName:nextMeet.n,
       pbCount:user.id==='Rayane Debbarh'?'5':(user.hasLogged?String(user.primary.length):'0'),
       selfList,selfCount,selfEmpty:selfList.length===0,addOpts,addSel,addEvtVal:'',
       allSelfBtn:()=>this.setState({showAllSelf:!st.showAllSelf}),
@@ -4068,7 +4207,7 @@ class Component extends DCLogic {
       teamSort:st.teamSort,teamSortSel:e=>this.setState({teamSort:e.target.value}),
       coaches:this.coaches.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
-      sched:schedT,results:this.results,
+      sched:schedT,results:this.results,schedEditing,toggleSchedEdit,schedEditLabel,addMeet,
       hasLineup:!!lineup,lineup,closeLineup,openNextLineup,
       swimcloudResultsUrl:'https://www.swimcloud.com/results/iframe/?team=213',
       // SwimCloud's gender param is F for women (not W) — this was wrong
