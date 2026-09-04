@@ -3958,13 +3958,15 @@ class Component extends DCLogic {
       slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
       dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',
       onTap:()=>this.setState({sel:s.id,meEvent:null})}));
-    // Home "total athletes" tile: diving coach sees diver-only counts (no
-    // male divers yet, so the subtitle skips "0 Men" rather than show it),
-    // swim coach sees non-diver counts — the two rosters are now disjoint.
-    const homeMen=isDivingCoach?this.men.filter(s=>s.diver):this.men.filter(s=>!s.diver);
-    const homeWomen=isDivingCoach?this.women.filter(s=>s.diver):this.women.filter(s=>!s.diver);
-    const totalTileLabel=isDivingCoach?'TOTAL DIVERS':'TOTAL ATHLETES';
-    const nBreakdown=homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women');
+    // Home "total athletes" tile — identical for both coaches, same as
+    // Team/Attendance: the whole roster, swimmers and divers together, with
+    // the diver count called out in the subtitle so it's still visible at
+    // a glance (not a separate diving-only tile any more).
+    const homeMen=this.men;
+    const homeWomen=this.women;
+    const totalTileLabel='TOTAL ATHLETES';
+    const nDivers=this.all.filter(s=>s.diver).length;
+    const nBreakdown=(homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women'))+(nDivers>0?' · '+nDivers+' Divers':'');
     // Season PBs — replaces the old redundant "DIVERS" tile (diving coach)
     // and the swim-coach-inappropriate diver-only tile (swim coach) with a
     // real, role-scoped activity counter: how many times this coach's own
