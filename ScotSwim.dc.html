@@ -357,7 +357,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">{{ totalTileLabel }}</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ nAll }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ nBreakdown }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6);white-space:pre-line">{{ nBreakdown }}</div>
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DAYS TO OPENER</div>
@@ -3966,7 +3966,12 @@ class Component extends DCLogic {
     const homeWomen=this.women;
     const totalTileLabel='TOTAL ATHLETES';
     const nDivers=this.all.filter(s=>s.diver).length;
-    const nBreakdown=(homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women'))+(nDivers>0?' · '+nDivers+' Divers':'');
+    // "2 Divers" gets its own line (via the \n + white-space:pre-line on
+    // the template div) rather than trailing the gender breakdown with a
+    // " · " — at the tile's narrow width that separator wraps mid-phrase
+    // ("18 Women ·" / "2" / "Divers"), splitting "2" from "Divers" across
+    // three lines instead of reading as one clean unit.
+    const nBreakdown=(homeMen.length===0?homeWomen.length+' Women':(homeWomen.length===0?homeMen.length+' Men':homeMen.length+' Men · '+homeWomen.length+' Women'))+(nDivers>0?'\n'+nDivers+' Divers':'');
     // Season PBs — replaces the old redundant "DIVERS" tile (diving coach)
     // and the swim-coach-inappropriate diver-only tile (swim coach) with a
     // real, role-scoped activity counter: how many times this coach's own
