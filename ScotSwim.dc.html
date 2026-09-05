@@ -678,10 +678,18 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ toggleTrainEdit }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ trainEditLabel }}</button>
         </sc-if>
       </div>
+      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
+        <sc-for list="{{ trainWeekSegs }}" as="w" hint-placeholder-count="2">
+          <button onClick="{{ w.onTap }}" style="flex:1;border:none;border-radius:999px;padding:8px 0;background:{{ w.bg }};color:{{ w.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:1px;cursor:pointer">{{ w.n }}</button>
+        </sc-for>
+      </div>
       <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
         <div style="background:#fff;border:{{ d.bd }};border-radius:8px;padding:13px 16px">
           <div style="display:flex;justify-content:space-between;align-items:baseline">
-            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#6B1F33">{{ d.day }}</div>
+            <div style="display:flex;align-items:baseline;gap:8px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#6B1F33">{{ d.day }}</div>
+              <div style="font-size:11.5px;font-weight:600;color:rgba(42,18,24,.4)">{{ d.dateLabel }}</div>
+            </div>
             <sc-if value="{{ d.today }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:#F5E9DC;background:#1B7A78;border-radius:3px;padding:3px 9px">TODAY</div></sc-if>
           </div>
           <sc-if value="{{ d.editing }}" hint-placeholder-val="{{ false }}">
@@ -1791,7 +1799,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      announcements:[],annPost:'',trainingWeek:null,trainNotes:{},trainEditing:false,trainSeg:'schedule',
+      announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekSel:'this',
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
@@ -2764,6 +2772,11 @@ class Component extends DCLogic {
     reader.readAsDataURL(file);
   }
   ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  // The training schedule is keyed by the Monday (YYYY-MM-DD) of the week
+  // it belongs to — see startTeamContentSync/syncTrainingToCloud — so
+  // "this week" and "next week" are just two different doc ids, both
+  // real calendar weeks rather than one repeating template.
+  mondayKey(d){const x=new Date(d);const dow=(x.getDay()+6)%7;x.setDate(x.getDate()-dow);return this.ymd(x)}
   saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance.v3',JSON.stringify(attendance))}catch(e){}}
   setAttendance(day,id,val){
     const attendance={...this.state.attendance,[day]:{...(this.state.attendance[day]||{}),[id]:val}};
@@ -3174,11 +3187,24 @@ class Component extends DCLogic {
       .onSnapshot(snap=>{
         this.setState({announcements:snap.docs.map(d=>({id:d.id,...d.data()}))});
       },()=>{});
-    if(this._trainUnsub)this._trainUnsub();
-    this._trainUnsub=this.db.collection('training').doc('week').onSnapshot(doc=>{
-      const data=doc.exists?doc.data():null;
-      this.setState({trainingWeek:data?(data.days||{}):null,trainNotes:(data&&data.notes)||{}});
-    },()=>{});
+    // Weekly training schedule — keyed by the Monday of the week it
+    // belongs to (see mondayKey), so "this week" and "next week" are real,
+    // separate calendar weeks rather than one repeating template. Only
+    // ever subscribes to those two doc ids for the lifetime of this
+    // session — if a session happens to stay open across a week boundary
+    // this doesn't auto-shift until the next login, which is an
+    // acceptable trade-off for how this app actually gets used.
+    if(this._trainUnsubs)this._trainUnsubs.forEach(u=>u());
+    const thisMon=this.mondayKey(new Date());
+    const nextDate=new Date();nextDate.setDate(nextDate.getDate()+7);
+    const nextMon=this.mondayKey(nextDate);
+    this._trainUnsubs=[thisMon,nextMon].map(key=>
+      this.db.collection('training').doc(key).onSnapshot(doc=>{
+        const data=doc.exists?doc.data():null;
+        const trainWeeks={...this.state.trainWeeks,[key]:{days:(data&&data.days)||{},notes:(data&&data.notes)||{}}};
+        this.setState({trainWeeks});
+      },()=>{})
+    );
     // Season meet schedule — coach-editable (see syncScheduleToCloud), same
     // whole-doc-replace pattern as training/week above. null until a coach
     // saves an edit for the first time, at which point renderVals falls
@@ -3203,7 +3229,7 @@ class Component extends DCLogic {
   }
   stopTeamContentSync(){
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
-    if(this._trainUnsub){this._trainUnsub();this._trainUnsub=null;}
+    if(this._trainUnsubs){this._trainUnsubs.forEach(u=>u());this._trainUnsubs=null;}
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
     if(this._schedUnsub){this._schedUnsub();this._schedUnsub=null;}
   }
@@ -3218,18 +3244,21 @@ class Component extends DCLogic {
     if(!this.fbReady)return;
     this.db.collection('announcements').doc(id).delete().catch(()=>{});
   }
-  // Debounced whole-doc write — a coach editing a field-by-field weekly
-  // schedule shouldn't hit Firestore on every keystroke, same reasoning as
-  // syncMyEventsToCloud. Local state updates instantly regardless (see the
-  // saveTrainDay/saveDayNote closures in renderVals), so typing itself
-  // never waits on this. Always writes both days and notes together (the
-  // caller passes the full current value of whichever one it didn't
-  // change) since a plain .set() replaces the whole doc.
-  syncTrainingToCloud(days,notes){
+  // Debounced whole-doc write, per week — a coach editing a field-by-field
+  // weekly schedule shouldn't hit Firestore on every keystroke, same
+  // reasoning as syncMyEventsToCloud. Local state updates instantly
+  // regardless (see the saveTrainDay/saveDayNote closures in renderVals),
+  // so typing itself never waits on this. Always writes both days and
+  // notes together (the caller passes the full current value of whichever
+  // one it didn't change) since a plain .set() replaces the whole doc.
+  // Keyed by weekKey (see mondayKey) so editing "this week" and "next
+  // week" debounce independently.
+  syncTrainingToCloud(weekKey,days,notes){
     if(!this.fbReady)return;
-    clearTimeout(this._trainSaveTimer);
-    this._trainSaveTimer=setTimeout(()=>{
-      this.db.collection('training').doc('week').set({days,notes}).catch(()=>{});
+    if(!this._trainSaveTimers)this._trainSaveTimers={};
+    clearTimeout(this._trainSaveTimers[weekKey]);
+    this._trainSaveTimers[weekKey]=setTimeout(()=>{
+      this.db.collection('training').doc(weekKey).set({days,notes}).catch(()=>{});
     },700);
   }
   // Debounced whole-array write for the season meet schedule — same
@@ -3663,30 +3692,45 @@ class Component extends DCLogic {
       note:lead?defendLine:rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'}:null;
     const dayIdx=(new Date().getDay()+6)%7;
     // Coach-editable weekly training schedule (swim coach and diving
-    // coach both count — see isCoach). Edits write the whole day's
-    // session list back in one debounced call (syncTrainingToCloud); the
-    // local setState is instant so typing itself never waits on the
-    // network. LIFT sessions never show a typed exercise — real lift
-    // work comes from TeamBuildr once the season's schedule is out, so
-    // the name always renders as this.LIFT_TBA regardless of what (if
-    // anything) is stored, both here and in the dashboard preview below.
+    // coach both count — see isCoach), planned at least a week ahead: the
+    // schedule is keyed by the Monday of the real calendar week it
+    // belongs to (see mondayKey), so "this week" and "next week" are two
+    // distinct, independently-editable weeks rather than one repeating
+    // template. Everyone (athletes included) can view both; only coaches
+    // can edit (trainEditing gates every input below on isCoach same as
+    // before). Edits write the whole day's session list back in one
+    // debounced call (syncTrainingToCloud); the local setState is instant
+    // so typing itself never waits on the network. LIFT sessions never
+    // show a typed exercise — real lift work comes from TeamBuildr once
+    // the season's schedule is out, so the name always renders as
+    // this.LIFT_TBA regardless of what (if anything) is stored, both here
+    // and in the dashboard preview below.
     const trainEditing=isCoach&&st.trainEditing;
     const toggleTrainEdit=()=>this.setState({trainEditing:!st.trainEditing});
     const trainEditLabel=trainEditing?'Done ✓':'Edit schedule ✎';
-    const saveTrainDay=(day,sessions)=>{
-      const next={...(st.trainingWeek||{}),[day]:sessions};
-      this.setState({trainingWeek:next});
-      this.syncTrainingToCloud(next,st.trainNotes);
+    const thisMon=this.mondayKey(new Date());
+    const nextMonDate=new Date();nextMonDate.setDate(nextMonDate.getDate()+7);
+    const nextMon=this.mondayKey(nextMonDate);
+    const trainWeekSel=st.trainWeekSel==='next'?'next':'this';
+    const selWeekKey=trainWeekSel==='next'?nextMon:thisMon;
+    const trainWeekSegList=[['this','THIS WEEK'],['next','NEXT WEEK']];
+    const trainWeekSegs=trainWeekSegList.map(([id,n])=>({n,bg:trainWeekSel===id?T:'transparent',fg:trainWeekSel===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({trainWeekSel:id})}));
+    const saveTrainDay=(weekKey,day,sessions)=>{
+      const wk=this.state.trainWeeks[weekKey]||{days:{},notes:{}};
+      const days={...wk.days,[day]:sessions};
+      this.setState({trainWeeks:{...this.state.trainWeeks,[weekKey]:{days,notes:wk.notes}}});
+      this.syncTrainingToCloud(weekKey,days,wk.notes);
     };
     // Per-day note — a short free-text caption coaches can attach to a
     // whole day, separate from any one session (see dayNotePlaceholder
     // below for the role-specific example text). Stored alongside days
-    // in the same training/week doc (see syncTrainingToCloud), read-only
-    // for athletes same as everything else here.
-    const saveDayNote=(day,text)=>{
-      const next={...(st.trainNotes||{}),[day]:text};
-      this.setState({trainNotes:next});
-      this.syncTrainingToCloud(st.trainingWeek,next);
+    // in the same per-week training doc (see syncTrainingToCloud),
+    // read-only for athletes same as everything else here.
+    const saveDayNote=(weekKey,day,text)=>{
+      const wk=this.state.trainWeeks[weekKey]||{days:{},notes:{}};
+      const notes={...wk.notes,[day]:text};
+      this.setState({trainWeeks:{...this.state.trainWeeks,[weekKey]:{days:wk.days,notes}}});
+      this.syncTrainingToCloud(weekKey,wk.days,notes);
     };
     // The diving coach lives in this tab constantly and rarely touches
     // POOL/DRY sessions, so DIVE leads the dropdown for them instead of
@@ -3701,25 +3745,43 @@ class Component extends DCLogic {
       ?'e.g. Please be on time'
       :'e.g. Choose one session — please be on time';
     const defaultTag=isDivingCoach?'DIVE':'POOL';
-    const week=this.DAYS.map((day,i)=>{
-      const sessions=(st.trainingWeek&&st.trainingWeek[day])||[];
-      const rows=sessions.map((s,j)=>{
-        const isLift=s.tag==='LIFT';
-        const update=patch=>saveTrainDay(day,sessions.map((x,k)=>k===j?{...x,...patch}:x));
-        return {t:s.t,n:isLift?this.LIFT_TBA:s.n,tag:s.tag,isLift,isNotLift:!isLift,editing:trainEditing,notEditing:!trainEditing,
-          tValue:s.t,nValue:s.n,tagValue:s.tag,tagOpts,
-          onTChange:e=>update({t:e.target.value}),
-          onNChange:e=>update({n:e.target.value}),
-          onTagChange:e=>{const tag=e.target.value;update(tag==='LIFT'?{tag,n:''}:{tag});},
-          remove:()=>saveTrainDay(day,sessions.filter((_,k)=>k!==j))};
+    // Builds one week's 7 day-cards from its stored days/notes. `editable`
+    // is passed in rather than always reading trainEditing directly so the
+    // Home-dashboard preview (weekThis below) can always render read-only
+    // regardless of whether a coach currently has the Train tab's edit
+    // mode open on some other week.
+    const buildWeek=(weekKey,editable)=>{
+      const wk=this.state.trainWeeks[weekKey]||{days:{},notes:{}};
+      const monDate=new Date(weekKey+'T00:00:00');
+      const isThisWeek=weekKey===thisMon;
+      return this.DAYS.map((day,i)=>{
+        const sessions=(wk.days&&wk.days[day])||[];
+        const rows=sessions.map((s,j)=>{
+          const isLift=s.tag==='LIFT';
+          const update=patch=>saveTrainDay(weekKey,day,sessions.map((x,k)=>k===j?{...x,...patch}:x));
+          return {t:s.t,n:isLift?this.LIFT_TBA:s.n,tag:s.tag,isLift,isNotLift:!isLift,editing:editable,notEditing:!editable,
+            tValue:s.t,nValue:s.n,tagValue:s.tag,tagOpts,
+            onTChange:e=>update({t:e.target.value}),
+            onNChange:e=>update({n:e.target.value}),
+            onTagChange:e=>{const tag=e.target.value;update(tag==='LIFT'?{tag,n:''}:{tag});},
+            remove:()=>saveTrainDay(weekKey,day,sessions.filter((_,k)=>k!==j))};
+        });
+        const note=(wk.notes&&wk.notes[day])||'';
+        const d=new Date(monDate);d.setDate(d.getDate()+i);
+        const dateLabel=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const isToday=isThisWeek&&i===dayIdx;
+        return {day,dateLabel,today:isToday,bd:isToday?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)',
+          s:rows,sEmpty:rows.length===0,editing:editable,notEditing:!editable,
+          note,noteValue:note,noteholder:dayNotePlaceholder,showNote:!editable&&!!note,
+          onNoteChange:e=>saveDayNote(weekKey,day,e.target.value),
+          addSession:()=>saveTrainDay(weekKey,day,[...sessions,{t:'',n:'',tag:defaultTag}])};
       });
-      const note=(st.trainNotes&&st.trainNotes[day])||'';
-      return {day,today:i===dayIdx,bd:i===dayIdx?'2px solid #1B7A78':'1px solid rgba(42,18,24,.07)',
-        s:rows,sEmpty:rows.length===0,editing:trainEditing,notEditing:!trainEditing,
-        note,noteValue:note,noteholder:dayNotePlaceholder,showNote:!trainEditing&&!!note,
-        onNoteChange:e=>saveDayNote(day,e.target.value),
-        addSession:()=>saveTrainDay(day,[...sessions,{t:'',n:'',tag:defaultTag}])};
-    });
+    };
+    // weekThis is always "this week", always read-only — the Home
+    // dashboard's "today" preview must never flip to next week's Monday
+    // session just because a coach has the Next Week tab open elsewhere.
+    const weekThis=buildWeek(thisMon,false);
+    const week=buildWeek(selWeekKey,trainEditing);
     // WORKOUT LIBRARY — coaches post a dated block (text and/or a photo,
     // coach's choice) each time they have something new, rather than
     // maintaining one static blurb per category, so each category is
@@ -4196,7 +4258,7 @@ class Component extends DCLogic {
       recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
       allLabel:user.diver?'All dives':'All swims',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
-      todayName:week[dayIdx].day,todaySessions:week[dayIdx].s,todaySessionsEmpty:week[dayIdx].sEmpty,
+      todayName:weekThis[dayIdx].day,todaySessions:weekThis[dayIdx].s,todaySessionsEmpty:weekThis[dayIdx].sEmpty,
       anns,annsEmpty,annPost:st.annPost,annPostChange,annPostSubmit,week,trainEditing,toggleTrainEdit,trainEditLabel,
       nAll:String(homeMen.length+homeWomen.length),nMen:String(homeMen.length),nWomen:String(homeWomen.length),
       totalTileLabel,nBreakdown,
@@ -4228,7 +4290,7 @@ class Component extends DCLogic {
       swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213',
       swimcloudTimesUrl:'https://www.swimcloud.com/times/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213&hide_gender=1',
       progressSegs,showProgressTimes,showProgressTraining,
-      trainSegs,showTrainSchedule,showTrainLibrary,
+      trainSegs,showTrainSchedule,showTrainLibrary,trainWeekSegs,
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,simShowGenderToggle:!isDivingCoach,
