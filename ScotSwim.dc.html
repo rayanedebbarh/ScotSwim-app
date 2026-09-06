@@ -678,10 +678,13 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ toggleTrainEdit }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ trainEditLabel }}</button>
         </sc-if>
       </div>
-      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
-        <sc-for list="{{ trainWeekSegs }}" as="w" hint-placeholder-count="2">
-          <button onClick="{{ w.onTap }}" style="flex:1;border:none;border-radius:999px;padding:8px 0;background:{{ w.bg }};color:{{ w.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:12.5px;letter-spacing:1px;cursor:pointer">{{ w.n }}</button>
-        </sc-for>
+      <div style="background:#2A1218;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
+        <button onClick="{{ trainWeekPrev }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">‹</button>
+        <div style="text-align:center">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:2px;color:#7fd0cd">{{ trainWeekLabel }}</div>
+          <div style="font-size:11px;color:rgba(245,233,220,.65);margin-top:2px">{{ trainWeekRange }}</div>
+        </div>
+        <button onClick="{{ trainWeekNext }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">›</button>
       </div>
       <sc-for list="{{ week }}" as="d" hint-placeholder-count="7">
         <div style="background:#fff;border:{{ d.bd }};border-radius:8px;padding:13px 16px">
@@ -1799,7 +1802,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekSel:'this',
+      announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
@@ -3188,23 +3191,22 @@ class Component extends DCLogic {
         this.setState({announcements:snap.docs.map(d=>({id:d.id,...d.data()}))});
       },()=>{});
     // Weekly training schedule — keyed by the Monday of the week it
-    // belongs to (see mondayKey), so "this week" and "next week" are real,
-    // separate calendar weeks rather than one repeating template. Only
-    // ever subscribes to those two doc ids for the lifetime of this
-    // session — if a session happens to stay open across a week boundary
-    // this doesn't auto-shift until the next login, which is an
-    // acceptable trade-off for how this app actually gets used.
-    if(this._trainUnsubs)this._trainUnsubs.forEach(u=>u());
+    // belongs to (see mondayKey), so any week is just a different doc id
+    // rather than one repeating template. Two listeners run at once: a
+    // fixed one on the real current week (thisWeekUnsub), which feeds the
+    // Home dashboard's "today" preview regardless of what a coach happens
+    // to be browsing elsewhere, and a roving one (selUnsub, managed by
+    // watchTrainWeek) on whichever week is currently open in the Train
+    // tab — coaches/athletes can page ‹ › through any week, current month
+    // or any other, and each week they land on gets its own live doc.
+    if(this._trainThisUnsub)this._trainThisUnsub();
     const thisMon=this.mondayKey(new Date());
-    const nextDate=new Date();nextDate.setDate(nextDate.getDate()+7);
-    const nextMon=this.mondayKey(nextDate);
-    this._trainUnsubs=[thisMon,nextMon].map(key=>
-      this.db.collection('training').doc(key).onSnapshot(doc=>{
-        const data=doc.exists?doc.data():null;
-        const trainWeeks={...this.state.trainWeeks,[key]:{days:(data&&data.days)||{},notes:(data&&data.notes)||{}}};
-        this.setState({trainWeeks});
-      },()=>{})
-    );
+    this._trainThisUnsub=this.db.collection('training').doc(thisMon).onSnapshot(doc=>{
+      const data=doc.exists?doc.data():null;
+      const trainWeeks={...this.state.trainWeeks,[thisMon]:{days:(data&&data.days)||{},notes:(data&&data.notes)||{}}};
+      this.setState({trainWeeks});
+    },()=>{});
+    this.watchTrainWeek(this.state.trainWeekKey||thisMon);
     // Season meet schedule — coach-editable (see syncScheduleToCloud), same
     // whole-doc-replace pattern as training/week above. null until a coach
     // saves an edit for the first time, at which point renderVals falls
@@ -3229,7 +3231,8 @@ class Component extends DCLogic {
   }
   stopTeamContentSync(){
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
-    if(this._trainUnsubs){this._trainUnsubs.forEach(u=>u());this._trainUnsubs=null;}
+    if(this._trainThisUnsub){this._trainThisUnsub();this._trainThisUnsub=null;}
+    if(this._trainSelUnsub){this._trainSelUnsub();this._trainSelUnsub=null;}
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
     if(this._schedUnsub){this._schedUnsub();this._schedUnsub=null;}
   }
@@ -3260,6 +3263,19 @@ class Component extends DCLogic {
     this._trainSaveTimers[weekKey]=setTimeout(()=>{
       this.db.collection('training').doc(weekKey).set({days,notes}).catch(()=>{});
     },700);
+  }
+  // Swaps the one "roving" training-week listener over to a new week —
+  // called every time a coach/athlete pages ‹ › to a different week in
+  // the Train tab (see gotoWeek in renderVals), so browsing to any week,
+  // however far out, always gets a live doc rather than a one-time fetch.
+  watchTrainWeek(weekKey){
+    if(!this.fbReady)return;
+    if(this._trainSelUnsub)this._trainSelUnsub();
+    this._trainSelUnsub=this.db.collection('training').doc(weekKey).onSnapshot(doc=>{
+      const data=doc.exists?doc.data():null;
+      const trainWeeks={...this.state.trainWeeks,[weekKey]:{days:(data&&data.days)||{},notes:(data&&data.notes)||{}}};
+      this.setState({trainWeeks});
+    },()=>{});
   }
   // Debounced whole-array write for the season meet schedule — same
   // reasoning as syncTrainingToCloud: local state updates instantly as a
@@ -3711,10 +3727,27 @@ class Component extends DCLogic {
     const thisMon=this.mondayKey(new Date());
     const nextMonDate=new Date();nextMonDate.setDate(nextMonDate.getDate()+7);
     const nextMon=this.mondayKey(nextMonDate);
-    const trainWeekSel=st.trainWeekSel==='next'?'next':'this';
-    const selWeekKey=trainWeekSel==='next'?nextMon:thisMon;
-    const trainWeekSegList=[['this','THIS WEEK'],['next','NEXT WEEK']];
-    const trainWeekSegs=trainWeekSegList.map(([id,n])=>({n,bg:trainWeekSel===id?T:'transparent',fg:trainWeekSel===id?C:'rgba(42,18,24,.6)',onTap:()=>this.setState({trainWeekSel:id})}));
+    // Free ‹ › navigation, not just a this/next toggle — a coach can page
+    // through every week of the current month (or any other) to plan the
+    // whole month in one sitting, rather than only ever seeing one week
+    // ahead. Athletes get the identical banner and paging, just no edit
+    // controls (gated below via isCoach, unchanged). gotoWeek both moves
+    // the visible week and swaps the live Firestore listener onto it
+    // (see watchTrainWeek) so wherever someone pages to is always live,
+    // not a stale one-time read.
+    const selWeekKey=st.trainWeekKey||thisMon;
+    const gotoWeek=key=>{this.setState({trainWeekKey:key});this.watchTrainWeek(key);};
+    const shiftWeek=deltaDays=>{
+      const d=new Date(selWeekKey+'T00:00:00');d.setDate(d.getDate()+deltaDays);
+      gotoWeek(this.mondayKey(d));
+    };
+    const trainWeekPrev=()=>shiftWeek(-7);
+    const trainWeekNext=()=>shiftWeek(7);
+    const trainWeekLabel=selWeekKey===thisMon?'THIS WEEK':selWeekKey===nextMon?'NEXT WEEK':
+      ('WEEK OF '+new Date(selWeekKey+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase());
+    const trainWeekRangeStart=new Date(selWeekKey+'T00:00:00');
+    const trainWeekRangeEnd=new Date(trainWeekRangeStart);trainWeekRangeEnd.setDate(trainWeekRangeEnd.getDate()+6);
+    const trainWeekRange=trainWeekRangeStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+trainWeekRangeEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const saveTrainDay=(weekKey,day,sessions)=>{
       const wk=this.state.trainWeeks[weekKey]||{days:{},notes:{}};
       const days={...wk.days,[day]:sessions};
@@ -4290,7 +4323,8 @@ class Component extends DCLogic {
       swimcloudRecordsUrl:'https://www.swimcloud.com/team/records/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213',
       swimcloudTimesUrl:'https://www.swimcloud.com/times/iframe/?gender='+(st.teamSeg==='W'?'F':'M')+'&team=213&hide_gender=1',
       progressSegs,showProgressTimes,showProgressTraining,
-      trainSegs,showTrainSchedule,showTrainLibrary,trainWeekSegs,
+      trainSegs,showTrainSchedule,showTrainLibrary,
+      trainWeekLabel,trainWeekRange,trainWeekPrev,trainWeekNext,
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,simShowGenderToggle:!isDivingCoach,
