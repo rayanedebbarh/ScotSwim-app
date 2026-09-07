@@ -1412,6 +1412,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ openInvitePanel }}" style="width:100%;border:1px solid rgba(127,208,205,.4);background:rgba(127,208,205,.1);color:#7fd0cd;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">INVITE ATHLETE</button>
         </sc-if>
         <button onClick="{{ menuSignOut }}" style="width:100%;border:1px solid rgba(245,233,220,.35);background:none;color:rgba(245,233,220,.85);border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">SIGN OUT</button>
+        <button onClick="{{ openDeletePanel }}" style="width:100%;border:none;background:none;color:rgba(245,233,220,.4);padding:4px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">Delete my account</button>
       </div>
     </div>
     <div onClick="{{ closeMenu }}" style="flex:1;background:rgba(42,18,24,.55)"></div>
@@ -1734,6 +1735,29 @@ input::placeholder{color:rgba(245,233,220,.5)}
   </div>
 </sc-if>
 
+<!-- delete account -->
+<sc-if value="{{ showDeletePanel }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeDeletePanel }}" style="position:absolute;inset:0;background:rgba(42,18,24,.55);z-index:70"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;padding:16px 20px 26px;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="width:24px"></div>
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#2A1218">DELETE ACCOUNT</div>
+      <button onClick="{{ closeDeletePanel }}" style="border:none;background:none;color:rgba(42,18,24,.55);font-size:13.5px;font-weight:800;cursor:pointer;padding:0">Cancel</button>
+    </div>
+    <div style="background:rgba(107,31,51,.06);border:1px solid rgba(107,31,51,.25);border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12.5px;color:#6B1F33;line-height:1.5">This permanently deletes your login and profile. It can't be undone. Your times, training log, and other team records stay part of the team's history — only your personal account access is removed.</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">CONFIRM YOUR PASSWORD</div>
+        <input type="password" value="{{ deletePassword }}" onChange="{{ onDeletePasswordChange }}" placeholder="Password" style="width:100%;margin-top:4px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13.5px;outline:none;box-sizing:border-box">
+      </div>
+      <sc-if value="{{ hasDeleteErr }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:12px;color:#b23b3b;font-weight:600">{{ deleteErr }}</div>
+      </sc-if>
+      <button onClick="{{ confirmDeleteAccount }}" disabled="{{ deleteBusy }}" style="width:100%;border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:12px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">{{ deleteBtnLabel }}</button>
+    </div>
+  </div>
+</sc-if>
+
 <!-- toast -->
 <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;bottom:96px;left:24px;right:24px;background:#2A1218;color:#F5E9DC;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.3)">{{ toast }}</div>
@@ -1805,7 +1829,8 @@ class Component extends DCLogic {
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
-      showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:''};
+      showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:'',
+      showDeletePanel:false,deletePassword:'',deleteErr:'',deleteBusy:false};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -3420,6 +3445,34 @@ class Component extends DCLogic {
       .then(()=>this.setState({inviteBusy:false,inviteResult:this.BASE_URL+'?invite='+token}))
       .catch(()=>this.setState({inviteBusy:false,inviteErr:'Could not create the invite — try again.'}));
   }
+  // Self-service account deletion — required by the App Store review
+  // guidelines for any app that supports account creation (ScotSwim does,
+  // via invite signup). Requires re-entering the password first since
+  // Firebase's own user.delete() rejects a stale session (auth/requires-
+  // recent-login) otherwise, and this is the same real password check a
+  // destructive action like this should have regardless. Deletes the
+  // Firebase Auth credential and the account's `users/{uid}` profile doc;
+  // the roster's own historical times/training data stays put (it
+  // belongs to the team's record, not solely to this one login), same as
+  // how a coach re-issuing an invite for the same roster spot next season
+  // is expected to work.
+  deleteAccount(password){
+    const user=this.state.authUser||(this.fbReady?this.auth.currentUser:null);
+    if(!user){this.setState({deleteErr:'Something went wrong — try signing in again.'});return;}
+    if(!password){this.setState({deleteErr:'Enter your password to confirm.'});return;}
+    this.setState({deleteBusy:true,deleteErr:''});
+    const cred=window.firebase.auth.EmailAuthProvider.credential(user.email,password);
+    user.reauthenticateWithCredential(cred)
+      .then(()=>this.db.collection('users').doc(user.uid).delete())
+      .then(()=>user.delete())
+      .then(()=>{
+        this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();
+        this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,
+          showDeletePanel:false,deletePassword:'',deleteBusy:false,authUser:null,
+          uname:'',pass:'',authMsg:'Your account has been deleted.'});
+      })
+      .catch(err=>this.setState({deleteBusy:false,deleteErr:this.authErrMsg(err)}));
+  }
   renderVals(){
     const st=this.state;
     const start=this.props.startRole??'login';
@@ -4244,6 +4297,14 @@ class Component extends DCLogic {
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
       menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:''}),
+      closeDeletePanel:()=>this.setState({showDeletePanel:false}),
+      showDeletePanel:st.showDeletePanel,
+      deletePassword:st.deletePassword,
+      onDeletePasswordChange:e=>this.setState({deletePassword:e.target.value}),
+      hasDeleteErr:!!st.deleteErr,deleteErr:st.deleteErr,
+      deleteBusy:st.deleteBusy,deleteBtnLabel:st.deleteBusy?'Deleting…':'Permanently Delete My Account',
+      confirmDeleteAccount:()=>this.deleteAccount(st.deletePassword),
       menuItems:(isDivingCoach
         ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
         :isCoach
