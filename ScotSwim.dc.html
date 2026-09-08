@@ -61,8 +61,18 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="font-size:10.5px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;line-height:1.05;color:#F5E9DC;margin-top:4px">Welcome to ScotSwim</div>
       </div>
-      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
-      <input value="{{ pass }}" onChange="{{ onP }}" type="password" placeholder="password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none;box-sizing:border-box">
+      <div style="position:relative">
+        <input value="{{ pass }}" onChange="{{ onP }}" type="{{ passInputType }}" placeholder="password" style="width:100%;padding:13px 44px 13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none;box-sizing:border-box">
+        <button type="button" onClick="{{ toggleShowPass }}" aria-label="Show or hide password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;padding:6px;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(245,233,220,.6)">
+          <sc-if value="{{ showPass }}" hint-placeholder-val="{{ false }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+          </sc-if>
+          <sc-if value="{{ passHidden }}" hint-placeholder-val="{{ true }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </sc-if>
+        </button>
+      </div>
       <sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}">
         <div style="font-size:12.5px;color:#ff9d9d;font-weight:600">{{ authErr }}</div>
       </sc-if>
@@ -98,8 +108,28 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;color:#F5E9DC;margin-top:2px">{{ inviteForName }} · {{ inviteForRole }}</div>
           <div style="font-size:12px;color:rgba(245,233,220,.65);margin-top:2px">{{ inviteForEmail }}</div>
         </div>
-        <input value="{{ signupPass }}" onChange="{{ onSignupPass }}" type="password" placeholder="choose a password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
-        <input value="{{ signupPass2 }}" onChange="{{ onSignupPass2 }}" type="password" placeholder="confirm password" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none">
+        <div style="position:relative">
+          <input value="{{ signupPass }}" onChange="{{ onSignupPass }}" type="{{ signupPassInputType }}" placeholder="choose a password" style="width:100%;padding:13px 44px 13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none;box-sizing:border-box">
+          <button type="button" onClick="{{ toggleShowSignupPass }}" aria-label="Show or hide password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;padding:6px;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(245,233,220,.6)">
+            <sc-if value="{{ showSignupPass }}" hint-placeholder-val="{{ false }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </sc-if>
+            <sc-if value="{{ signupPassHidden }}" hint-placeholder-val="{{ true }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </sc-if>
+          </button>
+        </div>
+        <div style="position:relative">
+          <input value="{{ signupPass2 }}" onChange="{{ onSignupPass2 }}" type="{{ signupPass2InputType }}" placeholder="confirm password" style="width:100%;padding:13px 44px 13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none;box-sizing:border-box">
+          <button type="button" onClick="{{ toggleShowSignupPass2 }}" aria-label="Show or hide password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;padding:6px;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(245,233,220,.6)">
+            <sc-if value="{{ showSignupPass2 }}" hint-placeholder-val="{{ false }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </sc-if>
+            <sc-if value="{{ signupPass2Hidden }}" hint-placeholder-val="{{ true }}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </sc-if>
+          </button>
+        </div>
         <sc-if value="{{ hasAuthErr }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12.5px;color:#ff9d9d;font-weight:600">{{ authErr }}</div>
         </sc-if>
@@ -1748,7 +1778,17 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="display:flex;flex-direction:column;gap:10px">
       <div>
         <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6B1F33">CONFIRM YOUR PASSWORD</div>
-        <input type="password" value="{{ deletePassword }}" onChange="{{ onDeletePasswordChange }}" placeholder="Password" style="width:100%;margin-top:4px;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13.5px;outline:none;box-sizing:border-box">
+        <div style="position:relative;margin-top:4px">
+          <input type="{{ deletePassInputType }}" value="{{ deletePassword }}" onChange="{{ onDeletePasswordChange }}" placeholder="Password" style="width:100%;padding:9px 40px 9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13.5px;outline:none;box-sizing:border-box">
+          <button type="button" onClick="{{ toggleShowDeletePass }}" aria-label="Show or hide password" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:5px;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(42,18,24,.45)">
+            <sc-if value="{{ showDeletePass }}" hint-placeholder-val="{{ false }}">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 5.06-5.94"></path><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19"></path><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </sc-if>
+            <sc-if value="{{ deletePassHidden }}" hint-placeholder-val="{{ true }}">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </sc-if>
+          </button>
+        </div>
       </div>
       <sc-if value="{{ hasDeleteErr }}" hint-placeholder-val="{{ false }}">
         <div style="font-size:12px;color:#b23b3b;font-weight:600">{{ deleteErr }}</div>
@@ -1830,7 +1870,8 @@ class Component extends DCLogic {
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:'',
-      showDeletePanel:false,deletePassword:'',deleteErr:'',deleteBusy:false};
+      showDeletePanel:false,deletePassword:'',deleteErr:'',deleteBusy:false,
+      showPass:false,showSignupPass:false,showSignupPass2:false,showDeletePass:false};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -4227,6 +4268,8 @@ class Component extends DCLogic {
       uname:st.uname,pass:st.pass,
       onU:e=>this.setState({uname:e.target.value,authErr:'',authMsg:''}),
       onP:e=>this.setState({pass:e.target.value,authErr:'',authMsg:''}),
+      showPass:st.showPass,passHidden:!st.showPass,passInputType:st.showPass?'text':'password',
+      toggleShowPass:()=>this.setState({showPass:!st.showPass}),
       doForgotPassword,
       doLogin,
       authErr:st.authErr,hasAuthErr:!!st.authErr,authBusy:st.authBusy,
@@ -4245,6 +4288,10 @@ class Component extends DCLogic {
       inviteForRole:st.inviteInfo?({athlete:'Athlete',coach:'Swim Coach',dcoach:'Diving Coach'}[st.inviteInfo.role]||''):'',
       inviteForEmail:st.inviteInfo?st.inviteInfo.email:'',
       signupPass:st.signupPass,signupPass2:st.signupPass2,onSignupPass,onSignupPass2,doSignup,
+      showSignupPass:st.showSignupPass,signupPassHidden:!st.showSignupPass,signupPassInputType:st.showSignupPass?'text':'password',
+      toggleShowSignupPass:()=>this.setState({showSignupPass:!st.showSignupPass}),
+      showSignupPass2:st.showSignupPass2,signupPass2Hidden:!st.showSignupPass2,signupPass2InputType:st.showSignupPass2?'text':'password',
+      toggleShowSignupPass2:()=>this.setState({showSignupPass2:!st.showSignupPass2}),
       backToLogin:()=>{history.replaceState(null,'',location.pathname+location.hash);this.setState({screen:'login',inviteToken:null,inviteInfo:undefined,authErr:''});},
       // Coach-only "invite a teammate" panel — lives in the hamburger menu.
       canInvite:isCoach,
@@ -4297,11 +4344,13 @@ class Component extends DCLogic {
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
       menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
-      openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:''}),
+      openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:'',showDeletePass:false}),
       closeDeletePanel:()=>this.setState({showDeletePanel:false}),
       showDeletePanel:st.showDeletePanel,
       deletePassword:st.deletePassword,
       onDeletePasswordChange:e=>this.setState({deletePassword:e.target.value}),
+      showDeletePass:st.showDeletePass,deletePassHidden:!st.showDeletePass,deletePassInputType:st.showDeletePass?'text':'password',
+      toggleShowDeletePass:()=>this.setState({showDeletePass:!st.showDeletePass}),
       hasDeleteErr:!!st.deleteErr,deleteErr:st.deleteErr,
       deleteBusy:st.deleteBusy,deleteBtnLabel:st.deleteBusy?'Deleting…':'Permanently Delete My Account',
       confirmDeleteAccount:()=>this.deleteAccount(st.deletePassword),
