@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <script src="./support.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -23,6 +23,19 @@ body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
 a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{display:none}
+/* The app bar and bottom nav each reserve a fixed chunk of top/bottom
+   padding to clear the fake status bar / home-indicator drawn by
+   IOSDevice's own framed desktop-preview mockup (ios-frame.jsx, >=560px
+   viewport). On a real phone (native app or a real mobile browser,
+   <560px) there's no fake overlay to clear — instead the padding needs
+   to clear whatever the *real* device's notch/status bar and home
+   indicator actually are, which varies per device, so it's driven by
+   env(safe-area-inset-*) there instead of the fixed desktop-preview
+   values. Same 560px breakpoint IOSDevice itself switches on. */
+.appbar-safepad{padding-top:calc(env(safe-area-inset-top) + 12px)}
+@media (min-width:560px){.appbar-safepad{padding-top:54px}}
+.navbar-safepad{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
+@media (min-width:560px){.navbar-safepad{padding-bottom:24px}}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 input::placeholder{color:rgba(245,233,220,.5)}
 /* Overrides the cream placeholder above for inputs that sit on light
@@ -143,7 +156,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column" data-screen-label="app-content">
 
   <!-- app bar -->
-  <div style="background:#FFFFFF;padding:54px 16px 12px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(42,18,24,.07);position:sticky;top:0;z-index:10">
+  <div class="appbar-safepad" style="background:#FFFFFF;padding-left:16px;padding-right:16px;padding-bottom:12px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(42,18,24,.07);position:sticky;top:0;z-index:10">
     <button onClick="{{ openMenu }}" style="border:none;background:none;width:30px;height:30px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:0;flex:none">
       <div style="width:20px;height:2px;border-radius:1px;background:#2A1218"></div>
       <div style="width:20px;height:2px;border-radius:1px;background:#2A1218"></div>
@@ -1398,7 +1411,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 </div>
 
 <!-- bottom nav -->
-<div style="flex:none;display:flex;background:#FFFFFF;border-top:1px solid rgba(42,18,24,.08);padding:8px 8px 24px">
+<div class="navbar-safepad" style="flex:none;display:flex;background:#FFFFFF;border-top:1px solid rgba(42,18,24,.08);padding-left:8px;padding-right:8px;padding-top:8px">
   <sc-for list="{{ navItems }}" as="t" hint-placeholder-count="5">
     <button onClick="{{ t.onTap }}" style="flex:1;min-width:0;border:none;background:none;cursor:pointer;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;transform:translateX({{ t.off }}px)">
       <div style="width:34px;height:3px;border-radius:2px;background:{{ t.bar }}"></div>
