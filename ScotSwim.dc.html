@@ -3156,11 +3156,11 @@ class Component extends DCLogic {
   // that's in progress, rather than racing it.
   onAuthChange(user){
     if(this.state.screen==='invite')return;
-    if(!user){this.setState({authUser:null,authChecking:false,screen:'login'});return;}
+    if(!user){this.setState({authUser:null,authChecking:false,authBusy:false,screen:'login'});return;}
     this.db.collection('users').doc(user.uid).get().then(doc=>{
       if(!doc.exists){
         this.auth.signOut();
-        this.setState({authChecking:false,authErr:'Account not fully set up — ask your coach for a new invite link.'});
+        this.setState({authChecking:false,authBusy:false,authErr:'Account not fully set up — ask your coach for a new invite link.'});
         return;
       }
       const profile=doc.data();
@@ -3169,10 +3169,10 @@ class Component extends DCLogic {
       // so Men would just open on an empty, unexplained-looking screen.
       const divingDefaultW=profile.role==='dcoach'&&!this.men.some(s=>s.diver);
       const goalSeg=divingDefaultW?'W':'M',teamSeg=divingDefaultW?'W':'M',attSeg=divingDefaultW?'W':'M';
-      this.setState({authUser:user,authChecking:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg});
+      this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg});
       if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
       this.startTeamContentSync();
-    }).catch(()=>this.setState({authChecking:false}));
+    }).catch(()=>this.setState({authChecking:false,authBusy:false}));
   }
   // Keeps this athlete's own logged times/dates live across every device
   // they're signed in on — a snapshot listener, not a one-time fetch, so
