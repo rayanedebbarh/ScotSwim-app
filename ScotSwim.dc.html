@@ -23,18 +23,18 @@ body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
 a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{display:none}
-/* The app bar and bottom nav each reserve a fixed chunk of top/bottom
-   padding to clear the fake status bar / home-indicator drawn by
-   IOSDevice's own framed desktop-preview mockup (ios-frame.jsx, >=560px
-   viewport). On a real phone (native app or a real mobile browser,
-   <560px) there's no fake overlay to clear — instead the padding needs
-   to clear whatever the *real* device's notch/status bar and home
-   indicator actually are, which varies per device, so it's driven by
-   env(safe-area-inset-*) there instead of the fixed desktop-preview
-   values. Same 560px breakpoint IOSDevice itself switches on. */
-.appbar-safepad{padding-top:calc(env(safe-area-inset-top) + 12px)}
+/* The app bar and bottom nav only carry their own small breathing room
+   here — the real device's notch/status-bar and home-indicator clearance
+   is already applied once, further out, by IOSDevice's .iosdev-content
+   (ios-frame.jsx), so repeating env(safe-area-inset-*) on these would
+   double-count it and leave a large blank band top and bottom. At
+   >=560px that outer padding is zeroed (the framed desktop-preview
+   mockup draws a fake status bar/home indicator as absolute overlays
+   instead), so there these have to clear it alone — hence the larger
+   fixed values, matching the mockup the App Store screenshots use. */
+.appbar-safepad{padding-top:12px}
 @media (min-width:560px){.appbar-safepad{padding-top:54px}}
-.navbar-safepad{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
+.navbar-safepad{padding-bottom:8px}
 @media (min-width:560px){.navbar-safepad{padding-bottom:24px}}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 input::placeholder{color:rgba(245,233,220,.5)}
