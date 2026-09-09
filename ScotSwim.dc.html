@@ -53,6 +53,25 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 @media (max-width:559.98px){
   html,body{height:100%;overflow:hidden;overscroll-behavior:none}
 }
+/* A phone turned sideways is wider than 560px — an iPhone 15 Plus is
+   932pt across in landscape — so IOSDevice's own breakpoint flipped it
+   into the framed desktop-preview mockup: a fixed-width phone shape
+   floating in the middle of the screen. The breakpoint is really asking
+   "is this a real device or someone previewing the design on a
+   computer", which width alone can't answer, so this re-answers it with
+   pointer:coarse — true on phones and tablets in any orientation, false
+   for a mouse-driven browser and for the headless renders behind the App
+   Store screenshots, which keep the framed look. Ordered after the
+   rules it overrides so it wins on equal specificity. */
+@media (min-width:560px) and (pointer:coarse){
+  .iosdev-root{width:100% !important;height:100dvh !important;border-radius:0 !important;
+    box-shadow:none !important;margin:0 !important}
+  .iosdev-island,.iosdev-statusbar,.iosdev-home{display:none !important}
+  .appbar-safepad{padding-top:calc(var(--sat, env(safe-area-inset-top)) + 8px)}
+  .navbar-safepad{padding-bottom:var(--sab, env(safe-area-inset-bottom))}
+  .loginbottom-safepad{padding-bottom:calc(var(--sab, env(safe-area-inset-bottom)) + 20px)}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 input::placeholder{color:rgba(245,233,220,.5)}
 /* Overrides the cream placeholder above for inputs that sit on light
@@ -3191,16 +3210,22 @@ class Component extends DCLogic {
     const native=!!(window.Capacitor&&(window.Capacitor.isNativePlatform?.()
       ||(window.Capacitor.getPlatform?.()||'web')!=='web'));
     if(!native)return null;
-    const h=Math.max(window.screen?.height||0,window.innerHeight||0);
-    const w=Math.min(window.screen?.width||9999,window.innerWidth||9999);
-    // iPad: no notch, much shorter insets, and its narrow side still
-    // starts well above any iPhone's (744 on the mini vs 430 at most).
-    if(w>=600)return{top:24,bottom:20};
-    // Portrait CSS heights: 932/956 Plus & Max, 852 iPhone 15/16, 844
-    // iPhone 12-14, 812 X/XS/mini, below that the home-button sizes.
-    if(h>=845)return{top:59,bottom:34};
-    if(h>=812)return{top:47,bottom:34};
-    return{top:20,bottom:0};
+    // Which device this is comes from screen.width/height, which stay
+    // fixed as the phone turns; which way it's being held comes from the
+    // window, which doesn't.
+    const shortSide=Math.min(window.screen?.width||0,window.screen?.height||0)||9999;
+    const longSide=Math.max(window.screen?.width||0,window.screen?.height||0)||0;
+    const landscape=(window.innerWidth||0)>(window.innerHeight||0);
+    // iPad: no notch, shorter insets, and its narrow side still starts
+    // well above any iPhone's (744 on the mini vs 430 at most).
+    if(shortSide>=600)return{top:24,bottom:20};
+    // Long edge: 932/956 Plus & Max, 852 iPhone 15/16, 844 iPhone 12-14,
+    // 812 X/XS/mini, below that the home-button sizes.
+    if(longSide<812)return landscape?{top:0,bottom:0}:{top:20,bottom:0};
+    // Turned sideways the notch/island moves to the side, so there's no
+    // top inset left to clear — just the slim home-indicator strip.
+    if(landscape)return{top:0,bottom:21};
+    return{top:longSide>=845?59:47,bottom:34};
   }
   captureSafeInsets(reset){
     const probe=document.createElement('div');
