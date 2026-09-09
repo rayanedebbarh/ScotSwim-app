@@ -1,5 +1,8 @@
 {
   "appId": "edu.alma.scotswim",
   "appName": "ScotSwim",
-  "webDir": "www"
+  "webDir": "www",
+  "ios": {
+    "scrollEnabled": false
+  }
 }
