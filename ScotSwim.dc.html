@@ -37,14 +37,22 @@ a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
    render exactly as before. env(safe-area-inset-*) is plain CSS and
    behaves the same in Android WebViews, so this carries over. */
 .iosdev-content{padding-top:0 !important;padding-bottom:0 !important}
-.appbar-safepad{padding-top:calc(env(safe-area-inset-top) + 8px)}
+.appbar-safepad{padding-top:calc(var(--sat, env(safe-area-inset-top)) + 8px)}
 @media (min-width:560px){.appbar-safepad{padding-top:54px}}
-.navbar-safepad{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
+.navbar-safepad{padding-bottom:var(--sab, env(safe-area-inset-bottom))}
 @media (min-width:560px){.navbar-safepad{padding-bottom:24px}}
 /* Login screen sits flush to the bottom edge, so it needs the same
    home-indicator clearance the bottom nav gets on the app screens. */
-.loginbottom-safepad{padding-bottom:calc(env(safe-area-inset-bottom) + 30px)}
+.loginbottom-safepad{padding-bottom:calc(var(--sab, env(safe-area-inset-bottom)) + 20px)}
 @media (min-width:560px){.loginbottom-safepad{padding-bottom:30px}}
+/* Nothing at the document level should scroll on a phone — the app shell
+   is a fixed frame and only the inner content areas scroll. Without this
+   the keyboard can leave the whole page scrolled up behind the status
+   bar. Not applied to the desktop preview, where the page does need to
+   scroll to reach a framed mockup taller than a short window. */
+@media (max-width:559.98px){
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 input::placeholder{color:rgba(245,233,220,.5)}
 /* Overrides the cream placeholder above for inputs that sit on light
@@ -375,7 +383,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-if value="{{ annsEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="text-align:center;padding:22px 8px 6px">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#1B7A78">TBA</div>
-            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">No announcements yet — coach updates will show up here once the season gets underway.</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">No announcements yet — coach updates will show up here.</div>
           </div>
         </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
@@ -1023,7 +1031,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">BADGES</div>
         <sc-if value="{{ det.badgesEmpty }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No badges yet — these unlock as you hit real milestones once the season starts.</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No badges yet — these unlock as you hit real milestones this season.</div>
         </sc-if>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
           <sc-for list="{{ det.badges }}" as="b" hint-placeholder-count="4">
@@ -2868,16 +2876,31 @@ class Component extends DCLogic {
   // "this week" and "next week" are just two different doc ids, both
   // real calendar weeks rather than one repeating template.
   mondayKey(d){const x=new Date(d);const dow=(x.getDay()+6)%7;x.setDate(x.getDate()-dow);return this.ymd(x)}
+  // localStorage is only an offline cache so the last known record still
+  // renders before the first snapshot lands (and if the device is off
+  // network); the shared attendance collection is the real record, and
+  // its snapshot overwrites this on arrival — see startTeamContentSync.
   saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance.v3',JSON.stringify(attendance))}catch(e){}}
+  // Writes just the one day that changed, debounced per day, so two
+  // coaches marking different days never overwrite each other's doc.
+  syncAttendanceDay(day,dayRec){
+    if(!this.fbReady)return;
+    if(!this._attSaveTimers)this._attSaveTimers={};
+    clearTimeout(this._attSaveTimers[day]);
+    this._attSaveTimers[day]=setTimeout(()=>{
+      this.db.collection('attendance').doc(day).set({marks:dayRec,updatedAt:Date.now()}).catch(()=>{});
+    },400);
+  }
   setAttendance(day,id,val){
-    const attendance={...this.state.attendance,[day]:{...(this.state.attendance[day]||{}),[id]:val}};
-    this.setState({attendance});this.saveAttendance(attendance);
+    const dayRec={...(this.state.attendance[day]||{}),[id]:val};
+    const attendance={...this.state.attendance,[day]:dayRec};
+    this.setState({attendance});this.saveAttendance(attendance);this.syncAttendanceDay(day,dayRec);
   }
   markAllPresent(day,roster){
     const dayRec={...(this.state.attendance[day]||{})};
     roster.forEach(s=>{dayRec[s.id]=true;});
     const attendance={...this.state.attendance,[day]:dayRec};
-    this.setState({attendance});this.saveAttendance(attendance);
+    this.setState({attendance});this.saveAttendance(attendance);this.syncAttendanceDay(day,dayRec);
   }
   // Current streak = consecutive present days walking back from today.
   // An unmarked today doesn't break the streak (the coach just hasn't
@@ -3144,8 +3167,44 @@ class Component extends DCLogic {
     }
     lu[ev]=arr;this.setState({lineup:lu});
   }
+  // Resolves env(safe-area-inset-top/bottom) to real pixels and publishes
+  // them as --sat/--sab for the padding rules to use. Reading them through
+  // a probe rather than using env() directly in those rules is what makes
+  // the layout survive signing in: the on-screen keyboard resizes the
+  // native webview, and while it's resized the webview no longer reaches
+  // under the notch/home indicator, so env(...) reports 0 — and on iOS it
+  // doesn't always report the real inset again once the keyboard closes.
+  // That's why the app bar drew correctly on a restored session (keyboard
+  // never shown) but slid under the status bar after typing a password.
+  // Keeping the largest value seen ignores those collapsed readings; a
+  // rotation genuinely changes the insets, so that resets the high-water
+  // mark rather than holding on to the portrait figure.
+  captureSafeInsets(reset){
+    const probe=document.createElement('div');
+    probe.setAttribute('aria-hidden','true');
+    probe.style.cssText='position:absolute;left:0;top:-9999px;width:0;visibility:hidden;'
+      +'pointer-events:none;padding-top:env(safe-area-inset-top);'
+      +'padding-bottom:env(safe-area-inset-bottom)';
+    document.body.appendChild(probe);
+    const cs=getComputedStyle(probe);
+    const top=parseFloat(cs.paddingTop)||0,bottom=parseFloat(cs.paddingBottom)||0;
+    probe.remove();
+    if(reset){this._satMax=top;this._sabMax=bottom;}
+    else{this._satMax=Math.max(this._satMax||0,top);this._sabMax=Math.max(this._sabMax||0,bottom);}
+    const root=document.documentElement.style;
+    root.setProperty('--sat',this._satMax+'px');
+    root.setProperty('--sab',this._sabMax+'px');
+  }
   componentDidMount(){
     this._ct=setInterval(()=>this.forceUpdate(),60000);
+    this.captureSafeInsets(true);
+    // A first read can land before the webview has settled into its final
+    // frame, so re-read shortly after; both only ever raise the value.
+    this._satT=setTimeout(()=>this.captureSafeInsets(),400);
+    this._onResize=()=>this.captureSafeInsets();
+    this._onOrient=()=>setTimeout(()=>this.captureSafeInsets(true),300);
+    window.addEventListener('resize',this._onResize);
+    window.addEventListener('orientationchange',this._onOrient);
     // Tells the Capgo OTA updater (native app only) this bundle loaded
     // successfully — skipping this call makes it assume the update failed
     // and roll back to the previous version on next launch. window.Capacitor
@@ -3160,7 +3219,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -3316,6 +3375,23 @@ class Component extends DCLogic {
       .onSnapshot(snap=>{
         this.setState({workoutSheets:snap.docs.map(d=>({id:d.id,...d.data()}))});
       },()=>{});
+    // Practice attendance — one doc per day, keyed by date (same
+    // doc-id-as-date shape as training above). This has to be shared
+    // rather than local: both coaches take attendance for the same
+    // roster, and every athlete's practice streak and the dashboard's
+    // attendance % read back from it, so a record living only on the
+    // phone that took it would show each person something different.
+    // The last 60 days covers the 30-day window attendancePct uses and
+    // leaves room for streaks running back past it.
+    if(this._attUnsub)this._attUnsub();
+    this._attUnsub=this.db.collection('attendance')
+      .orderBy(window.firebase.firestore.FieldPath.documentId(),'desc').limit(60)
+      .onSnapshot(snap=>{
+        const attendance={};
+        snap.docs.forEach(d=>{attendance[d.id]=d.data().marks||{};});
+        this.setState({attendance});
+        this.saveAttendance(attendance);
+      },()=>{});
   }
   stopTeamContentSync(){
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
@@ -3323,6 +3399,7 @@ class Component extends DCLogic {
     if(this._trainSelUnsub){this._trainSelUnsub();this._trainSelUnsub=null;}
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
     if(this._schedUnsub){this._schedUnsub();this._schedUnsub=null;}
+    if(this._attUnsub){this._attUnsub();this._attUnsub=null;}
   }
   postAnnouncement(){
     const text=(this.state.annPost||'').trim();
@@ -4079,11 +4156,11 @@ class Component extends DCLogic {
     const attDateLabel=attIsToday?'Today':attDateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     const attPrevDay=()=>{const d=new Date(attDateObj);d.setDate(d.getDate()-1);this.setState({attDate:this.ymd(d)});};
     const attNextDay=()=>{if(attIsToday)return;const d=new Date(attDateObj);d.setDate(d.getDate()+1);this.setState({attDate:this.ymd(d)});};
-    // Practices haven't started yet (still in the off-season) — attendance
-    // is read-only until this flips true, at which point the roster
-    // rows/Mark-all-present button below become interactive again with no
-    // other changes needed.
-    const SEASON_STARTED=false;
+    // The season is under way: attendance is live, so the roster rows and
+    // the Mark-all-present button below are interactive, attendance % is
+    // calculated, and season PBs count. Flip back to false only if the app
+    // is ever reset for an off-season gap.
+    const SEASON_STARTED=true;
     // Both coaches take attendance for the whole team — swimmers and
     // divers together — same reasoning as the Team roster above: the
     // diving coach may need to run the full team's practice, not just
@@ -4433,7 +4510,7 @@ class Component extends DCLogic {
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
-      practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'Season starts soon')(this.streakFor(user.id)),
+      practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'None yet')(this.streakFor(user.id)),
       showPracticeStreak:!isCoach,
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       showProgression,progressionTitle,progressionChart,
