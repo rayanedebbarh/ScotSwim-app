@@ -23,19 +23,28 @@ body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
 a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{display:none}
-/* The app bar and bottom nav only carry their own small breathing room
-   here — the real device's notch/status-bar and home-indicator clearance
-   is already applied once, further out, by IOSDevice's .iosdev-content
-   (ios-frame.jsx), so repeating env(safe-area-inset-*) on these would
-   double-count it and leave a large blank band top and bottom. At
-   >=560px that outer padding is zeroed (the framed desktop-preview
-   mockup draws a fake status bar/home indicator as absolute overlays
-   instead), so there these have to clear it alone — hence the larger
-   fixed values, matching the mockup the App Store screenshots use. */
-.appbar-safepad{padding-top:12px}
+/* Real-device notch/status-bar and home-indicator clearance.
+   IOSDevice (ios-frame.jsx) nominally applies env(safe-area-inset-*) on
+   .iosdev-content, but its <style> is injected at render time from
+   inside the component and doesn't reliably win, so on-device that
+   padding measured as 0 and the app bar drew under the status bar.
+   Rather than depend on which layer wins, it's zeroed there and applied
+   here instead — one source of truth, in this file. Below 560px that's
+   the real per-device inset (+ a few px of breathing room); at >=560px
+   the framed desktop-preview mockup draws a *fake* status bar and home
+   indicator as absolute overlays and reports no insets, so fixed values
+   clear those instead — unchanged, so App Store screenshots still
+   render exactly as before. env(safe-area-inset-*) is plain CSS and
+   behaves the same in Android WebViews, so this carries over. */
+.iosdev-content{padding-top:0 !important;padding-bottom:0 !important}
+.appbar-safepad{padding-top:calc(env(safe-area-inset-top) + 8px)}
 @media (min-width:560px){.appbar-safepad{padding-top:54px}}
-.navbar-safepad{padding-bottom:8px}
+.navbar-safepad{padding-bottom:calc(env(safe-area-inset-bottom) + 8px)}
 @media (min-width:560px){.navbar-safepad{padding-bottom:24px}}
+/* Login screen sits flush to the bottom edge, so it needs the same
+   home-indicator clearance the bottom nav gets on the app screens. */
+.loginbottom-safepad{padding-bottom:calc(env(safe-area-inset-bottom) + 30px)}
+@media (min-width:560px){.loginbottom-safepad{padding-bottom:30px}}
 @keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
 input::placeholder{color:rgba(245,233,220,.5)}
 /* Overrides the cream placeholder above for inputs that sit on light
@@ -69,7 +78,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <div style="position:absolute;inset:0;background-image:url('uploads/background4.png');background-size:cover;background-position:center top;background-repeat:no-repeat;background-color:#2A1218"></div>
   <div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end">
     <div style="position:absolute;left:0;right:0;bottom:0;height:56%;background:linear-gradient(180deg,rgba(42,18,24,0),rgba(42,18,24,.18) 40%,rgba(42,18,24,.4) 70%,rgba(42,18,24,.6) 100%)"></div>
-    <div style="position:relative;flex:none;padding:10px 24px 30px;display:flex;flex-direction:column;gap:10px">
+    <div class="loginbottom-safepad" style="position:relative;flex:none;padding-top:10px;padding-left:24px;padding-right:24px;display:flex;flex-direction:column;gap:10px">
       <div>
         <div style="font-size:10.5px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;line-height:1.05;color:#F5E9DC;margin-top:4px">Welcome to ScotSwim</div>
