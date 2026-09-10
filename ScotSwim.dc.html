@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <script src="./support.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -23,6 +23,15 @@ body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
 a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{display:none}
+/* The app should sit still under a finger like a native screen: no
+   pinch-zoom or double-tap-to-zoom (see also user-scalable=no on the
+   viewport tag), and no iOS text inflation resizing type on its own. */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{touch-action:pan-x pan-y}
+/* Pulling down past the top of a scrolling area used to rubber-band the
+   whole thing, carrying the sticky app bar down with it. Containing the
+   overscroll keeps the bar pinned and the bounce inside the list. */
+.appscroll{overscroll-behavior:contain}
 /* Real-device notch/status-bar and home-indicator clearance.
    IOSDevice (ios-frame.jsx) nominally applies env(safe-area-inset-*) on
    .iosdev-content, but its <style> is injected at render time from
@@ -110,7 +119,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="font-size:10.5px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:32px;line-height:1.05;color:#F5E9DC;margin-top:4px">Welcome to ScotSwim</div>
       </div>
-      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="email" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none;box-sizing:border-box">
+      <input value="{{ uname }}" onChange="{{ onU }}" placeholder="email" type="email" inputmode="email" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" style="width:100%;padding:13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none;box-sizing:border-box">
       <div style="position:relative">
         <input value="{{ pass }}" onChange="{{ onP }}" type="{{ passInputType }}" placeholder="password" style="width:100%;padding:13px 44px 13px 15px;border-radius:10px;border:1.5px solid rgba(245,233,220,.4);background:transparent;color:#F5E9DC;font-size:15px;font-family:'Barlow';outline:none;box-sizing:border-box">
         <button type="button" onClick="{{ toggleShowPass }}" aria-label="Show or hide password" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;padding:6px;margin:0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(245,233,220,.6)">
@@ -189,7 +198,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 </sc-if>
 
 <sc-if value="{{ isApp }}" hint-placeholder-val="{{ false }}">
-<div style="flex:1;overflow-y:auto;display:flex;flex-direction:column" data-screen-label="app-content">
+<div class="appscroll" style="flex:1;overflow-y:auto;display:flex;flex-direction:column" data-screen-label="app-content">
 
   <!-- app bar -->
   <div class="appbar-safepad" style="background:#FFFFFF;padding-left:16px;padding-right:16px;padding-bottom:12px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(42,18,24,.07);position:sticky;top:0;z-index:10">
@@ -3695,7 +3704,12 @@ class Component extends DCLogic {
     const doLogin=()=>{
       if(st.authBusy)return;
       if(!this.fbReady){this.setState({authErr:"Sign-in isn't available right now — try again in a moment."});return;}
-      const email=st.uname.trim();
+      // Lowercased, not just trimmed: iOS capitalises the first letter of
+      // a typed email, and Firebase treats Stoneta@... as a different
+      // account from stoneta@..., which surfaced as an intermittent "No
+      // account found for that email" depending on whether the field was
+      // autofilled or typed. Matches doForgotPassword, which already did.
+      const email=st.uname.trim().toLowerCase();
       if(!email||!st.pass){this.setState({authErr:'Enter your email and password.'});return;}
       this.setState({authBusy:true,authErr:'',authMsg:''});
       this.auth.signInWithEmailAndPassword(email,st.pass).catch(err=>{
@@ -4427,7 +4441,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -4494,7 +4508,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false});},
+      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:'',showDeletePass:false}),
       closeDeletePanel:()=>this.setState({showDeletePanel:false}),
       showDeletePanel:st.showDeletePanel,
