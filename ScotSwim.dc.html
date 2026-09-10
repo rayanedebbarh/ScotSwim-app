@@ -32,14 +32,16 @@ body{touch-action:pan-x pan-y}
    whole thing, carrying the sticky app bar down with it. Containing the
    overscroll keeps the bar pinned and the bounce inside the list. */
 .appscroll{overscroll-behavior:contain}
-/* Embedded SwimCloud tables. They're third-party content in an iframe,
-   so they can come back empty — a blocked frame, a changed endpoint, no
-   network — and a 500px blank box reads as a broken screen. Every embed
-   therefore carries this link underneath, so the panel always has a
-   working way to reach the same data whether or not the frame renders. */
-.scOpen{display:inline-block;margin:8px 0 4px;color:#1B7A78;font-family:'Barlow';
-  font-size:12.5px;font-weight:700;text-decoration:none}
-.scOpen:hover{color:#6B1F33}
+/* SwimCloud results. These used to be iframes, but SwimCloud's pages
+   render only as a top-level page, not inside a frame, so every embed
+   was a 500px blank box on the device even though the same URLs open
+   fine in a browser. They're links now — the data is one tap away and
+   the panel reads as intended rather than broken. */
+.scOpen{display:block;margin:10px 0 2px;padding:12px;text-align:center;
+  border:1.5px solid #1B7A78;border-radius:8px;color:#1B7A78;
+  font-family:'Barlow Condensed';font-weight:700;font-size:14.5px;
+  letter-spacing:1.2px;text-decoration:none}
+.scOpen:hover,.scOpen:active{background:#1B7A78;color:#F5E9DC}
 /* Bottom-nav labels. Bigger than they were for legibility at arm's
    length on a phone, with the tracking pulled in a little to buy the
    width back — a coach's row fits seven of these. The min() keeps them
@@ -698,9 +700,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">FULL RESULTS · SWIMCLOUD</div>
-        <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Live results feed from SwimCloud, embedded directly.</div>
-        <iframe src="{{ swimcloudResultsUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
-        <a href="{{ swimcloudResultsUrl }}" target="_blank" rel="noopener" class="scOpen">View full results on SwimCloud ↗</a>
+        <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 0">Official meet-by-meet results for the Scots, kept on SwimCloud.</div>
+        <a href="{{ swimcloudResultsUrl }}" target="_blank" rel="noopener" class="scOpen">VIEW FULL RESULTS ↗</a>
       </div>
     </div>
   </sc-if>
@@ -969,17 +970,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ showRecords }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM RECORDS</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Fastest time ever recorded by an Alma swimmer, per event · via SwimCloud</div>
-          <iframe src="{{ swimcloudRecordsUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
-          <a href="{{ swimcloudRecordsUrl }}" target="_blank" rel="noopener" class="scOpen">View team records on SwimCloud ↗</a>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 0">Fastest time ever recorded by an Alma swimmer, per event · via SwimCloud</div>
+          <a href="{{ swimcloudRecordsUrl }}" target="_blank" rel="noopener" class="scOpen">VIEW TEAM RECORDS ↗</a>
         </div>
       </sc-if>
       <sc-if value="{{ showTimes }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TOP TIMES</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">Best times this season across every event · via SwimCloud</div>
-          <iframe src="{{ swimcloudTimesUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
-          <a href="{{ swimcloudTimesUrl }}" target="_blank" rel="noopener" class="scOpen">View top times on SwimCloud ↗</a>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 0">Best times this season across every event · via SwimCloud</div>
+          <a href="{{ swimcloudTimesUrl }}" target="_blank" rel="noopener" class="scOpen">VIEW TOP TIMES ↗</a>
         </div>
       </sc-if>
       <sc-if value="{{ showDiveTimes }}" hint-placeholder-val="{{ false }}">
@@ -1478,9 +1477,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ simShowRealTimes }}" hint-placeholder-val="{{ false }}">
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ simOppUp }} · REAL TIMES</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 10px">{{ simRealTimesNote }}</div>
-          <iframe src="{{ simTimesUrl }}" width="100%" height="500" frameborder="0" style="border:none;border-radius:6px;display:block"></iframe>
-          <a href="{{ simTimesUrl }}" target="_blank" rel="noopener" class="scOpen">View {{ simOppUp }} times on SwimCloud ↗</a>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 0">{{ simRealTimesNote }}</div>
+          <a href="{{ simTimesUrl }}" target="_blank" rel="noopener" class="scOpen">VIEW {{ simOppUp }} TIMES ↗</a>
         </div>
       </sc-if>
     </div>
