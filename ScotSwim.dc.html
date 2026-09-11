@@ -2081,13 +2081,20 @@ class Component extends DCLogic {
       window.firebase.initializeApp(this.fbConfig);
       this.auth=window.firebase.auth();
       this.db=window.firebase.firestore();
-      // Firestore talks over a streaming connection by default, which
-      // often can't be established inside the native webview — it fails
-      // as "unavailable", indistinguishable from having no signal, which
-      // is what made sign-in report no connection on a perfectly good
-      // one. This lets it detect that and fall back to long polling.
+      // Firestore's default streaming connection often can't be
+      // established inside the native webview, failing as "unavailable" —
+      // indistinguishable from having no signal, which is what made
+      // sign-in report no connection on a perfectly good one. In the app
+      // it goes straight to long polling: auto-detection has to try
+      // streaming and wait for it to fail first, and that wait is time
+      // added to every sign-in for a result already known here. The
+      // website keeps detection, since streaming does work in a browser.
       // Must run before any other Firestore call, hence its place here.
-      try{this.db.settings({experimentalAutoDetectLongPolling:true,merge:true});}catch(e){}
+      const nativeShell=!!(window.Capacitor&&((window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())
+        ||((window.Capacitor.getPlatform&&window.Capacitor.getPlatform())||'web')!=='web'));
+      try{this.db.settings(nativeShell
+        ?{experimentalForceLongPolling:true,merge:true}
+        :{experimentalAutoDetectLongPolling:true,merge:true});}catch(e){}
     }
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals (see saveBios).
@@ -3673,15 +3680,22 @@ class Component extends DCLogic {
   // the token hadn't landed, not that the account is really barred.
   // An absent profile is retried too, since a read can beat the invite
   // signup's own write; only once the retries are spent is it believed.
-  loadProfile(user,tries,delay){
-    tries=tries||4;delay=delay||500;
-    const again=()=>new Promise(r=>setTimeout(r,delay)).then(()=>this.loadProfile(user,tries-1,delay*2));
-    return Promise.resolve(user.getIdToken?user.getIdToken().catch(()=>null):null)
-      .then(()=>this.db.collection('users').doc(user.uid).get())
-      .then(doc=>(doc.exists||tries<=1)?doc:again())
+  loadProfile(user,attempt,delay){
+    attempt=attempt||1;delay=delay||400;
+    const maxed=attempt>=4;
+    const again=()=>new Promise(r=>setTimeout(r,delay)).then(()=>this.loadProfile(user,attempt+1,delay*2));
+    // The first attempt goes straight for the profile. Right after signing
+    // in the token is nearly always in hand already, and waiting on it
+    // would add that wait to every single sign-in to guard against a case
+    // that rarely happens — so it's only asked for on a retry, which is
+    // the one path where the token genuinely hadn't landed.
+    const prep=attempt===1?Promise.resolve()
+      :Promise.resolve(user.getIdToken?user.getIdToken().catch(()=>null):null);
+    return prep.then(()=>this.db.collection('users').doc(user.uid).get())
+      .then(doc=>(doc.exists||maxed)?doc:again())
       .catch(err=>{
         const code=err&&err.code;
-        if(tries>1&&(this.isTransient(code)||code==='permission-denied'))return again();
+        if(!maxed&&(this.isTransient(code)||code==='permission-denied'))return again();
         throw err;
       });
   }
@@ -4851,15 +4865,26 @@ class Component extends DCLogic {
     // actually begin rather than surface that noise.
     const seasonPbRoster=isDivingCoach?this.all.filter(s=>s.diver):this.all.filter(s=>!s.diver);
     seasonPbRoster.forEach(s=>this.fetchOthersMyEvents(s.id));
+    // Bests set *this* season, not every best an athlete has ever set.
+    // The running best still starts from their earlier times, so beating
+    // a personal best from last season counts — it's the date the time
+    // was swum that decides, which is why dateLogByEv is carried
+    // alongside hist. An athlete with nothing logged since the season
+    // opened therefore contributes nothing, as they should.
+    const seasonStartDate=new Date(this.SEASON_FIRST_MONDAY+'T00:00:00');
     const seasonPbCount=!SEASON_STARTED?0:seasonPbRoster.filter(s=>s.hasLogged).reduce((sum,s)=>{
       let c=0;
-      s.primary.forEach(evId=>{
+      (s.primary||[]).forEach(evId=>{
         const h=s.hist[evId]||[];
+        const dates=(s.dateLogByEv||{})[evId]||[];
         const dive=this.evMap[evId].dive;
         let best=dive?-Infinity:Infinity;
-        h.forEach(t=>{
+        h.forEach((t,i)=>{
           const isNew=dive?t>best:t<best;
-          if(isNew){c++;best=t;}
+          if(!isNew)return;
+          best=t;
+          const d=dates[i];
+          if(d&&d>=seasonStartDate)c++;
         });
       });
       return sum+c;
