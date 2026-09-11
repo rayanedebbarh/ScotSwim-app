@@ -710,9 +710,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <sc-if value="{{ vTrain }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
       <sc-if value="{{ showPracticeStreak }}" hint-placeholder-val="{{ true }}">
-        <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px;display:flex;justify-content:space-between;align-items:center">
-          <div style="font-size:13px;font-weight:600">Practice streak</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
+        <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:13px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:13px;font-weight:600">Swim streak</div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ practiceStreak }}</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:9px;padding-top:9px;border-top:1px solid rgba(245,233,220,.15)">
+            <div style="font-size:13px;font-weight:600">Lifts this week</div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#7fd0cd">{{ liftsThisWeek }}</div>
+          </div>
         </div>
       </sc-if>
       <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
@@ -795,7 +801,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </sc-if>
       </div>
       <div style="background:#2A1218;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
-        <button onClick="{{ trainWeekPrev }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">‹</button>
+        <button onClick="{{ trainWeekPrev }}" style="border:none;background:none;color:{{ trainWeekPrevColor }};font-size:22px;font-weight:700;cursor:{{ trainWeekPrevCursor }};padding:2px 12px;line-height:1">‹</button>
         <div style="text-align:center">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:2px;color:#7fd0cd">{{ trainWeekLabel }}</div>
           <div style="font-size:11px;color:rgba(245,233,220,.65);margin-top:2px">{{ trainWeekRange }}</div>
@@ -827,12 +833,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <select value="{{ s.tagValue }}" onChange="{{ s.onTagChange }}" style="width:74px;padding:6px 4px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:11px;outline:none;background:#fff;flex:none">
                   <sc-for list="{{ s.tagOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
                 </select>
-                <sc-if value="{{ s.isLift }}" hint-placeholder-val="{{ false }}">
-                  <div style="flex:1;font-size:11.5px;color:rgba(42,18,24,.4);font-style:italic;padding:0 2px">TBA — via TeamBuildr</div>
-                </sc-if>
-                <sc-if value="{{ s.isNotLift }}" hint-placeholder-val="{{ true }}">
-                  <input value="{{ s.nValue }}" onChange="{{ s.onNChange }}" placeholder="e.g. Threshold — main set 8×200" class="darkPh" style="flex:1;min-width:0;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
-                </sc-if>
+                <input value="{{ s.nValue }}" onChange="{{ s.onNChange }}" placeholder="e.g. Threshold — main set 8×200" class="darkPh" style="flex:1;min-width:0;padding:6px 7px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:12px;outline:none;box-sizing:border-box">
                 <button onClick="{{ s.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px;flex:none">✕</button>
               </div>
             </sc-if>
@@ -840,6 +841,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="display:flex;gap:12px;align-items:center;padding:7px 0;border-bottom:1px solid rgba(42,18,24,.06)">
                 <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;color:#6B1F33;min-width:62px">{{ s.t }}</div>
                 <div style="flex:1;font-size:13px">{{ s.n }}</div>
+                <sc-if value="{{ s.showSolo }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ s.onSoloTap }}" style="flex:none;border:1.5px solid #1B7A78;background:{{ s.soloBg }};color:{{ s.soloFg }};border-radius:999px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">{{ s.soloLabel }}</button>
+                </sc-if>
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#1B7A78;border:1px solid #1B7A78;border-radius:3px;padding:2px 7px">{{ s.tag }}</div>
               </div>
             </sc-if>
@@ -2000,7 +2004,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
-      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
+      workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:'',
       showDeletePanel:false,deletePassword:'',deleteErr:'',deleteBusy:false,
@@ -2280,7 +2284,29 @@ class Component extends DCLogic {
     // is out, so any LIFT-tagged session always displays as TBA (see
     // liftLabel below) regardless of what's stored, coach edit or not.
     this.TRAIN_TAGS=['POOL','DRY','LIFT','DIVE','REST'];
-    this.LIFT_TBA='TBA — set in TeamBuildr once the season’s lift schedule is out';
+    // The season opened with lifts the week of Aug 31. Weeks before that
+    // are empty by definition, so the Train tab won't page back past it
+    // rather than offering a year of blank weeks nobody trained in.
+    this.SEASON_FIRST_MONDAY='2026-08-31';
+    // The standing weekly pattern. Coaches still edit any week freely —
+    // the first edit to a week writes that week out in full and takes
+    // over from here — but until then every week already reads correctly
+    // instead of needing the same seven sessions retyped each time.
+    this.WEEK_TEMPLATE={
+      MONDAY:[{t:'6:00 – 7:00 AM',n:'Lift — team',tag:'LIFT'}],
+      TUESDAY:[{t:'6:00 AM',n:'Swim practice',tag:'POOL'}],
+      WEDNESDAY:[{t:'6:00 – 7:00 AM',n:'Lift — team',tag:'LIFT'}],
+      THURSDAY:[{t:'6:00 AM',n:'Swim practice',tag:'POOL'}],
+      FRIDAY:[{t:'Anytime',n:'Lift on your own',tag:'LIFT',solo:true},
+              {t:'5:00 – 7:00 PM',n:'Swim practice',tag:'POOL'}],
+      SATURDAY:[{t:'7:00 – 9:00 AM',n:'Swim practice',tag:'POOL'}],
+      SUNDAY:[]
+    };
+    // Opening week was lifts only — swimming hadn't started yet.
+    this.WEEK_TEMPLATE_FIRST={
+      MONDAY:[{t:'6:00 – 7:00 AM',n:'Lift — team',tag:'LIFT'}],
+      WEDNESDAY:[{t:'6:00 – 7:00 AM',n:'Lift — team',tag:'LIFT'}]
+    };
     // All-time diving top times (1M/3M, 6-dive and 11-dive formats),
     // per real SwimCloud program history — includes athletes no longer
     // on the current roster, same as any all-time list. There's no
@@ -2982,6 +3008,36 @@ class Component extends DCLogic {
   // so a caller can rebuild *before* the setState that re-renders — render
   // reads this.men directly, so building after would render a frame of
   // stale roster. Falls back to state for the initial build.
+  // The standing pattern for a given week, copied deep so editing a
+  // session never writes back into the template itself.
+  templateDaysFor(weekKey){
+    if(weekKey<this.SEASON_FIRST_MONDAY)return {};
+    const src=weekKey===this.SEASON_FIRST_MONDAY?this.WEEK_TEMPLATE_FIRST:this.WEEK_TEMPLATE;
+    const out={};
+    Object.keys(src).forEach(day=>{out[day]=src[day].map(s=>({...s}));});
+    return out;
+  }
+  // A week reads from Firestore once a coach has saved one, and from the
+  // pattern until then. Both buildWeek and saveTrainDay go through here,
+  // so the first edit to a pattern week saves the whole week rather than
+  // just the edited day — otherwise saving Monday would silently wipe the
+  // other six days.
+  weekDataFor(weekKey){
+    const stored=this.state.trainWeeks[weekKey];
+    if(stored&&stored.days&&Object.keys(stored.days).length)return stored;
+    return {days:this.templateDaysFor(weekKey),notes:(stored&&stored.notes)||{}};
+  }
+  // Which days of a week hold a swim (pool or diving) session — the
+  // practice streak counts only those, so lift-only days neither extend
+  // a streak nor break one.
+  swimDaysFor(weekKey){
+    const days=this.weekDataFor(weekKey).days||{};
+    const out={};
+    Object.keys(days).forEach(day=>{
+      if((days[day]||[]).some(s=>s.tag==='POOL'||s.tag==='DIVE'))out[day]=true;
+    });
+    return out;
+  }
   buildRoster(edits){
     const ed=edits||(this.state&&this.state.rosterEdits)||{};
     const removed=new Set(ed.removed||[]);
@@ -3094,19 +3150,45 @@ class Component extends DCLogic {
   // An unmarked today doesn't break the streak (the coach just hasn't
   // taken attendance yet) — it starts counting from yesterday instead;
   // an explicit absence today (or any earlier gap) ends it at that point.
+  // Swim practices only: a lift day is skipped over entirely, so lifting
+  // neither extends a streak nor ends one. Walks back day by day and
+  // stops at the season's first week, since nothing was scheduled before
+  // it and the walk would otherwise run backwards forever.
   streakFor(id){
     const attendance=this.state.attendance;
+    const isSwimDay=d=>!!this.swimDaysFor(this.mondayKey(d))[this.DAYS[(d.getDay()+6)%7]];
     const d=new Date();
-    const todayVal=attendance[this.ymd(d)]&&attendance[this.ymd(d)][id];
-    if(todayVal===false)return 0;
-    if(todayVal!==true)d.setDate(d.getDate()-1);
+    if(isSwimDay(d)){
+      const todayVal=attendance[this.ymd(d)]&&attendance[this.ymd(d)][id];
+      if(todayVal===false)return 0;
+      // An unmarked swim day today just means the coach hasn't taken
+      // attendance yet, so start counting from yesterday instead.
+      if(todayVal!==true)d.setDate(d.getDate()-1);
+    }else d.setDate(d.getDate()-1);
     let count=0;
-    while(true){
+    while(this.mondayKey(d)>=this.SEASON_FIRST_MONDAY){
+      if(!isSwimDay(d)){d.setDate(d.getDate()-1);continue;}
       const rec=attendance[this.ymd(d)];
       if(rec&&rec[id]===true){count++;d.setDate(d.getDate()-1);}
       else break;
     }
     return count;
+  }
+  // The Friday lift is done on the athlete's own time, so no coach can
+  // mark it — each athlete ticks it off themselves. Kept in their own
+  // trainingLog doc (merged, so it can't clobber the logged entries
+  // sharing it), which they already own and can write to.
+  soloLiftDone(rosterId,dateKey){
+    return !!((this.state.soloLifts[rosterId]||{})[dateKey]);
+  }
+  toggleSoloLift(rosterId,dateKey){
+    const mine={...(this.state.soloLifts[rosterId]||{})};
+    if(mine[dateKey])delete mine[dateKey];else mine[dateKey]=true;
+    const soloLifts={...this.state.soloLifts,[rosterId]:mine};
+    this.setState({soloLifts});
+    if(!this.fbReady)return;
+    this.db.collection('trainingLog').doc(rosterId).set({soloLifts:mine},{merge:true})
+      .catch(()=>this.toastMsg('Couldn’t save that — check your connection'));
   }
   // Average present-rate across the last 30 days that actually have a
   // recorded attendance entry (skips days nobody took attendance on).
@@ -3517,12 +3599,15 @@ class Component extends DCLogic {
       if(doc.exists){
         const entries=doc.data().entries||{};
         const trainingLog={...this.state.trainingLog,[rosterId]:entries};
-        this.setState({trainingLog});
+        // soloLifts shares this doc (see toggleSoloLift), so every write
+        // to either merges and the two can't overwrite each other.
+        const soloLifts={...this.state.soloLifts,[rosterId]:doc.data().soloLifts||{}};
+        this.setState({trainingLog,soloLifts});
         this.saveTrainingLog(trainingLog);
       }else if(!migrated){
         migrated=true;
         const local=this.state.trainingLog[rosterId];
-        if(local&&Object.keys(local).length)ref.set({entries:local});
+        if(local&&Object.keys(local).length)ref.set({entries:local},{merge:true});
       }
     });
   }
@@ -3765,7 +3850,7 @@ class Component extends DCLogic {
     if(!this._trainingLogSaveTimers)this._trainingLogSaveTimers={};
     clearTimeout(this._trainingLogSaveTimers[rosterId]);
     this._trainingLogSaveTimers[rosterId]=setTimeout(()=>{
-      this.db.collection('trainingLog').doc(rosterId).set({entries}).catch(()=>{});
+      this.db.collection('trainingLog').doc(rosterId).set({entries},{merge:true}).catch(()=>{});
     },700);
   }
   // One-time fetch for a coach viewing/editing one athlete's prescribed
@@ -4151,11 +4236,10 @@ class Component extends DCLogic {
     // can edit (trainEditing gates every input below on isCoach same as
     // before). Edits write the whole day's session list back in one
     // debounced call (syncTrainingToCloud); the local setState is instant
-    // so typing itself never waits on the network. LIFT sessions never
-    // show a typed exercise — real lift work comes from TeamBuildr once
-    // the season's schedule is out, so the name always renders as
-    // this.LIFT_TBA regardless of what (if anything) is stored, both here
-    // and in the dashboard preview below.
+    // so typing itself never waits on the network. LIFT sessions read
+    // like any other now that the team lifts on a set schedule — they
+    // used to render a fixed "set in TeamBuildr" placeholder no matter
+    // what was stored, which left no way to show a real lift time.
     const trainEditing=isCoach&&st.trainEditing;
     const toggleTrainEdit=()=>this.setState({trainEditing:!st.trainEditing});
     const trainEditLabel=trainEditing?'Done ✓':'Edit schedule ✎';
@@ -4176,7 +4260,10 @@ class Component extends DCLogic {
       const d=new Date(selWeekKey+'T00:00:00');d.setDate(d.getDate()+deltaDays);
       gotoWeek(this.mondayKey(d));
     };
-    const trainWeekPrev=()=>shiftWeek(-7);
+    // Nothing happened before the season's first lift week, so paging
+    // back stops there instead of running on into empty weeks.
+    const atFirstWeek=selWeekKey<=this.SEASON_FIRST_MONDAY;
+    const trainWeekPrev=()=>{if(!atFirstWeek)shiftWeek(-7);};
     const trainWeekNext=()=>shiftWeek(7);
     const trainWeekLabel=selWeekKey===thisMon?'THIS WEEK':selWeekKey===nextMon?'NEXT WEEK':
       ('WEEK OF '+new Date(selWeekKey+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}).toUpperCase());
@@ -4184,7 +4271,7 @@ class Component extends DCLogic {
     const trainWeekRangeEnd=new Date(trainWeekRangeStart);trainWeekRangeEnd.setDate(trainWeekRangeEnd.getDate()+6);
     const trainWeekRange=trainWeekRangeStart.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' – '+trainWeekRangeEnd.toLocaleDateString('en-US',{month:'short',day:'numeric'});
     const saveTrainDay=(weekKey,day,sessions)=>{
-      const wk=this.state.trainWeeks[weekKey]||{days:{},notes:{}};
+      const wk=this.weekDataFor(weekKey);
       const days={...wk.days,[day]:sessions};
       this.setState({trainWeeks:{...this.state.trainWeeks,[weekKey]:{days,notes:wk.notes}}});
       this.syncTrainingToCloud(weekKey,days,wk.notes);
@@ -4195,7 +4282,7 @@ class Component extends DCLogic {
     // in the same per-week training doc (see syncTrainingToCloud),
     // read-only for athletes same as everything else here.
     const saveDayNote=(weekKey,day,text)=>{
-      const wk=this.state.trainWeeks[weekKey]||{days:{},notes:{}};
+      const wk=this.weekDataFor(weekKey);
       const notes={...wk.notes,[day]:text};
       this.setState({trainWeeks:{...this.state.trainWeeks,[weekKey]:{days:wk.days,notes}}});
       this.syncTrainingToCloud(weekKey,wk.days,notes);
@@ -4219,16 +4306,31 @@ class Component extends DCLogic {
     // regardless of whether a coach currently has the Train tab's edit
     // mode open on some other week.
     const buildWeek=(weekKey,editable)=>{
-      const wk=this.state.trainWeeks[weekKey]||{days:{},notes:{}};
+      const wk=this.weekDataFor(weekKey);
       const monDate=new Date(weekKey+'T00:00:00');
       const isThisWeek=weekKey===thisMon;
+      // Computed here rather than reused from the todayKey further down —
+      // this runs well before that one is declared.
+      const todayK=this.ymd(new Date());
       return this.DAYS.map((day,i)=>{
         const sessions=(wk.days&&wk.days[day])||[];
+        const sessDate=new Date(monDate);sessDate.setDate(sessDate.getDate()+i);
+        const sessKey=this.ymd(sessDate);
         const rows=sessions.map((s,j)=>{
           const isLift=s.tag==='LIFT';
           const update=patch=>saveTrainDay(weekKey,day,sessions.map((x,k)=>k===j?{...x,...patch}:x));
-          return {t:s.t,n:isLift?this.LIFT_TBA:s.n,tag:s.tag,isLift,isNotLift:!isLift,editing:editable,notEditing:!editable,
+          // A lift marked solo is done on the athlete's own time, so no
+          // coach takes attendance for it — the athlete ticks it off.
+          // Only they can mark their own, and only once it's not in the
+          // future, so the week can't be checked off in advance.
+          const solo=isLift&&!!s.solo&&!editable&&!isCoach&&sessKey<=todayK;
+          const soloDone=solo&&this.soloLiftDone(user.id,sessKey);
+          return {t:s.t,n:s.n,tag:s.tag,isLift,isNotLift:!isLift,editing:editable,notEditing:!editable,
             tValue:s.t,nValue:s.n,tagValue:s.tag,tagOpts,
+            showSolo:solo,soloDone,soloNotDone:solo&&!soloDone,
+            soloLabel:soloDone?'✓ Done':'Mark done',
+            soloBg:soloDone?'#1B7A78':'transparent',soloFg:soloDone?'#F5E9DC':'#1B7A78',
+            onSoloTap:()=>this.toggleSoloLift(user.id,sessKey),
             onTChange:e=>update({t:e.target.value}),
             onNChange:e=>update({n:e.target.value}),
             onTagChange:e=>{const tag=e.target.value;update(tag==='LIFT'?{tag,n:''}:{tag});},
@@ -4780,6 +4882,25 @@ class Component extends DCLogic {
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'None yet')(this.streakFor(user.id)),
+      // Coach-led lifts count from attendance; the solo one from the
+      // athlete's own tick. Only sessions that have already come round
+      // count, so mid-week it reads against what's happened so far.
+      liftsThisWeek:(()=>{
+        const days=this.weekDataFor(thisMon).days||{};
+        const monDate=new Date(thisMon+'T00:00:00');
+        let done=0,total=0;
+        this.DAYS.forEach((day,i)=>{
+          (days[day]||[]).filter(s=>s.tag==='LIFT').forEach(s=>{
+            const d=new Date(monDate);d.setDate(d.getDate()+i);
+            const key=this.ymd(d);
+            total++;
+            if(key>todayKey)return;
+            if(s.solo){if(this.soloLiftDone(user.id,key))done++;}
+            else if((this.state.attendance[key]||{})[user.id]===true)done++;
+          });
+        });
+        return done+' / '+total;
+      })(),
       showPracticeStreak:!isCoach,
       segs,viewSegs,showTeamViewToggle:st.teamSeg!=='S',
       showProgression,progressionTitle,progressionChart,
@@ -4813,6 +4934,8 @@ class Component extends DCLogic {
       progressSegs,showProgressTimes,showProgressTraining,
       trainSegs,showTrainSchedule,showTrainLibrary,
       trainWeekLabel,trainWeekRange,trainWeekPrev,trainWeekNext,
+      trainWeekPrevColor:atFirstWeek?'rgba(245,233,220,.25)':'#F5E9DC',
+      trainWeekPrevCursor:atFirstWeek?'default':'pointer',
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,simShowGenderToggle:!isDivingCoach,
