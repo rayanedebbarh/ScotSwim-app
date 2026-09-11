@@ -2023,6 +2023,13 @@ class Component extends DCLogic {
       window.firebase.initializeApp(this.fbConfig);
       this.auth=window.firebase.auth();
       this.db=window.firebase.firestore();
+      // Firestore talks over a streaming connection by default, which
+      // often can't be established inside the native webview — it fails
+      // as "unavailable", indistinguishable from having no signal, which
+      // is what made sign-in report no connection on a perfectly good
+      // one. This lets it detect that and fall back to long polling.
+      // Must run before any other Firestore call, hence its place here.
+      try{this.db.settings({experimentalAutoDetectLongPolling:true,merge:true});}catch(e){}
     }
     // Restore any bios written in a previous session — self-authored text,
     // same persistence pattern as goals (see saveBios).
@@ -3549,6 +3556,24 @@ class Component extends DCLogic {
   // has to land too, and either half can hang on a weak connection with
   // nothing to end it. This stops the button sitting on "Signing in…"
   // indefinitely and hands back a reason instead.
+  // Codes that mean "the request didn't get through", as opposed to
+  // anything about the credentials themselves. Worth another go.
+  isTransient(code){
+    return ['unavailable','deadline-exceeded','internal','resource-exhausted','aborted','cancelled',
+      'auth/network-request-failed','auth/internal-error','auth/timeout'].indexOf(code)>=0;
+  }
+  // Signing in straight after signing out asks Firestore to re-establish
+  // itself with a new token, and the first call can land before that has
+  // settled and come back transient. Every other app just works there,
+  // so rather than showing an error on the first blip this quietly tries
+  // again — only for transient codes, never for a wrong password.
+  withRetry(fn,tries,delay){
+    tries=tries||3;delay=delay||600;
+    return fn().catch(err=>{
+      if(tries<=1||!this.isTransient(err&&err.code))throw err;
+      return new Promise(r=>setTimeout(r,delay)).then(()=>this.withRetry(fn,tries-1,delay*2));
+    });
+  }
   startAuthWatchdog(){
     this.clearAuthWatchdog();
     this._authWatchdog=setTimeout(()=>{
@@ -3563,7 +3588,7 @@ class Component extends DCLogic {
   onAuthChange(user){
     if(this.state.screen==='invite')return;
     if(!user){this.clearAuthWatchdog();this.setState({authUser:null,authChecking:false,authBusy:false,screen:'login'});return;}
-    this.db.collection('users').doc(user.uid).get().then(doc=>{
+    this.withRetry(()=>this.db.collection('users').doc(user.uid).get()).then(doc=>{
       this.clearAuthWatchdog();
       if(!doc.exists){
         this.auth.signOut();
@@ -4010,7 +4035,7 @@ class Component extends DCLogic {
       if(!email||!st.pass){this.setState({authErr:'Enter your email and password.'});return;}
       this.setState({authBusy:true,authErr:'',authMsg:''});
       this.startAuthWatchdog();
-      this.auth.signInWithEmailAndPassword(email,st.pass).catch(err=>{
+      this.withRetry(()=>this.auth.signInWithEmailAndPassword(email,st.pass)).catch(err=>{
         this.clearAuthWatchdog();
         this.setState({authBusy:false,authErr:this.authErrMsg(err)});
       });
