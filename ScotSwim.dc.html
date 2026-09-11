@@ -3622,7 +3622,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);this.clearAuthWatchdog();window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);this.clearAuthWatchdog();clearTimeout(this._othersFlush);window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -3717,8 +3717,14 @@ class Component extends DCLogic {
       const divingDefaultW=profile.role==='dcoach'&&!this.men.some(s=>s.diver);
       const goalSeg=divingDefaultW?'W':'M',teamSeg=divingDefaultW?'W':'M',attSeg=divingDefaultW?'W':'M';
       this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg});
-      if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
-      this.startTeamContentSync();
+      // Left to the next tick so the dashboard paints first. These attach
+      // seven-odd listeners that each fire an opening snapshot, and each
+      // of those sets state again — doing it inline meant the app was
+      // re-rendered that many times before anything appeared on screen.
+      setTimeout(()=>{
+        if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
+        this.startTeamContentSync();
+      },0);
     }).catch(err=>{
       // Signed in, but their profile couldn't be read — leaving the auth
       // session half-established with no explanation looked exactly like
@@ -3986,8 +3992,19 @@ class Component extends DCLogic {
       if(!doc.exists)return;
       const entries=doc.data().entries||{};
       this.applyMyEvents(rosterId,entries);
-      const myEvents={...this.state.myEvents,[rosterId]:entries};
-      this.setState({myEvents});
+      // A coach's dashboard asks for the whole roster at once, so these
+      // land thirty-odd at a time. Setting state per athlete meant that
+      // many full re-renders of the entire app in a row, right after
+      // signing in, which is most of why it felt slow to get in. They're
+      // collected and applied in one go instead.
+      if(!this._pendingOthers)this._pendingOthers={};
+      this._pendingOthers[rosterId]=entries;
+      clearTimeout(this._othersFlush);
+      this._othersFlush=setTimeout(()=>{
+        const myEvents={...this.state.myEvents,...this._pendingOthers};
+        this._pendingOthers={};
+        this.setState({myEvents});
+      },80);
     }).catch(()=>{});
   }
   // Debounced — a keystroke-by-keystroke Firestore write would be both
@@ -4101,7 +4118,16 @@ class Component extends DCLogic {
     this.setState({deleteBusy:true,deleteErr:''});
     const cred=window.firebase.auth.EmailAuthProvider.credential(user.email,password);
     user.reauthenticateWithCredential(cred)
-      .then(()=>this.db.collection('users').doc(user.uid).delete())
+      // Best-effort: the rules forbid deleting a users doc outright
+      // (allow delete: if false), so this is refused and used to abort
+      // the whole thing before the credential was ever removed — the
+      // account deletion Apple requires could never actually complete.
+      // What matters is that the login is destroyed, so a profile left
+      // behind can't stop that; it's orphaned harmlessly either way,
+      // since no future account is issued this uid. Add
+      //   allow delete: if request.auth != null && request.auth.uid == uid;
+      // to the users rule and this cleans up the profile too.
+      .then(()=>this.db.collection('users').doc(user.uid).delete().catch(()=>null))
       .then(()=>user.delete())
       .then(()=>{
         this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();
