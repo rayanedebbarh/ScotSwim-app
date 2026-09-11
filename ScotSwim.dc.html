@@ -3529,7 +3529,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);this.clearAuthWatchdog();window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -3545,10 +3545,26 @@ class Component extends DCLogic {
   // Firebase restores on reload. The invite/signup screen drives its own
   // transition into the app (see doSignup) so this steps aside while
   // that's in progress, rather than racing it.
+  // Signing in isn't done when Firebase returns — the profile read below
+  // has to land too, and either half can hang on a weak connection with
+  // nothing to end it. This stops the button sitting on "Signing in…"
+  // indefinitely and hands back a reason instead.
+  startAuthWatchdog(){
+    this.clearAuthWatchdog();
+    this._authWatchdog=setTimeout(()=>{
+      this._authWatchdog=null;
+      if(!this.state.authBusy)return;
+      if(this.fbReady)this.auth.signOut().catch(()=>{});
+      this.setState({authBusy:false,authChecking:false,
+        authErr:'That took too long — check your connection and try again.'});
+    },20000);
+  }
+  clearAuthWatchdog(){if(this._authWatchdog){clearTimeout(this._authWatchdog);this._authWatchdog=null;}}
   onAuthChange(user){
     if(this.state.screen==='invite')return;
-    if(!user){this.setState({authUser:null,authChecking:false,authBusy:false,screen:'login'});return;}
+    if(!user){this.clearAuthWatchdog();this.setState({authUser:null,authChecking:false,authBusy:false,screen:'login'});return;}
     this.db.collection('users').doc(user.uid).get().then(doc=>{
+      this.clearAuthWatchdog();
       if(!doc.exists){
         this.auth.signOut();
         this.setState({authChecking:false,authBusy:false,authErr:'Account not fully set up — ask your coach for a new invite link.'});
@@ -3563,7 +3579,15 @@ class Component extends DCLogic {
       this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg});
       if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
       this.startTeamContentSync();
-    }).catch(()=>this.setState({authChecking:false,authBusy:false}));
+    }).catch(err=>{
+      // Signed in, but their profile couldn't be read — leaving the auth
+      // session half-established with no explanation looked exactly like
+      // the sign-in silently failing. Sign back out so the next attempt
+      // starts clean, and say why.
+      this.clearAuthWatchdog();
+      if(this.fbReady)this.auth.signOut().catch(()=>{});
+      this.setState({authChecking:false,authBusy:false,authErr:this.authErrMsg(err)});
+    });
   }
   // Keeps this athlete's own logged times/dates live across every device
   // they're signed in on — a snapshot listener, not a one-time fetch, so
@@ -3897,8 +3921,18 @@ class Component extends DCLogic {
     return this.db.collection('goalWorkouts').doc(rosterId).set({workouts});
   }
   authErrMsg(err){
-    const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.'};
-    return m[err.code]||'Something went wrong — try again.';
+    const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/invalid-login-credentials':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.',
+      // Without these, a dropped connection fell through to the generic
+      // message below, which reads as "your password is wrong" when the
+      // credentials were fine all along.
+      'auth/network-request-failed':'No connection — check your internet and try again.',
+      'auth/timeout':'That took too long — check your connection and try again.',
+      'auth/internal-error':'Sign-in is having trouble right now — try again in a moment.',
+      'auth/user-disabled':'That account has been turned off — ask your coach.',
+      'unavailable':'No connection — check your internet and try again.',
+      'deadline-exceeded':'That took too long — check your connection and try again.',
+      'permission-denied':'That account isn’t set up to sign in — ask your coach.'};
+    return m[err&&err.code]||'Something went wrong — try again.';
   }
   // Coach-only: mint a one-time invite doc. The token is the doc id, so
   // knowing the resulting link IS the access grant — nothing to guess.
@@ -3975,7 +4009,9 @@ class Component extends DCLogic {
       const email=st.uname.trim().toLowerCase();
       if(!email||!st.pass){this.setState({authErr:'Enter your email and password.'});return;}
       this.setState({authBusy:true,authErr:'',authMsg:''});
+      this.startAuthWatchdog();
       this.auth.signInWithEmailAndPassword(email,st.pass).catch(err=>{
+        this.clearAuthWatchdog();
         this.setState({authBusy:false,authErr:this.authErrMsg(err)});
       });
     };
