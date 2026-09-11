@@ -3008,13 +3008,19 @@ class Component extends DCLogic {
     const mine=(this.state&&this.state.myEvents)||{};
     Object.keys(mine).forEach(id=>this.applyMyEvents(id,mine[id]));
   }
+  // A roster change that doesn't reach Firestore is only in front of the
+  // coach who made it and disappears at sign-out, so unlike the other
+  // writers here this one reports failure instead of swallowing it —
+  // silently losing an athlete someone just added is worse than an error.
   syncRosterToCloud(rosterEdits){
-    if(!this.fbReady)return;
+    const failed=msg=>{this.setState({rosterErr:msg});this.toastMsg('Roster change NOT saved');};
+    if(!this.fbReady){failed('Not connected, so this change hasn’t been saved. It will be lost when you sign out.');return;}
     clearTimeout(this._rosterSaveTimer);
     this._rosterSaveTimer=setTimeout(()=>{
       this.db.collection('roster').doc('main')
         .set({removed:rosterEdits.removed||[],added:rosterEdits.added||[],updatedAt:Date.now()})
-        .catch(()=>{});
+        .then(()=>{if(this.state.rosterErr)this.setState({rosterErr:''});})
+        .catch(()=>failed('Couldn’t save this change to the team’s roster, so it will be lost when you sign out. Check your connection and try again.'));
     },400);
   }
   applyRosterEdits(next){
@@ -3066,7 +3072,11 @@ class Component extends DCLogic {
     if(!this._attSaveTimers)this._attSaveTimers={};
     clearTimeout(this._attSaveTimers[day]);
     this._attSaveTimers[day]=setTimeout(()=>{
-      this.db.collection('attendance').doc(day).set({marks:dayRec,updatedAt:Date.now()}).catch(()=>{});
+      this.db.collection('attendance').doc(day).set({marks:dayRec,updatedAt:Date.now()})
+        // Reported rather than swallowed for the same reason as the
+        // roster: a whole season of attendance that never left the phone
+        // it was taken on is worse than being told once that it didn't.
+        .catch(()=>this.toastMsg('Attendance NOT saved — check your connection'));
     },400);
   }
   setAttendance(day,id,val){
