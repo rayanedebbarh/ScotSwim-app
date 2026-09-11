@@ -3024,8 +3024,15 @@ class Component extends DCLogic {
   // other six days.
   weekDataFor(weekKey){
     const stored=this.state.trainWeeks[weekKey];
-    if(stored&&stored.days&&Object.keys(stored.days).length)return stored;
-    return {days:this.templateDaysFor(weekKey),notes:(stored&&stored.notes)||{}};
+    const days=this.templateDaysFor(weekKey);
+    // Merged a day at a time, not all-or-nothing: a day the coach has
+    // saved wins outright — including one they deliberately emptied,
+    // which is why the key existing matters rather than its length — and
+    // any day they haven't touched keeps the standing pattern. A single
+    // edited day used to replace the whole week with itself.
+    const sd=(stored&&stored.days)||{};
+    Object.keys(sd).forEach(day=>{days[day]=sd[day];});
+    return {days,notes:(stored&&stored.notes)||{}};
   }
   // Which days of a week hold a swim (pool or diving) session — the
   // practice streak counts only those, so lift-only days neither extend
@@ -4319,11 +4326,11 @@ class Component extends DCLogic {
         const rows=sessions.map((s,j)=>{
           const isLift=s.tag==='LIFT';
           const update=patch=>saveTrainDay(weekKey,day,sessions.map((x,k)=>k===j?{...x,...patch}:x));
-          // A lift marked solo is done on the athlete's own time, so no
-          // coach takes attendance for it — the athlete ticks it off.
-          // Only they can mark their own, and only once it's not in the
-          // future, so the week can't be checked off in advance.
-          const solo=isLift&&!!s.solo&&!editable&&!isCoach&&sessKey<=todayK;
+          // Coaches only take attendance at swim practice, so every lift
+          // — the team ones as much as the Friday solo — is logged by the
+          // athlete instead. Their own only, and not before the day has
+          // come round, so a week can't be ticked off in advance.
+          const solo=isLift&&!editable&&!isCoach&&sessKey<=todayK;
           const soloDone=solo&&this.soloLiftDone(user.id,sessKey);
           return {t:s.t,n:s.n,tag:s.tag,isLift,isNotLift:!isLift,editing:editable,notEditing:!editable,
             tValue:s.t,nValue:s.n,tagValue:s.tag,tagOpts,
@@ -4882,21 +4889,18 @@ class Component extends DCLogic {
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'None yet')(this.streakFor(user.id)),
-      // Coach-led lifts count from attendance; the solo one from the
-      // athlete's own tick. Only sessions that have already come round
-      // count, so mid-week it reads against what's happened so far.
+      // Every lift is self-logged, so this counts the athlete's own ticks
+      // against the lifts the week holds — attendance says nothing about
+      // lifts, since coaches only take it at swim practice.
       liftsThisWeek:(()=>{
         const days=this.weekDataFor(thisMon).days||{};
         const monDate=new Date(thisMon+'T00:00:00');
         let done=0,total=0;
         this.DAYS.forEach((day,i)=>{
-          (days[day]||[]).filter(s=>s.tag==='LIFT').forEach(s=>{
+          (days[day]||[]).filter(s=>s.tag==='LIFT').forEach(()=>{
             const d=new Date(monDate);d.setDate(d.getDate()+i);
-            const key=this.ymd(d);
             total++;
-            if(key>todayKey)return;
-            if(s.solo){if(this.soloLiftDone(user.id,key))done++;}
-            else if((this.state.attendance[key]||{})[user.id]===true)done++;
+            if(this.soloLiftDone(user.id,this.ymd(d)))done++;
           });
         });
         return done+' / '+total;
