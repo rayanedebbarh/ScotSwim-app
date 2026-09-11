@@ -568,11 +568,41 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ attNextDay }}" style="border:none;background:none;color:#F5E9DC;font-size:22px;font-weight:700;cursor:pointer;padding:2px 12px;line-height:1">›</button>
         </sc-if>
       </div>
+      <div style="display:flex;gap:6px">
+        <sc-for list="{{ attViews }}" as="v" hint-placeholder-count="2">
+          <button onClick="{{ v.onTap }}" style="flex:1;border:1.5px solid {{ v.bd }};background:{{ v.bg }};color:{{ v.fg }};border-radius:8px;padding:9px 0;font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1.5px;cursor:pointer">{{ v.n }}</button>
+        </sc-for>
+      </div>
       <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
         <sc-for list="{{ attSegs }}" as="g" hint-placeholder-count="2">
           <button onClick="{{ g.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ g.bg }};color:{{ g.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1.5px;cursor:pointer">{{ g.n }}</button>
         </sc-for>
       </div>
+      <sc-if value="{{ attLiftView }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LIFT LOG</div>
+            <button onClick="{{ reloadLiftLogs }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ liftLogRefreshLabel }}</button>
+          </div>
+          <sc-if value="{{ attNoLiftToday }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;padding:18px 8px 6px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:rgba(42,18,24,.4)">NO LIFT THIS DAY</div>
+              <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Lifts are Monday, Wednesday and Friday — use the arrows above to pick one of those days.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ attHasLiftToday }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px;line-height:1.45">{{ liftLoggedCount }} of {{ attTotalCount }} logged this lift — athletes mark their own, so this is what they've reported</div>
+            <sc-for list="{{ liftRows }}" as="a" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+                <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
+                <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
+                <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.fg }};background:{{ a.bg }};border:1.5px solid {{ a.bd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.label }}</div>
+              </div>
+            </sc-for>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ attSwimView }}" hint-placeholder-val="{{ true }}">
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
@@ -609,6 +639,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-for>
         </sc-if></sc-if>
       </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -2010,7 +2041,8 @@ class Component extends DCLogic {
       showDeletePanel:false,deletePassword:'',deleteErr:'',deleteBusy:false,
       showPass:false,showSignupPass:false,showSignupPass2:false,showDeletePass:false,
       rosterEdits:{removed:[],added:[]},teamEditing:false,rosterErr:'',
-      rosterDraft:{name:'',cls:'',pos:'',home:'',gender:'M'}};
+      rosterDraft:{name:'',cls:'',pos:'',home:'',gender:'M'},
+      attView:'swim',liftLogsLoading:false,liftLogsLoaded:false};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -3192,6 +3224,27 @@ class Component extends DCLogic {
   // mark it — each athlete ticks it off themselves. Kept in their own
   // trainingLog doc (merged, so it can't clobber the logged entries
   // sharing it), which they already own and can write to.
+  // Coaches don't take attendance at lifts — athletes log their own — so
+  // this gathers what they've reported. Each athlete's doc is read one by
+  // one rather than queried: the rules allow reading a trainingLog doc
+  // but not listing the collection, and this way needs no rule change.
+  // It's a one-off fetch on opening the view rather than a listener per
+  // athlete, with a refresh button for anything logged since.
+  loadLiftLogs(){
+    if(!this.fbReady||this.state.liftLogsLoading)return;
+    this.setState({liftLogsLoading:true});
+    const ids=this.all.map(s=>s.id);
+    Promise.all(ids.map(id=>this.db.collection('trainingLog').doc(id).get()
+      .then(doc=>({id,marks:(doc.exists&&doc.data().soloLifts)||{}}))
+      .catch(()=>({id,marks:null}))))
+      .then(rows=>{
+        const soloLifts={...this.state.soloLifts};
+        let failed=0;
+        rows.forEach(r=>{if(r.marks===null)failed++;else soloLifts[r.id]=r.marks;});
+        this.setState({soloLifts,liftLogsLoading:false,liftLogsLoaded:true});
+        if(failed)this.toastMsg("Couldn't load "+failed+' athlete'+(failed===1?'':'s'));
+      });
+  }
   soloLiftDone(rosterId,dateKey){
     return !!((this.state.soloLifts[rosterId]||{})[dateKey]);
   }
@@ -4623,6 +4676,25 @@ class Component extends DCLogic {
         onToggle:SEASON_STARTED?()=>this.setAttendance(attDateKey,s.id,!present):null};
     });
     const attPresentCount=attRows.filter(r=>r.present).length;
+    // Lift view — what athletes have logged for whichever day is picked.
+    // Read-only by nature: the rules let an athlete write only their own
+    // trainingLog, so a coach sees the report rather than editing it.
+    const attView=isCoach?(st.attView==='lift'?'lift':'swim'):'swim';
+    const attViews=[['swim','SWIM & DIVE'],['lift','LIFT']].map(([id,n])=>({n,
+      bg:attView===id?M:'transparent',fg:attView===id?C:M,bd:M,
+      onTap:()=>{
+        this.setState({attView:id});
+        if(id==='lift'&&!this.state.liftLogsLoaded)this.loadLiftLogs();
+      }}));
+    const attDayName=this.DAYS[(attDateObj.getDay()+6)%7];
+    const attLiftCount=((this.weekDataFor(this.mondayKey(attDateObj)).days||{})[attDayName]||[])
+      .filter(s=>s.tag==='LIFT').length;
+    const liftRows=attRoster.map(s=>{
+      const done=this.soloLiftDone(s.id,attDateKey);
+      return {name:s.name,ini:s.ini,avc:s.avc,slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
+        label:done?'Logged':'—',fg:done?C:'rgba(42,18,24,.45)',
+        bg:done?'#1B7A78':'transparent',bd:done?'#1B7A78':'rgba(42,18,24,.25)'};
+    });
     const attPct=SEASON_STARTED?this.attendancePct(attRosterRole):null;
     const attPctDisplay=attPct==null?'—':attPct+'%';
     const onMarkAllPresent=SEASON_STARTED?()=>this.markAllPresent(attDateKey,attRoster):null;
@@ -4947,6 +5019,11 @@ class Component extends DCLogic {
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
+      attViews,attSwimView:attView==='swim',attLiftView:attView==='lift',
+      attHasLiftToday:attLiftCount>0,attNoLiftToday:attLiftCount===0,
+      liftRows,liftLoggedCount:liftRows.filter(r=>r.label==='Logged').length,
+      reloadLiftLogs:()=>this.loadLiftLogs(),
+      liftLogRefreshLabel:st.liftLogsLoading?'Refreshing…':'Refresh',
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
       attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'None yet')(this.streakFor(user.id)),
