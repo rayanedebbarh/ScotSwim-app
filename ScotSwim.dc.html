@@ -3638,14 +3638,36 @@ class Component extends DCLogic {
     },20000);
   }
   clearAuthWatchdog(){if(this._authWatchdog){clearTimeout(this._authWatchdog);this._authWatchdog=null;}}
+  // Auth and Firestore are separate SDKs: Firestore attaches the signed-in
+  // token through its own listener, while this read fires the moment auth
+  // changes. Get there first and the request goes out with no credential,
+  // the rules rightly refuse it, and a perfectly good account is told it
+  // isn't set up. Asking for the token first lets that settle, and
+  // permission-denied is retried here — right after signing in it means
+  // the token hadn't landed, not that the account is really barred.
+  // An absent profile is retried too, since a read can beat the invite
+  // signup's own write; only once the retries are spent is it believed.
+  loadProfile(user,tries,delay){
+    tries=tries||4;delay=delay||500;
+    const again=()=>new Promise(r=>setTimeout(r,delay)).then(()=>this.loadProfile(user,tries-1,delay*2));
+    return Promise.resolve(user.getIdToken?user.getIdToken().catch(()=>null):null)
+      .then(()=>this.db.collection('users').doc(user.uid).get())
+      .then(doc=>(doc.exists||tries<=1)?doc:again())
+      .catch(err=>{
+        const code=err&&err.code;
+        if(tries>1&&(this.isTransient(code)||code==='permission-denied'))return again();
+        throw err;
+      });
+  }
   onAuthChange(user){
     if(this.state.screen==='invite')return;
     if(!user){this.clearAuthWatchdog();this.setState({authUser:null,authChecking:false,authBusy:false,screen:'login'});return;}
-    this.withRetry(()=>this.db.collection('users').doc(user.uid).get()).then(doc=>{
+    this.loadProfile(user).then(doc=>{
       this.clearAuthWatchdog();
       if(!doc.exists){
         this.auth.signOut();
-        this.setState({authChecking:false,authBusy:false,authErr:'Account not fully set up — ask your coach for a new invite link.'});
+        this.setState({authChecking:false,authBusy:false,
+          authErr:'Signed in, but this account has no profile yet — ask your coach to send a new invite link.'});
         return;
       }
       const profile=doc.data();
