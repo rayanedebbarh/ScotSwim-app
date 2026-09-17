@@ -26,7 +26,12 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      # See android-release.yml: the action's default package list asks for
+      # the legacy "tools" package, which no longer exists in the SDK
+      # repository and fails the step.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
 
       - name: Install web dependencies
         run: npm ci

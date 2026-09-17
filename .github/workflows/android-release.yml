@@ -28,7 +28,14 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      # packages must be set explicitly: the action's default list includes
+      # the legacy "tools" package, which Google has removed from the SDK
+      # repository, so the default makes sdkmanager fail with "Failed to
+      # find package 'tools'". These three are what AGP 8.13 / compileSdk 36
+      # actually needs.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
 
       - name: Install web dependencies
         run: npm ci
