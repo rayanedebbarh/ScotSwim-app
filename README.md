@@ -83,17 +83,18 @@ simulator's projected score are all derived at read time from the logged records
 
 ## Release pipeline
 
-Two tracks, because most changes don't need a store review:
+Everything ships through the app stores — one path to production, so what's installed is
+always what was reviewed.
 
-**Over-the-air** — the app's web content updates through
-[Capgo](https://capgo.app) via a manually-triggered GitHub Actions workflow. Bug fixes,
-schedule changes and UI work reach every installed copy within minutes, with no review
-cycle. Permitted for interpreted code under both stores' rules.
+`android-release.yml` produces a signed `.aab` and `.apk` in CI from a keystore held in
+repository secrets, with the Android SDK packages pinned explicitly (the action's defaults
+ask for a `tools` package Google has since removed). iOS is archived and uploaded from
+Xcode, since Apple's signing toolchain is macOS-only; `ios-build.yml` compiles the native
+project on a macOS runner as a check that it still builds.
 
-**Store builds** — needed only when native code changes: plugins, permissions, icons,
-the app shell itself. `android-release.yml` produces a signed `.aab` and `.apk` in CI
-from a keystore held in repository secrets; iOS is archived and uploaded from Xcode,
-since Apple's signing toolchain is macOS-only.
+The web app and the native builds share one source. `mobile-app/scripts/sync-web.sh`
+copies the repo root into `www/` before every `cap sync`, and `www/` is never committed —
+so the shipped app can't drift from the hosted site.
 
 ## Some things that were harder than they looked
 
@@ -126,7 +127,7 @@ ios-frame.jsx           device-frame wrapper (desktop preview vs. full-bleed on 
 privacy.html            privacy policy (served by GitHub Pages)
 mobile-app/             Capacitor project — ios/, android/, sync script
 store-listing/          store assets and listing copy
-.github/workflows/      CI: Android debug + signed release, iOS compile check, OTA publish
+.github/workflows/      CI: Android debug + signed release, iOS compile check
 ```
 
 ## Running it
