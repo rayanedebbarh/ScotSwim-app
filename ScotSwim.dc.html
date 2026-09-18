@@ -1650,6 +1650,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- swimmer detail overlay -->
 <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:30">
+    <div onClick="{{ closeSel }}" style="flex:1"></div>
     <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
       <div style="background:#6B1F33;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:14px;position:sticky;top:0">
         <div style="width:50px;height:50px;border-radius:50%;border:2px solid #F5E9DC;overflow:hidden;flex:none;background:#2A1218"><image-slot id="{{ selDet.slotId }}" src="{{ selDet.photo }}" shape="circle" minimal="true" placeholder="{{ selDet.ini }}"></image-slot></div>
@@ -1844,6 +1845,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- lineup event picker overlay -->
 <sc-if value="{{ hasPicker }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:40">
+    <div onClick="{{ closePicker }}" style="flex:1"></div>
     <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:78%;overflow-y:auto;animation:fadeUp .25s ease">
       <div style="background:#2A1218;color:#F5E9DC;padding:15px 20px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0">
         <div>
@@ -1868,6 +1870,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- meet lineup overlay -->
 <sc-if value="{{ hasLineup }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:35">
+    <div onClick="{{ closeLineup }}" style="flex:1"></div>
     <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
       <div style="background:#2A1218;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:14px;position:sticky;top:0">
         <div style="flex:1;min-width:0">
