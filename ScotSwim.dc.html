@@ -331,18 +331,22 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-if value="{{ rivalNoEvent }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">Log a time in My Events to unlock rivalries.</div>
         </sc-if>
-        <sc-if value="{{ rivalNoOpponent }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">No one else has logged a time in this event yet — check back once a teammate does.</div>
-        </sc-if>
-        <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ hasRivalEv }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:8px;margin-top:10px">
             <select value="{{ rivalEv }}" onChange="{{ rivalEvSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
               <sc-for list="{{ rivalEvOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
             </select>
-            <select value="{{ rivalId }}" onChange="{{ rivalSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
-              <sc-for list="{{ rivalOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
-            </select>
+            <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
+              <select value="{{ rivalId }}" onChange="{{ rivalSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
+                <sc-for list="{{ rivalOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+              </select>
+            </sc-if>
           </div>
+        </sc-if>
+        <sc-if value="{{ rivalNoOpponent }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">No one else has logged a time in this event yet — check back once a teammate does.</div>
+        </sc-if>
+        <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
             <div style="flex:1;text-align:center">
               <div style="width:48px;height:48px;border-radius:50%;background:#6B1F33;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
@@ -637,7 +641,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-if></sc-if>
         </div>
         <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} present — tap anyone who's out</div>
+          <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attSummary }}</div>
           <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
             <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
               <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
@@ -2351,6 +2355,10 @@ class Component extends DCLogic {
     // here, every athlete's device just starts empty until a coach
     // actually posts something.
     this.DAYS=['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'];
+    // What one tap on an attendance row moves to. Present is stored as
+    // `true` rather than the string so days taken before excused existed
+    // keep the shape they already had.
+    this.ATT_NEXT={present:'unexcused',unexcused:'excused',excused:true};
     // LIFT is deliberately not a free-text field a coach types into — real
     // lift exercises come from TeamBuildr once the season's lift schedule
     // is out, so any LIFT-tagged session always displays as TBA (see
@@ -2927,23 +2935,39 @@ class Component extends DCLogic {
     // copy of this same profile, including the Team-tab modal.
     if(!canEditBio)this.fetchOthersTrainingLog(s.id);
     const tlEntries=this.state.trainingLog[s.id]||{};
-    const tlEntryIds=Object.keys(tlEntries);
+    // Sorted, not raw key order: these come back from Firestore as a map,
+    // and a map's keys arrive in the server's order rather than the order
+    // they were added. Rows are matched to inputs by position, so a list
+    // that reorders between renders moves the caret into someone else's
+    // row mid-word. Entry ids lead with a timestamp, so sorting them is
+    // also chronological.
+    const tlEntryIds=Object.keys(tlEntries).sort();
     const setTrainingLog=next=>{
       const trainingLog={...this.state.trainingLog,[s.id]:next};
       this.setState({trainingLog});this.saveTrainingLog(trainingLog);
       this.syncTrainingLogToCloud(s.id,next);
     };
+    // Every write re-reads the current entries instead of closing over the
+    // copy this render captured. A snapshot landing between renders would
+    // otherwise make the next keystroke write a stale copy of every other
+    // row back over the newer one.
+    const tlPatch=(entryId,patch)=>{
+      const cur=this.state.trainingLog[s.id]||{};
+      if(!cur[entryId])return;
+      setTrainingLog({...cur,[entryId]:{...cur[entryId],...patch}});
+    };
     const trainingLogRows=tlEntryIds.map(entryId=>{
       const entry=tlEntries[entryId];
       return {id:entryId,dateValue:entry.date||'',milesValue:entry.miles||'',minutesValue:entry.minutes||'',
-        onDateChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,date:e2.target.value}}),
-        onMilesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,miles:e2.target.value}}),
-        onMinutesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,minutes:e2.target.value}}),
-        remove:()=>{const next={...tlEntries};delete next[entryId];setTrainingLog(next);}};
+        onDateChange:e2=>tlPatch(entryId,{date:e2.target.value}),
+        onMilesChange:e2=>tlPatch(entryId,{miles:e2.target.value}),
+        onMinutesChange:e2=>tlPatch(entryId,{minutes:e2.target.value}),
+        remove:()=>{const next={...(this.state.trainingLog[s.id]||{})};delete next[entryId];setTrainingLog(next);}};
     });
     const addTrainingLogEntry=()=>{
       const entryId='t'+Date.now()+Math.random().toString(36).slice(2,6);
-      setTrainingLog({...tlEntries,[entryId]:{date:'',miles:'',minutes:''}});
+      const cur=this.state.trainingLog[s.id]||{};
+      setTrainingLog({...cur,[entryId]:{date:'',miles:'',minutes:''}});
     };
     const totalMiles=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].miles)||0),0);
     const totalMinutes=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].minutes)||0),0);
@@ -3214,6 +3238,15 @@ class Component extends DCLogic {
         .catch(()=>this.toastMsg('Attendance NOT saved — check your connection'));
     },400);
   }
+  // Normalises a stored attendance value to one of the three states.
+  // Anything unrecognised (including a missing entry) counts as present,
+  // so a day where the coach only tapped the few who were out still reads
+  // as everyone else having shown up.
+  attStateOf(v){
+    if(v==='excused')return 'excused';
+    if(v===false||v==='unexcused')return 'unexcused';
+    return 'present';
+  }
   setAttendance(day,id,val){
     const dayRec={...(this.state.attendance[day]||{}),[id]:val};
     const attendance={...this.state.attendance,[day]:dayRec};
@@ -3239,7 +3272,7 @@ class Component extends DCLogic {
     const d=new Date();
     if(isSwimDay(d)){
       const todayVal=attendance[this.ymd(d)]&&attendance[this.ymd(d)][id];
-      if(todayVal===false)return 0;
+      if(this.attStateOf(todayVal)==='unexcused')return 0;
       // An unmarked swim day today just means the coach hasn't taken
       // attendance yet, so start counting from yesterday instead.
       if(todayVal!==true)d.setDate(d.getDate()-1);
@@ -3248,6 +3281,9 @@ class Component extends DCLogic {
     while(this.mondayKey(d)>=this.SEASON_FIRST_MONDAY){
       if(!isSwimDay(d)){d.setDate(d.getDate()-1);continue;}
       const rec=attendance[this.ymd(d)];
+      // An excused absence is stepped over the same way a lift day is: it
+      // doesn't extend the streak, but it doesn't end one either.
+      if(rec&&this.attStateOf(rec[id])==='excused'){d.setDate(d.getDate()-1);continue;}
       if(rec&&rec[id]===true){count++;d.setDate(d.getDate()-1);}
       else break;
     }
@@ -3301,9 +3337,14 @@ class Component extends DCLogic {
       if(rec&&roster.length){
         // Same "missing = present" default the roster rows use, so a day
         // where the coach only touched a couple of absentees isn't scored
-        // as if everyone else skipped practice too.
-        sum+=roster.filter(s=>rec[s.id]!==false).length/roster.length;
-        days++;
+        // as if everyone else skipped practice too. Excused absences drop
+        // out of the day entirely rather than counting against the rate —
+        // being excused isn't the same as missing practice.
+        const counted=roster.filter(s=>this.attStateOf(rec[s.id])!=='excused');
+        if(counted.length){
+          sum+=counted.filter(s=>this.attStateOf(rec[s.id])==='present').length/counted.length;
+          days++;
+        }
       }
       d.setDate(d.getDate()-1);
     }
@@ -3769,12 +3810,18 @@ class Component extends DCLogic {
     this._trainingLogUnsub=ref.onSnapshot(doc=>{
       if(doc.exists){
         const entries=doc.data().entries||{};
-        const trainingLog={...this.state.trainingLog,[rosterId]:entries};
+        // Our own write echoing back would land on top of anything typed
+        // since, blanking the character mid-keystroke. Only this athlete
+        // can write this doc, so briefly preferring the local copy can't
+        // lose anyone else's edit — the next snapshot reconciles it.
+        const justEdited=Date.now()-((this._trainingLogEditAt||{})[rosterId]||0)<2500;
+        const trainingLog=justEdited?this.state.trainingLog
+          :{...this.state.trainingLog,[rosterId]:entries};
         // soloLifts shares this doc (see toggleSoloLift), so every write
         // to either merges and the two can't overwrite each other.
         const soloLifts={...this.state.soloLifts,[rosterId]:doc.data().soloLifts||{}};
         this.setState({trainingLog,soloLifts});
-        this.saveTrainingLog(trainingLog);
+        if(!justEdited)this.saveTrainingLog(trainingLog);
       }else if(!migrated){
         migrated=true;
         const local=this.state.trainingLog[rosterId];
@@ -4028,6 +4075,10 @@ class Component extends DCLogic {
   }
   // Debounced — same reasoning as syncMyEventsToCloud above.
   syncTrainingLogToCloud(rosterId,entries){
+    // Stamped before the fbReady check so the listener below knows an edit
+    // just happened whether or not it reached the network.
+    if(!this._trainingLogEditAt)this._trainingLogEditAt={};
+    this._trainingLogEditAt[rosterId]=Date.now();
     if(!this.fbReady)return;
     if(!this._trainingLogSaveTimers)this._trainingLogSaveTimers={};
     clearTimeout(this._trainingLogSaveTimers[rosterId]);
@@ -4418,6 +4469,10 @@ class Component extends DCLogic {
     const rivalEvOpts=hasRealPrimary.map(e=>({id:e,n:this.evMap[e].n}));
     const rivalEvSel=e=>this.setState({rivalEv:e.target.value,rivalId:null});
     const hasRival=!!rv;
+    // The event picker stays up whenever the athlete has logged anything,
+    // even if nobody else has logged that event — otherwise picking such an
+    // event hides the only control that could change it back.
+    const hasRivalEv=hasRealPrimary.length>0;
     const rivalNoEvent=hasRealPrimary.length===0;
     const rivalNoOpponent=!hasRival&&!rivalNoEvent;
     const lead=hasRival&&(isDiveEv?(user.pbs[rEv]>rv.pbs[rEv]):(user.pbs[rEv]<rv.pbs[rEv]));
@@ -4749,15 +4804,26 @@ class Component extends DCLogic {
     const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
     const attRosterEmptyLabel='athletes on the '+(attSegActive==='M'?"men's":"women's")+' roster';
     const attDateRec=this.state.attendance[attDateKey]||{};
+    // Three states, cycled by tapping a row: present -> unexcused ->
+    // excused -> present. `false` is what "absent" was stored as before
+    // excused existed, so it still reads as unexcused and no past
+    // attendance needs migrating.
     const attRows=attRoster.map(s=>{
-      const present=attDateRec[s.id]!==false;
+      const stt=this.attStateOf(attDateRec[s.id]);
+      const look=stt==='present'?{bg:'#1B7A78',fg:C,bd:'#1B7A78',label:'Present'}
+        :stt==='excused'?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused'}
+        :{bg:'transparent',fg:'#8E2C3B',bd:'#C46070',label:'Unexcused'};
       return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        present,pillBg:present?'#1B7A78':'transparent',pillFg:present?C:'rgba(42,18,24,.5)',
-        pillBd:present?'#1B7A78':'rgba(42,18,24,.25)',pillLabel:present?'Present':'Absent',
-        onToggle:SEASON_STARTED?()=>this.setAttendance(attDateKey,s.id,!present):null};
+        present:stt==='present',excused:stt==='excused',
+        pillBg:look.bg,pillFg:look.fg,pillBd:look.bd,pillLabel:look.label,
+        onToggle:SEASON_STARTED?()=>this.setAttendance(attDateKey,s.id,this.ATT_NEXT[stt]):null};
     });
     const attPresentCount=attRows.filter(r=>r.present).length;
+    const attExcusedCount=attRows.filter(r=>r.excused).length;
+    const attSummary=attPresentCount+' of '+attRoster.length+' present'
+      +(attExcusedCount?' · '+attExcusedCount+' excused':'')
+      +' — tap to cycle present / unexcused / excused';
     // Lift view — what athletes have logged for whichever day is picked.
     // Read-only by nature: the rules let an athlete write only their own
     // trainingLog, so a coach sees the report rather than editing it.
@@ -5109,7 +5175,7 @@ class Component extends DCLogic {
       allSelfLabel:st.showAllSelf?'Top 3 ‹':'All goals ›',
       allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
       allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
-      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,rivalNoEvent,rivalNoOpponent,
+      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,hasRivalEv,rivalNoEvent,rivalNoOpponent,
       workoutLib,
       oppGroups,
       goalCount:String(user.primary.filter(ev=>(st.goalDelta[user.id+'|'+ev]||0)!==0).length),
@@ -5128,7 +5194,7 @@ class Component extends DCLogic {
       nAll:String(homeMen.length+homeWomen.length),nMen:String(homeMen.length),nWomen:String(homeWomen.length),
       totalTileLabel,nBreakdown,
       seasonPbCount:String(seasonPbCount),improvers,improversEmpty,
-      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
+      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),attSummary,onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
       attViews,attSwimView:attView==='swim',attLiftView:attView==='lift',
