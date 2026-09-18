@@ -39,7 +39,7 @@ The app currently renders its entire UI inside a **fixed 402×874px mockup
 phone graphic** (fake status bar, rounded bezel, drop shadow), centered on a
 dark background — see `ios-frame.jsx` / the `<IOSDevice>` wrapper around the
 whole app in `ScotSwim.dc.html`. That was built for previewing the design
-inside Claude's Design Canvas, not for an actual installed app. ~~On a real
+inside the design canvas, not for an actual installed app. ~~On a real
 device (native build or otherwise) it would show a small floating phone
 shape in a black void instead of filling the screen~~ — **fixed**: full-
 bleed under 560px viewport width (covers every real phone), real
@@ -87,7 +87,7 @@ npx cap open ios     # requires Xcode (macOS only)
 to Play Console) and a signed `.apk` (for sideload testing) — manually
 triggered from GitHub → Actions → "Android Release Build (signed)" → Run
 workflow. It needs a one-time signing keystore, generated **on your own
-machine** (not in CI, not by Claude) since losing it means you can never
+machine** (not in CI) since losing it means you can never
 publish an update to the same Play Store listing again:
 
 ```

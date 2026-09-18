@@ -4295,8 +4295,8 @@ class Component extends DCLogic {
     // weekly training schedule below (saveSched -> syncScheduleToCloud).
     // Meets can be added, reordered, or removed at any time, not just
     // pre-season — a time, a site, or a whole meet can change after the
-    // schedule is already published, and the coach shouldn't need Claude/
-    // a developer to make that change for them.
+    // schedule is already published, and the coach shouldn't need a
+    // developer to make that change for them.
     const schedEditing=isCoach&&st.schedEditing;
     const toggleSchedEdit=()=>this.setState({schedEditing:!st.schedEditing});
     const schedEditLabel=schedEditing?'Done ✓':'Edit schedule ✎';
