@@ -210,12 +210,13 @@ function IOSDevice({
   // a tiny floating phone-shaped box in a black void on a real screen.
   // Real notch/home-indicator spacing comes from env(safe-area-inset-*)
   // instead. Above 560px (viewing the design on a desktop browser, e.g.
-  // inside Claude's Design Canvas) it keeps the original framed-mockup
+  // inside the design canvas) it keeps the original framed-mockup
   // look at its authored size, fake status bar and all, since that's
   // exactly what's useful there.
   return (
-    // data-om-starter: inert presence marker — Claude Design's starter-usage
-    // probe reads it; it renders nothing. Keep it on this root element.
+    // data-om-starter: inert presence marker — the canvas tooling's
+    // starter-usage probe reads it; it renders nothing. Keep it on this
+    // root element.
     <div data-om-starter="ios-frame" className="iosdev-root" style={{
       '--iosdev-w': width + 'px', '--iosdev-h': height + 'px',
       background: dark ? '#000' : '#F2F2F7',
