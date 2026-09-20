@@ -1,0 +1,17 @@
+New in this version:
+
+• Notifications — you'll know when a coach posts a team announcement, changes the meet schedule, or sets a goal for you. Tap one to jump straight to it.
+
+• Excused absences — coaches can mark an absence as excused or unexcused. An excused absence doesn't count against your attendance and doesn't break your practice streak.
+
+• Your goals now follow your account, so they're waiting for you when you sign in on another device.
+
+• Goals a coach sets for you now show up in your app.
+
+Fixes:
+
+• Goals no longer reorder themselves while you're adjusting them
+• The rivalry card no longer gets stuck when you pick an event no teammate has logged yet
+• Training log entries no longer overwrite each other while you type
+• Tap anywhere outside a profile to close it, not just the X
+• Tapping a teammate's photo opens their profile instead of asking you to upload a picture
