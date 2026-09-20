@@ -45,8 +45,15 @@ Now that the iOS app exists, the section is there:
 
 ## 4. Blaze plan
 
-Firebase Console → ⚙ → **Usage and billing** → **Details & settings** →
-**Modify plan** → Blaze. Cloud Functions won't deploy on Spark.
+Firebase Console → ⚙ → **Usage and billing** → click **Upgrade** in the
+banner at the top of that page. (Google moves this around; if the banner
+isn't there, look under the **Account & budgets** tab.) Cloud Functions
+won't deploy on Spark.
+
+You'll need a Cloud Billing account — a card is required even though
+nothing here will be charged. Set the budget alert it offers you; $5/month
+is plenty, and it means you hear about a runaway cost rather than finding
+it on a statement.
 
 Expected cost for this team: **$0**. The free allowance is 2M invocations a
 month; this sends a handful a week.
