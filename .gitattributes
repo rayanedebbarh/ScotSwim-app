@@ -1,0 +1,10 @@
+# ScotSwim.dc.html is a single-file component: the app's logic lives in a
+# script block inside it alongside the markup, the way a .vue or .svelte
+# file carries both. GitHub's language stats key off the extension alone
+# and would file the whole thing as HTML, so this counts it as what most
+# of it is.
+ScotSwim.dc.html linguist-language=JavaScript
+
+# Framework runtime that ships with the design canvas, not application code.
+support.js linguist-vendored
+image-slot.js linguist-vendored

@@ -9,6 +9,7 @@ ROOT="../"
 rm -rf www
 mkdir -p www
 cp "$ROOT/ScotSwim.dc.html" www/index.html
+cp "$ROOT/scotswim-core.js" www/
 cp "$ROOT/support.js" www/
 cp "$ROOT/image-slot.js" www/
 cp "$ROOT/ios-frame.jsx" www/
