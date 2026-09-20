@@ -234,6 +234,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="width:14px;height:2px;border-radius:1px;background:#2A1218"></div>
   </button>
   <div style="flex:1;font-family:'Barlow Condensed';font-weight:800;font-size:19px;letter-spacing:2.5px;color:#2A1218">{{ barTitle }}</div>
+  <button onClick="{{ openNotifs }}" aria-label="Notifications" style="border:none;background:none;padding:0;width:30px;height:30px;cursor:pointer;position:relative;flex:none;display:flex;align-items:center;justify-content:center;color:#2A1218">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    <sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;top:-2px;right:-3px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#6B1F33;color:#F5E9DC;font-size:10px;font-weight:800;line-height:16px;text-align:center;box-sizing:border-box;border:1.5px solid #FFFFFF">{{ unreadLabel }}</div>
+    </sc-if>
+  </button>
   <sc-if value="{{ vHome }}" hint-placeholder-val="{{ true }}">
     <button onClick="{{ logout }}" style="border:1px solid rgba(42,18,24,.18);background:none;color:rgba(42,18,24,.65);padding:6px 12px;border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer">Sign out</button>
   </sc-if>
@@ -331,18 +337,22 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-if value="{{ rivalNoEvent }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">Log a time in My Events to unlock rivalries.</div>
         </sc-if>
-        <sc-if value="{{ rivalNoOpponent }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">No one else has logged a time in this event yet — check back once a teammate does.</div>
-        </sc-if>
-        <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ hasRivalEv }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:8px;margin-top:10px">
             <select value="{{ rivalEv }}" onChange="{{ rivalEvSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
               <sc-for list="{{ rivalEvOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
             </select>
-            <select value="{{ rivalId }}" onChange="{{ rivalSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
-              <sc-for list="{{ rivalOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
-            </select>
+            <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
+              <select value="{{ rivalId }}" onChange="{{ rivalSel }}" style="flex:1;background:rgba(245,233,220,.1);color:#F5E9DC;border:1px solid rgba(245,233,220,.3);border-radius:8px;padding:7px 8px;font-size:11.5px;font-family:'Barlow';outline:none">
+                <sc-for list="{{ rivalOpts }}" as="o" hint-placeholder-count="5"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+              </select>
+            </sc-if>
           </div>
+        </sc-if>
+        <sc-if value="{{ rivalNoOpponent }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12.5px;color:rgba(245,233,220,.65);margin-top:12px;line-height:1.45">No one else has logged a time in this event yet — check back once a teammate does.</div>
+        </sc-if>
+        <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
             <div style="flex:1;text-align:center">
               <div style="width:48px;height:48px;border-radius:50%;background:#6B1F33;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
@@ -637,7 +647,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-if></sc-if>
         </div>
         <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attPresentCount }} of {{ attTotalCount }} present — tap anyone who's out</div>
+          <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ attSummary }}</div>
           <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
             <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
               <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
@@ -1643,9 +1653,49 @@ input::placeholder{color:rgba(245,233,220,.5)}
   </div>
 </sc-if>
 
+<!-- notifications overlay -->
+<sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:45">
+    <div onClick="{{ closeNotifs }}" style="flex:1"></div>
+    <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:80%;overflow-y:auto;animation:fadeUp .3s ease">
+      <div style="background:#6B1F33;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1">
+        <div style="flex:1">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">FROM YOUR COACHES</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:23px;line-height:1.1;margin-top:2px">Notifications</div>
+        </div>
+        <button onClick="{{ closeNotifs }}" style="border:none;background:rgba(245,233,220,.15);color:#F5E9DC;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none">✕</button>
+      </div>
+      <div style="padding:6px 16px 22px">
+        <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="text-align:center;padding:34px 10px 26px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:rgba(42,18,24,.4)">ALL CAUGHT UP</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:7px;line-height:1.45">Announcements, schedule changes and new goals will show up here.</div>
+          </div>
+        </sc-if>
+        <sc-for list="{{ notifRows }}" as="n" hint-placeholder-count="3">
+          <div onClick="{{ n.onTap }}" style="display:flex;align-items:flex-start;gap:12px;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:12px;padding:13px 14px;margin-top:9px;cursor:pointer">
+            <div style="width:32px;height:32px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px">{{ n.icon }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13.5px;font-weight:600;line-height:1.35;color:#2A1218">{{ n.msg }}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+                <div style="font-size:11.5px;color:rgba(42,18,24,.45)">{{ n.ago }}</div>
+                <div style="font-size:11.5px;font-weight:700;color:#1B7A78">{{ n.cta }} ›</div>
+              </div>
+            </div>
+            <sc-if value="{{ n.isNew }}" hint-placeholder-val="{{ true }}">
+              <div style="width:8px;height:8px;border-radius:50%;background:#6B1F33;flex:none;margin-top:6px"></div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
 <!-- swimmer detail overlay -->
 <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:30">
+    <div onClick="{{ closeSel }}" style="flex:1"></div>
     <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
       <div style="background:#6B1F33;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:14px;position:sticky;top:0">
         <div style="width:50px;height:50px;border-radius:50%;border:2px solid #F5E9DC;overflow:hidden;flex:none;background:#2A1218"><image-slot id="{{ selDet.slotId }}" src="{{ selDet.photo }}" shape="circle" minimal="true" placeholder="{{ selDet.ini }}"></image-slot></div>
@@ -1840,6 +1890,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- lineup event picker overlay -->
 <sc-if value="{{ hasPicker }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:40">
+    <div onClick="{{ closePicker }}" style="flex:1"></div>
     <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:78%;overflow-y:auto;animation:fadeUp .25s ease">
       <div style="background:#2A1218;color:#F5E9DC;padding:15px 20px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0">
         <div>
@@ -1864,6 +1915,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <!-- meet lineup overlay -->
 <sc-if value="{{ hasLineup }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:35">
+    <div onClick="{{ closeLineup }}" style="flex:1"></div>
     <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
       <div style="background:#2A1218;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:14px;position:sticky;top:0">
         <div style="flex:1;min-width:0">
@@ -2059,7 +2111,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -2145,6 +2197,8 @@ class Component extends DCLogic {
       const savedGoals=JSON.parse(localStorage.getItem('scotswim.goals')||'null');
       if(savedGoals){
         if(savedGoals.goalDelta)this.state.goalDelta=savedGoals.goalDelta;
+      const seenAt=parseInt(localStorage.getItem('scotswim.notifSeenAt')||'0',10);
+      if(seenAt)this.state.notifSeenAt=seenAt;
         if(savedGoals.selfGoals)this.state.selfGoals=savedGoals.selfGoals;
       }
     }catch(e){}
@@ -2351,6 +2405,10 @@ class Component extends DCLogic {
     // here, every athlete's device just starts empty until a coach
     // actually posts something.
     this.DAYS=['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY','SUNDAY'];
+    // What one tap on an attendance row moves to. Present is stored as
+    // `true` rather than the string so days taken before excused existed
+    // keep the shape they already had.
+    this.ATT_NEXT={present:'unexcused',unexcused:'excused',excused:true};
     // LIFT is deliberately not a free-text field a coach types into — real
     // lift exercises come from TeamBuildr once the season's lift schedule
     // is out, so any LIFT-tagged session always displays as TBA (see
@@ -2499,6 +2557,68 @@ class Component extends DCLogic {
   // live only in React state — a reload or a fresh login wipes them. Persist
   // both together so a coach's adjustment actually survives to show up on
   // the athlete's own account later, and vice versa.
+  // Coach-set goal targets ride along in the same per-athlete doc that
+  // already carries the coach's prescribed workouts, which the athlete
+  // already reads. Without this they only ever existed in the coach's own
+  // localStorage, so a goal a coach set was invisible to the athlete it
+  // was set for.
+  // An athlete's own goals live in the same doc as their logged times —
+  // data they own and already write to, so this needs no rules change.
+  // Before this they were localStorage-only, so reinstalling the app or
+  // signing in on another device lost every goal the athlete had set.
+  selfGoalsFor(rosterId){
+    const out={},sg=this.state.selfGoals;
+    Object.keys(sg).forEach(k=>{
+      const i=k.indexOf('|');
+      if(i>0&&k.slice(0,i)===rosterId&&sg[k]!=null)out[k.slice(i+1)]=sg[k];
+    });
+    return out;
+  }
+  mergeSelfGoals(rosterId,map){
+    if(!map)return null;
+    const sg={...this.state.selfGoals};
+    // A goal cleared on another device has to disappear here too, so the
+    // athlete's own keys are replaced wholesale rather than merged over.
+    Object.keys(sg).forEach(k=>{if(k.startsWith(rosterId+'|'))delete sg[k];});
+    Object.keys(map).forEach(ev=>{sg[rosterId+'|'+ev]=map[ev];});
+    return sg;
+  }
+  syncSelfGoalsToCloud(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._selfGoalTimers)this._selfGoalTimers={};
+    clearTimeout(this._selfGoalTimers[rosterId]);
+    this._selfGoalTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('myEvents').doc(rosterId)
+        .set({selfGoals:this.selfGoalsFor(rosterId)},{merge:true})
+        .catch(()=>this.toastMsg('Goal NOT saved — check your connection'));
+    },600);
+  }
+  goalDeltaFor(rosterId){
+    const out={},gd=this.state.goalDelta;
+    Object.keys(gd).forEach(k=>{
+      const i=k.indexOf('|');
+      if(i>0&&k.slice(0,i)===rosterId&&gd[k])out[k.slice(i+1)]=gd[k];
+    });
+    return out;
+  }
+  syncGoalDeltaToCloud(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._goalDeltaTimers)this._goalDeltaTimers={};
+    clearTimeout(this._goalDeltaTimers[rosterId]);
+    this._goalDeltaTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('goalWorkouts').doc(rosterId)
+        .set({goalDelta:this.goalDeltaFor(rosterId)},{merge:true})
+        .catch(()=>this.toastMsg('Goal NOT saved — check your connection'));
+    },600);
+  }
+  // Folds a goalWorkouts doc's goalDelta map back into the flat
+  // "<rosterId>|<event>" keys the rest of the app reads.
+  mergeGoalDelta(rosterId,map){
+    if(!map)return null;
+    const gd={...this.state.goalDelta};
+    Object.keys(map).forEach(ev=>{gd[rosterId+'|'+ev]=map[ev];});
+    return gd;
+  }
   saveGoalPrefs(goalDelta,selfGoals){
     try{localStorage.setItem('scotswim.goals',JSON.stringify({goalDelta,selfGoals}))}catch(e){}
   }
@@ -2927,23 +3047,39 @@ class Component extends DCLogic {
     // copy of this same profile, including the Team-tab modal.
     if(!canEditBio)this.fetchOthersTrainingLog(s.id);
     const tlEntries=this.state.trainingLog[s.id]||{};
-    const tlEntryIds=Object.keys(tlEntries);
+    // Sorted, not raw key order: these come back from Firestore as a map,
+    // and a map's keys arrive in the server's order rather than the order
+    // they were added. Rows are matched to inputs by position, so a list
+    // that reorders between renders moves the caret into someone else's
+    // row mid-word. Entry ids lead with a timestamp, so sorting them is
+    // also chronological.
+    const tlEntryIds=Object.keys(tlEntries).sort();
     const setTrainingLog=next=>{
       const trainingLog={...this.state.trainingLog,[s.id]:next};
       this.setState({trainingLog});this.saveTrainingLog(trainingLog);
       this.syncTrainingLogToCloud(s.id,next);
     };
+    // Every write re-reads the current entries instead of closing over the
+    // copy this render captured. A snapshot landing between renders would
+    // otherwise make the next keystroke write a stale copy of every other
+    // row back over the newer one.
+    const tlPatch=(entryId,patch)=>{
+      const cur=this.state.trainingLog[s.id]||{};
+      if(!cur[entryId])return;
+      setTrainingLog({...cur,[entryId]:{...cur[entryId],...patch}});
+    };
     const trainingLogRows=tlEntryIds.map(entryId=>{
       const entry=tlEntries[entryId];
       return {id:entryId,dateValue:entry.date||'',milesValue:entry.miles||'',minutesValue:entry.minutes||'',
-        onDateChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,date:e2.target.value}}),
-        onMilesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,miles:e2.target.value}}),
-        onMinutesChange:e2=>setTrainingLog({...tlEntries,[entryId]:{...entry,minutes:e2.target.value}}),
-        remove:()=>{const next={...tlEntries};delete next[entryId];setTrainingLog(next);}};
+        onDateChange:e2=>tlPatch(entryId,{date:e2.target.value}),
+        onMilesChange:e2=>tlPatch(entryId,{miles:e2.target.value}),
+        onMinutesChange:e2=>tlPatch(entryId,{minutes:e2.target.value}),
+        remove:()=>{const next={...(this.state.trainingLog[s.id]||{})};delete next[entryId];setTrainingLog(next);}};
     });
     const addTrainingLogEntry=()=>{
       const entryId='t'+Date.now()+Math.random().toString(36).slice(2,6);
-      setTrainingLog({...tlEntries,[entryId]:{date:'',miles:'',minutes:''}});
+      const cur=this.state.trainingLog[s.id]||{};
+      setTrainingLog({...cur,[entryId]:{date:'',miles:'',minutes:''}});
     };
     const totalMiles=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].miles)||0),0);
     const totalMinutes=tlEntryIds.reduce((sum,id)=>sum+(parseFloat(tlEntries[id].minutes)||0),0);
@@ -3214,6 +3350,15 @@ class Component extends DCLogic {
         .catch(()=>this.toastMsg('Attendance NOT saved — check your connection'));
     },400);
   }
+  // Normalises a stored attendance value to one of the three states.
+  // Anything unrecognised (including a missing entry) counts as present,
+  // so a day where the coach only tapped the few who were out still reads
+  // as everyone else having shown up.
+  attStateOf(v){
+    if(v==='excused')return 'excused';
+    if(v===false||v==='unexcused')return 'unexcused';
+    return 'present';
+  }
   setAttendance(day,id,val){
     const dayRec={...(this.state.attendance[day]||{}),[id]:val};
     const attendance={...this.state.attendance,[day]:dayRec};
@@ -3239,7 +3384,7 @@ class Component extends DCLogic {
     const d=new Date();
     if(isSwimDay(d)){
       const todayVal=attendance[this.ymd(d)]&&attendance[this.ymd(d)][id];
-      if(todayVal===false)return 0;
+      if(this.attStateOf(todayVal)==='unexcused')return 0;
       // An unmarked swim day today just means the coach hasn't taken
       // attendance yet, so start counting from yesterday instead.
       if(todayVal!==true)d.setDate(d.getDate()-1);
@@ -3248,6 +3393,9 @@ class Component extends DCLogic {
     while(this.mondayKey(d)>=this.SEASON_FIRST_MONDAY){
       if(!isSwimDay(d)){d.setDate(d.getDate()-1);continue;}
       const rec=attendance[this.ymd(d)];
+      // An excused absence is stepped over the same way a lift day is: it
+      // doesn't extend the streak, but it doesn't end one either.
+      if(rec&&this.attStateOf(rec[id])==='excused'){d.setDate(d.getDate()-1);continue;}
       if(rec&&rec[id]===true){count++;d.setDate(d.getDate()-1);}
       else break;
     }
@@ -3301,9 +3449,14 @@ class Component extends DCLogic {
       if(rec&&roster.length){
         // Same "missing = present" default the roster rows use, so a day
         // where the coach only touched a couple of absentees isn't scored
-        // as if everyone else skipped practice too.
-        sum+=roster.filter(s=>rec[s.id]!==false).length/roster.length;
-        days++;
+        // as if everyone else skipped practice too. Excused absences drop
+        // out of the day entirely rather than counting against the rate —
+        // being excused isn't the same as missing practice.
+        const counted=roster.filter(s=>this.attStateOf(rec[s.id])!=='excused');
+        if(counted.length){
+          sum+=counted.filter(s=>this.attStateOf(rec[s.id])==='present').length/counted.length;
+          days++;
+        }
       }
       d.setDate(d.getDate()-1);
     }
@@ -3616,7 +3769,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);this.clearAuthWatchdog();clearTimeout(this._othersFlush);window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);this.clearAuthWatchdog();clearTimeout(this._othersFlush);window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -3710,14 +3863,17 @@ class Component extends DCLogic {
       // so Men would just open on an empty, unexplained-looking screen.
       const divingDefaultW=profile.role==='dcoach'&&!this.men.some(s=>s.diver);
       const goalSeg=divingDefaultW?'W':'M',teamSeg=divingDefaultW?'W':'M',attSeg=divingDefaultW?'W':'M';
-      this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg});
+      // The profile's own last-seen wins over this device's, so reading the
+      // list on a phone doesn't leave the same items unread on a laptop.
+      const seen=Math.max(this.state.notifSeenAt||0,profile.notifSeenAt||0);
+      this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,notifOpen:false,notifSeenAt:seen,goalSeg,teamSeg,attSeg});
       // Left to the next tick so the dashboard paints first. These attach
       // seven-odd listeners that each fire an opening snapshot, and each
       // of those sets state again — doing it inline meant the app was
       // re-rendered that many times before anything appeared on screen.
       setTimeout(()=>{
         if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
-        this.startTeamContentSync();
+        this.startTeamContentSync();this.startNotificationsSync();this.setupPush();
       },0);
     }).catch(err=>{
       // Signed in, but their profile couldn't be read — leaving the auth
@@ -3747,12 +3903,14 @@ class Component extends DCLogic {
         const entries=doc.data().entries||{};
         this.applyMyEvents(rosterId,entries);
         const myEvents={...this.state.myEvents,[rosterId]:entries};
-        this.setState({myEvents});
+        const sg=this.mergeSelfGoals(rosterId,doc.data().selfGoals);
+        this.setState(sg?{myEvents,selfGoals:sg}:{myEvents});
         this.saveMyEvents(myEvents);
+        if(sg)this.saveGoalPrefs(this.state.goalDelta,sg);
       }else if(!migrated){
         migrated=true;
         const local=this.state.myEvents[rosterId];
-        if(local&&Object.keys(local).length)ref.set({entries:local});
+        if(local&&Object.keys(local).length)ref.set({entries:local},{merge:true});
       }
     });
   }
@@ -3769,12 +3927,18 @@ class Component extends DCLogic {
     this._trainingLogUnsub=ref.onSnapshot(doc=>{
       if(doc.exists){
         const entries=doc.data().entries||{};
-        const trainingLog={...this.state.trainingLog,[rosterId]:entries};
+        // Our own write echoing back would land on top of anything typed
+        // since, blanking the character mid-keystroke. Only this athlete
+        // can write this doc, so briefly preferring the local copy can't
+        // lose anyone else's edit — the next snapshot reconciles it.
+        const justEdited=Date.now()-((this._trainingLogEditAt||{})[rosterId]||0)<2500;
+        const trainingLog=justEdited?this.state.trainingLog
+          :{...this.state.trainingLog,[rosterId]:entries};
         // soloLifts shares this doc (see toggleSoloLift), so every write
         // to either merges and the two can't overwrite each other.
         const soloLifts={...this.state.soloLifts,[rosterId]:doc.data().soloLifts||{}};
         this.setState({trainingLog,soloLifts});
-        this.saveTrainingLog(trainingLog);
+        if(!justEdited)this.saveTrainingLog(trainingLog);
       }else if(!migrated){
         migrated=true;
         const local=this.state.trainingLog[rosterId];
@@ -3796,9 +3960,138 @@ class Component extends DCLogic {
       if(!doc.exists)return;
       const workouts=doc.data().workouts||{};
       const goalWorkouts={...this.state.goalWorkouts,[rosterId]:workouts};
-      this.setState({goalWorkouts});
+      const gd=this.mergeGoalDelta(rosterId,doc.data().goalDelta);
+      this.setState(gd?{goalWorkouts,goalDelta:gd}:{goalWorkouts});
       this.saveGoalWorkouts(goalWorkouts);
+      if(gd)this.saveGoalPrefs(gd,this.state.selfGoals);
     });
+  }
+  // ---- notifications ------------------------------------------------
+  // One document per thing a coach did that athletes should hear about.
+  // Team-wide items carry target 'team'; a goal carries the roster id of
+  // the athlete it was set for, so each person only ever sees what's
+  // actually theirs. `tab` is where tapping the row takes you.
+  isCoachRole(){return this.state.role==='coach'||this.state.role==='dcoach';}
+  coachDisplayName(){
+    const s=this.byId[this.state.userId];
+    const n=(s&&s.name)||this.state.userId||'';
+    // "Coach Hamstra" reads better than the full name in a notification.
+    const last=n.trim().split(/\s+/).pop();
+    return last?('Coach '+last):'Your coach';
+  }
+  pushNotification(n){
+    if(!this.fbReady||!this.isCoachRole())return;
+    this.db.collection('notifications').add({
+      type:n.type,msg:n.msg,target:n.target||'team',tab:n.tab||'home',
+      author:this.state.userId||'',authorName:this.coachDisplayName(),
+      createdAt:Date.now()
+    }).catch(()=>{});
+  }
+  // Coalesces a run of taps on one athlete+event into a single "new goal"
+  // notification, sent once the coach has settled on a number.
+  announceGoalSoon(rosterId,athleteName,eventName){
+    if(!this._goalNotifTimers)this._goalNotifTimers={};
+    const key=rosterId+'|'+eventName;
+    clearTimeout(this._goalNotifTimers[key]);
+    this._goalNotifTimers[key]=setTimeout(()=>{
+      delete this._goalNotifTimers[key];
+      this.pushNotification({type:'goal',target:rosterId,tab:'goals',
+        msg:this.coachDisplayName()+' set a new goal for you in '+eventName});
+    },6000);
+  }
+  // ---- push (native app only) ---------------------------------------
+  // The in-app bell works everywhere; this is the extra delivery channel
+  // that reaches a phone whose app is closed. Everything here no-ops on
+  // the website, where there's no native shell and no plugin.
+  pushPlugin(){
+    const C=window.Capacitor;
+    if(!C||!C.isNativePlatform||!C.isNativePlatform())return null;
+    return (C.Plugins&&C.Plugins.FirebaseMessaging)||null;
+  }
+  // Asked for after sign-in rather than on first launch: a permission
+  // prompt makes sense once someone can see what they'd be notified about.
+  async setupPush(){
+    const fm=this.pushPlugin();
+    if(!fm||this._pushReady)return;
+    this._pushReady=true;
+    try{
+      const perm=await fm.requestPermissions();
+      if(perm&&perm.receive!=='granted')return;
+      // Listeners are attached before the first token is fetched: if that
+      // fetch or its write fails, the rotation listener still has to be in
+      // place, or the device never recovers a working token.
+      // Tokens rotate — on reinstall, on restore, and at Apple's discretion.
+      fm.addListener('tokenReceived',ev=>{if(ev&&ev.token)this.savePushToken(ev.token);});
+      // Tapping the banner should land on the screen it's about.
+      fm.addListener('notificationActionPerformed',ev=>{
+        const tab=ev&&ev.notification&&ev.notification.data&&ev.notification.data.tab;
+        if(tab)this.setState({tab,sel:null,notifOpen:false});
+      });
+      const {token}=await fm.getToken();
+      if(token)this.savePushToken(token);
+    }catch(e){/* denied, or no APNs entitlement in this build */}
+  }
+  // Kept as a list: one person can have the app on a phone and an iPad,
+  // and both should buzz.
+  savePushToken(token){
+    const u=this.state.authUser;
+    if(!this.fbReady||!u||!token)return;
+    if(this._lastPushToken===token)return;
+    try{
+      const arr=window.firebase.firestore.FieldValue.arrayUnion(token);
+      this.db.collection('users').doc(u.uid).set({pushTokens:arr},{merge:true}).catch(()=>{});
+      this._lastPushToken=token;
+    }catch(e){/* sentinel unavailable — retried on the next token event */}
+  }
+  // Signing out should stop that device buzzing for the account that left it.
+  async clearPushToken(){
+    const u=this.state.authUser,t=this._lastPushToken;
+    this._lastPushToken=null;this._pushReady=false;
+    if(!this.fbReady||!u||!t)return;
+    const arr=window.firebase.firestore.FieldValue.arrayRemove(t);
+    await this.db.collection('users').doc(u.uid).set({pushTokens:arr},{merge:true}).catch(()=>{});
+  }
+  startNotificationsSync(){
+    if(!this.fbReady)return;
+    if(this._notifUnsub)this._notifUnsub();
+    this._notifUnsub=this.db.collection('notifications')
+      .orderBy('createdAt','desc').limit(40)
+      .onSnapshot(snap=>{
+        this.setState({notifications:snap.docs.map(d=>({id:d.id,...d.data()}))});
+      },()=>{});
+  }
+  stopNotificationsSync(){
+    if(this._notifUnsub){this._notifUnsub();this._notifUnsub=null;}
+  }
+  // Read state is a single timestamp rather than a per-item list: it can't
+  // grow without bound, and "everything older than when I last looked" is
+  // exactly what the badge means anyway.
+  markNotificationsSeen(){
+    const now=Date.now();
+    this.setState({notifSeenAt:now});
+    try{localStorage.setItem('scotswim.notifSeenAt',String(now))}catch(e){}
+    const u=this.state.authUser;
+    if(this.fbReady&&u)this.db.collection('users').doc(u.uid).set({notifSeenAt:now},{merge:true}).catch(()=>{});
+  }
+  // Only what this person should see, newest first, and never an echo of
+  // something they did themselves.
+  myNotifications(){
+    const me=this.state.userId;
+    return (this.state.notifications||[])
+      .filter(n=>n.author!==me&&(n.target==='team'||n.target===me))
+      .slice(0,30);
+  }
+  // "just now" / "3h ago" / "Tue" — short enough for a one-line row.
+  agoLabel(ts){
+    const mins=Math.floor((Date.now()-ts)/60000);
+    if(mins<1)return 'just now';
+    if(mins<60)return mins+'m ago';
+    const hrs=Math.floor(mins/60);
+    if(hrs<24)return hrs+'h ago';
+    const days=Math.floor(hrs/24);
+    if(days===1)return 'yesterday';
+    if(days<7)return days+'d ago';
+    return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});
   }
   stopGoalWorkoutsSync(){
     if(this._goalWorkoutsUnsub){this._goalWorkoutsUnsub();this._goalWorkoutsUnsub=null;}
@@ -3895,6 +4188,8 @@ class Component extends DCLogic {
     const authorName=this.state.role==='dcoach'?'Coach Stone':'Coach Hamstra';
     this.setState({annPost:''});
     this.db.collection('announcements').add({text,postedAt:Date.now(),authorName}).catch(()=>{});
+    this.pushNotification({type:'announcement',target:'team',tab:'home',
+      msg:authorName+' wrote a new team announcement'});
   }
   deleteAnnouncement(id){
     if(!this.fbReady)return;
@@ -4009,7 +4304,7 @@ class Component extends DCLogic {
     if(!this._myEventsSaveTimers)this._myEventsSaveTimers={};
     clearTimeout(this._myEventsSaveTimers[rosterId]);
     this._myEventsSaveTimers[rosterId]=setTimeout(()=>{
-      this.db.collection('myEvents').doc(rosterId).set({entries}).catch(()=>{});
+      this.db.collection('myEvents').doc(rosterId).set({entries},{merge:true}).catch(()=>{});
     },700);
   }
   // One-time fetch for viewing someone ELSE's training log, e.g. from the
@@ -4028,6 +4323,10 @@ class Component extends DCLogic {
   }
   // Debounced — same reasoning as syncMyEventsToCloud above.
   syncTrainingLogToCloud(rosterId,entries){
+    // Stamped before the fbReady check so the listener below knows an edit
+    // just happened whether or not it reached the network.
+    if(!this._trainingLogEditAt)this._trainingLogEditAt={};
+    this._trainingLogEditAt[rosterId]=Date.now();
     if(!this.fbReady)return;
     if(!this._trainingLogSaveTimers)this._trainingLogSaveTimers={};
     clearTimeout(this._trainingLogSaveTimers[rosterId]);
@@ -4048,7 +4347,8 @@ class Component extends DCLogic {
       if(!doc.exists)return;
       const workouts=doc.data().workouts||{};
       const goalWorkouts={...this.state.goalWorkouts,[rosterId]:workouts};
-      this.setState({goalWorkouts});
+      const gd=this.mergeGoalDelta(rosterId,doc.data().goalDelta);
+      this.setState(gd?{goalWorkouts,goalDelta:gd}:{goalWorkouts});
     }).catch(()=>{});
   }
   // Debounced — same reasoning as syncMyEventsToCloud above. Typing alone
@@ -4060,7 +4360,7 @@ class Component extends DCLogic {
     if(!this._goalWorkoutsSaveTimers)this._goalWorkoutsSaveTimers={};
     clearTimeout(this._goalWorkoutsSaveTimers[rosterId]);
     this._goalWorkoutsSaveTimers[rosterId]=setTimeout(()=>{
-      this.db.collection('goalWorkouts').doc(rosterId).set({workouts}).catch(()=>{});
+      this.db.collection('goalWorkouts').doc(rosterId).set({workouts},{merge:true}).catch(()=>{});
     },700);
   }
   // Immediate (non-debounced) write, returning the Firestore promise so a
@@ -4069,7 +4369,7 @@ class Component extends DCLogic {
   flushGoalWorkoutsToCloud(rosterId,workouts){
     if(!this.fbReady)return Promise.reject(new Error('offline'));
     if(this._goalWorkoutsSaveTimers)clearTimeout(this._goalWorkoutsSaveTimers[rosterId]);
-    return this.db.collection('goalWorkouts').doc(rosterId).set({workouts});
+    return this.db.collection('goalWorkouts').doc(rosterId).set({workouts},{merge:true});
   }
   authErrMsg(err){
     const m={'auth/invalid-email':"That email doesn't look right.",'auth/user-not-found':'No account found for that email.','auth/wrong-password':'Wrong password.','auth/invalid-credential':'Email or password is incorrect.','auth/invalid-login-credentials':'Email or password is incorrect.','auth/too-many-requests':'Too many attempts — try again in a bit.','auth/email-already-in-use':'An account already exists for that email — try signing in instead.','auth/weak-password':'Password needs to be at least 6 characters.',
@@ -4124,7 +4424,7 @@ class Component extends DCLogic {
       .then(()=>this.db.collection('users').doc(user.uid).delete().catch(()=>null))
       .then(()=>user.delete())
       .then(()=>{
-        this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();
+        this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();
         this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,
           showDeletePanel:false,deletePassword:'',deleteBusy:false,authUser:null,
           uname:'',pass:'',authMsg:'Your account has been deleted.'});
@@ -4222,7 +4522,7 @@ class Component extends DCLogic {
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
             if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);this.startGoalWorkoutsSync(info.rosterId);}
-            this.startTeamContentSync();
+            this.startTeamContentSync();this.startNotificationsSync();this.setupPush();
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
     };
@@ -4292,9 +4592,19 @@ class Component extends DCLogic {
     // schedule is already published, and the coach shouldn't need a
     // developer to make that change for them.
     const schedEditing=isCoach&&st.schedEditing;
-    const toggleSchedEdit=()=>this.setState({schedEditing:!st.schedEditing});
+    const toggleSchedEdit=()=>{
+      // Announce once, on the way out of edit mode, and only if something
+      // actually changed — the schedule saves as it's typed, so notifying
+      // on save would be one notification per keystroke.
+      if(st.schedEditing&&this._schedTouched){
+        this._schedTouched=false;
+        this.pushNotification({type:'schedule',target:'team',tab:'meets',
+          msg:"There's a new change in the meet schedule"});
+      }
+      this.setState({schedEditing:!st.schedEditing});
+    };
     const schedEditLabel=schedEditing?'Done ✓':'Edit schedule ✎';
-    const saveSched=next=>{this.setState({meetsSchedule:next});this.syncScheduleToCloud(next);};
+    const saveSched=next=>{this._schedTouched=true;this.setState({meetsSchedule:next});this.syncScheduleToCloud(next);};
     const KIND_OPTS=[{id:'away',n:'Away'},{id:'home',n:'Home'},{id:'inv',n:'Invite'},{id:'champ',n:'Championship'}];
     const schedT=meetsList.map((m,i)=>{
       const parts=this.meetDateParts(m.dateStart,m.dateEnd);
@@ -4360,17 +4670,23 @@ class Component extends DCLogic {
       return Math.round(e.b[user.gender]*1.12*100)/100;
     };
     const myKeys=Object.keys(st.selfGoals).filter(k=>k.startsWith(user.id+'|'));
+    // Ordered by event, not by how near the target is to the PB. Sorting on
+    // nearness meant every − / + tap re-sorted the list mid-edit, sliding
+    // the row out from under the finger and landing the next tap on someone
+    // else's event — and, with only three shown by default, sometimes
+    // pushing the goal being edited off the list entirely.
+    const evOrder={};this.EV.forEach((e,i)=>{evOrder[e.id]=i;});
     let selfList=myKeys.map(key=>{
       const ev=key.split('|')[1];const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
       const step=0.5;
-      const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
+      const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
-        close:Math.abs(pb-val)/pb,
+        order:evOrder[ev]==null?999:evOrder[ev],
         inc:()=>setVal(val+(e.dive?-step:step)),
         dec:()=>setVal(val+(e.dive?step:-step)),
-        clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);}};
-    }).sort((a,b)=>a.close-b.close);
+        clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);}};
+    }).sort((a,b)=>a.order-b.order);
     const selfCount=String(selfList.length);
     if(!st.showAllSelf)selfList=selfList.slice(0,3);
     const evPool=user.diver?this.EV:this.EV.filter(e=>!e.dive);
@@ -4382,6 +4698,7 @@ class Component extends DCLogic {
       sg[user.id+'|'+ev]=Math.round((em.dive?pb*1.04:pb*0.99)*2)/2;
       this.setState({selfGoals:sg});
       this.saveGoalPrefs(this.state.goalDelta,sg);
+      this.syncSelfGoalsToCloud(user.id);
       this.toastMsg(em.n+' goal added — tune it with − / +');
     };
     // Same real-data-only rule as everywhere else — a goal target measured
@@ -4418,11 +4735,45 @@ class Component extends DCLogic {
     const rivalEvOpts=hasRealPrimary.map(e=>({id:e,n:this.evMap[e].n}));
     const rivalEvSel=e=>this.setState({rivalEv:e.target.value,rivalId:null});
     const hasRival=!!rv;
+    // The event picker stays up whenever the athlete has logged anything,
+    // even if nobody else has logged that event — otherwise picking such an
+    // event hides the only control that could change it back.
+    const hasRivalEv=hasRealPrimary.length>0;
     const rivalNoEvent=hasRealPrimary.length===0;
     const rivalNoOpponent=!hasRival&&!rivalNoEvent;
     const lead=hasRival&&(isDiveEv?(user.pbs[rEv]>rv.pbs[rEv]):(user.pbs[rEv]<rv.pbs[rEv]));
     const gap=hasRival?Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2):'';
     const aP=this.photoOf(user.id),bP=hasRival?this.photoOf(rv.id):'';
+    // ---- notifications ----------------------------------------------
+    // Coaches see the team-wide ones too (minus their own), so a diving
+    // coach still hears about the swim coach's schedule changes.
+    const myNotifs=this.myNotifications();
+    const seenAt=st.notifSeenAt||0;
+    const unread=myNotifs.filter(n=>n.createdAt>seenAt).length;
+    const notifLook={
+      announcement:{icon:'\ud83d\udce3',iconBg:'#6B1F33',cta:'Read it'},
+      schedule:{icon:'\ud83d\udcc5',iconBg:'#1B7A78',cta:'See the schedule'},
+      goal:{icon:'\ud83c\udfaf',iconBg:'#2A1218',cta:'See your goal'}
+    };
+    const notifRows=myNotifs.map(n=>{
+      const look=notifLook[n.type]||notifLook.announcement;
+      const isNew=n.createdAt>seenAt;
+      return {id:n.id,msg:n.msg,ago:this.agoLabel(n.createdAt),
+        icon:look.icon,iconBg:look.iconBg,cta:look.cta,isNew,
+        bg:isNew?'#FFFFFF':'rgba(255,255,255,.55)',
+        bd:isNew?'rgba(107,31,51,.22)':'rgba(42,18,24,.07)',
+        onTap:()=>{this.markNotificationsSeen();this.setState({notifOpen:false,tab:n.tab||'home',sel:null});}};
+    });
+    // Marked seen on the way out, not on the way in: opening the list
+    // would otherwise clear the "new" dots while you were still reading
+    // which ones were new.
+    const openNotifs=()=>this.setState({notifOpen:true});
+    const closeNotifs=()=>{this.markNotificationsSeen();this.setState({notifOpen:false});};
+    const notifVals={
+      notifOpen:!!st.notifOpen,closeNotifs,
+      openNotifs,notifRows,notifEmpty:notifRows.length===0,
+      hasUnread:unread>0,unreadLabel:unread>9?'9+':String(unread)
+    };
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
     const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the next meet';
     const chal=hasRival?{ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
@@ -4749,15 +5100,26 @@ class Component extends DCLogic {
     const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
     const attRosterEmptyLabel='athletes on the '+(attSegActive==='M'?"men's":"women's")+' roster';
     const attDateRec=this.state.attendance[attDateKey]||{};
+    // Three states, cycled by tapping a row: present -> unexcused ->
+    // excused -> present. `false` is what "absent" was stored as before
+    // excused existed, so it still reads as unexcused and no past
+    // attendance needs migrating.
     const attRows=attRoster.map(s=>{
-      const present=attDateRec[s.id]!==false;
+      const stt=this.attStateOf(attDateRec[s.id]);
+      const look=stt==='present'?{bg:'#1B7A78',fg:C,bd:'#1B7A78',label:'Present'}
+        :stt==='excused'?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused'}
+        :{bg:'transparent',fg:'#8E2C3B',bd:'#C46070',label:'Unexcused'};
       return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        present,pillBg:present?'#1B7A78':'transparent',pillFg:present?C:'rgba(42,18,24,.5)',
-        pillBd:present?'#1B7A78':'rgba(42,18,24,.25)',pillLabel:present?'Present':'Absent',
-        onToggle:SEASON_STARTED?()=>this.setAttendance(attDateKey,s.id,!present):null};
+        present:stt==='present',excused:stt==='excused',
+        pillBg:look.bg,pillFg:look.fg,pillBd:look.bd,pillLabel:look.label,
+        onToggle:SEASON_STARTED?()=>this.setAttendance(attDateKey,s.id,this.ATT_NEXT[stt]):null};
     });
     const attPresentCount=attRows.filter(r=>r.present).length;
+    const attExcusedCount=attRows.filter(r=>r.excused).length;
+    const attSummary=attPresentCount+' of '+attRoster.length+' present'
+      +(attExcusedCount?' · '+attExcusedCount+' excused':'')
+      +' — tap to cycle present / unexcused / excused';
     // Lift view — what athletes have logged for whichever day is picked.
     // Read-only by nature: the rules let an athlete write only their own
     // trainingLog, so a coach sees the report rather than editing it.
@@ -4944,7 +5306,14 @@ class Component extends DCLogic {
       const start_=gSel.hist[ev]?gSel.hist[ev][0]:pb*1.05;
       const pct=gSel.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
       const step=0.5;
-      const bump=d=>{const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;this.setState({goalDelta:gd});this.saveGoalPrefs(gd,this.state.selfGoals);};
+      const bump=d=>{
+        const k=gSel.id+'|'+ev;const gd={...this.state.goalDelta};gd[k]=(gd[k]||0)+d;
+        this.setState({goalDelta:gd});this.saveGoalPrefs(gd,this.state.selfGoals);
+        this.syncGoalDeltaToCloud(gSel.id);
+        // A coach nudges a target several times to land on it, so this
+        // waits for them to stop rather than announcing every tap.
+        this.announceGoalSoon(gSel.id,gSel.name,this.evMap[ev].n);
+      };
       // Explicit Save button — typing already auto-saves (debounced), but
       // a coach can't see that from the screen, and they're handing this
       // straight to an athlete, so they want to know for sure it landed.
@@ -4998,7 +5367,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -5065,7 +5434,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:'',showDeletePass:false}),
       closeDeletePanel:()=>this.setState({showDeletePanel:false}),
       showDeletePanel:st.showDeletePanel,
@@ -5109,7 +5478,7 @@ class Component extends DCLogic {
       allSelfLabel:st.showAllSelf?'Top 3 ‹':'All goals ›',
       allCoachBtn:()=>this.setState({showAllCoach:!st.showAllCoach}),
       allCoachLabel:st.showAllCoach?'Top 3 ‹':'All goals ›',
-      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,rivalNoEvent,rivalNoOpponent,
+      rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,hasRivalEv,rivalNoEvent,rivalNoOpponent,
       workoutLib,
       oppGroups,
       goalCount:String(user.primary.filter(ev=>(st.goalDelta[user.id+'|'+ev]||0)!==0).length),
@@ -5128,7 +5497,7 @@ class Component extends DCLogic {
       nAll:String(homeMen.length+homeWomen.length),nMen:String(homeMen.length),nWomen:String(homeWomen.length),
       totalTileLabel,nBreakdown,
       seasonPbCount:String(seasonPbCount),improvers,improversEmpty,
-      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),onMarkAllPresent,
+      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),attSummary,onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
       attViews,attSwimView:attView==='swim',attLiftView:attView==='lift',
@@ -5202,6 +5571,7 @@ class Component extends DCLogic {
       trainWeekLabel,trainWeekRange,trainWeekPrev,trainWeekNext,
       trainWeekPrevColor:atFirstWeek?'rgba(245,233,220,.25)':'#F5E9DC',
       trainWeekPrevCursor:atFirstWeek?'default':'pointer',
+      ...notifVals,
       det,hasSel:!!selS,selDet,closeSel:()=>this.setState({sel:null}),
       selGoalBtn:()=>this.setState({tab:'goals',goalSeg:selS?selS.gender:'M',goalSel:selS?selS.id:null,sel:null}),
       simGenders,simOpps,simModes,simShowGenderToggle:!isDivingCoach,
