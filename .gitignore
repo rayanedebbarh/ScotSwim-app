@@ -2,3 +2,6 @@
 .DS_Store
 **/.DS_Store
 package-lock.json
+
+# Cloud Functions dependencies — installed by `npm install` in functions/
+functions/node_modules/

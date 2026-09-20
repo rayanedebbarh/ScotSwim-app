@@ -3873,7 +3873,7 @@ class Component extends DCLogic {
       // re-rendered that many times before anything appeared on screen.
       setTimeout(()=>{
         if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
-        this.startTeamContentSync();this.startNotificationsSync();
+        this.startTeamContentSync();this.startNotificationsSync();this.setupPush();
       },0);
     }).catch(err=>{
       // Signed in, but their profile couldn't be read — leaving the auth
@@ -3998,6 +3998,58 @@ class Component extends DCLogic {
       this.pushNotification({type:'goal',target:rosterId,tab:'goals',
         msg:this.coachDisplayName()+' set a new goal for you in '+eventName});
     },6000);
+  }
+  // ---- push (native app only) ---------------------------------------
+  // The in-app bell works everywhere; this is the extra delivery channel
+  // that reaches a phone whose app is closed. Everything here no-ops on
+  // the website, where there's no native shell and no plugin.
+  pushPlugin(){
+    const C=window.Capacitor;
+    if(!C||!C.isNativePlatform||!C.isNativePlatform())return null;
+    return (C.Plugins&&C.Plugins.FirebaseMessaging)||null;
+  }
+  // Asked for after sign-in rather than on first launch: a permission
+  // prompt makes sense once someone can see what they'd be notified about.
+  async setupPush(){
+    const fm=this.pushPlugin();
+    if(!fm||this._pushReady)return;
+    this._pushReady=true;
+    try{
+      const perm=await fm.requestPermissions();
+      if(perm&&perm.receive!=='granted')return;
+      // Listeners are attached before the first token is fetched: if that
+      // fetch or its write fails, the rotation listener still has to be in
+      // place, or the device never recovers a working token.
+      // Tokens rotate — on reinstall, on restore, and at Apple's discretion.
+      fm.addListener('tokenReceived',ev=>{if(ev&&ev.token)this.savePushToken(ev.token);});
+      // Tapping the banner should land on the screen it's about.
+      fm.addListener('notificationActionPerformed',ev=>{
+        const tab=ev&&ev.notification&&ev.notification.data&&ev.notification.data.tab;
+        if(tab)this.setState({tab,sel:null,notifOpen:false});
+      });
+      const {token}=await fm.getToken();
+      if(token)this.savePushToken(token);
+    }catch(e){/* denied, or no APNs entitlement in this build */}
+  }
+  // Kept as a list: one person can have the app on a phone and an iPad,
+  // and both should buzz.
+  savePushToken(token){
+    const u=this.state.authUser;
+    if(!this.fbReady||!u||!token)return;
+    if(this._lastPushToken===token)return;
+    try{
+      const arr=window.firebase.firestore.FieldValue.arrayUnion(token);
+      this.db.collection('users').doc(u.uid).set({pushTokens:arr},{merge:true}).catch(()=>{});
+      this._lastPushToken=token;
+    }catch(e){/* sentinel unavailable — retried on the next token event */}
+  }
+  // Signing out should stop that device buzzing for the account that left it.
+  async clearPushToken(){
+    const u=this.state.authUser,t=this._lastPushToken;
+    this._lastPushToken=null;this._pushReady=false;
+    if(!this.fbReady||!u||!t)return;
+    const arr=window.firebase.firestore.FieldValue.arrayRemove(t);
+    await this.db.collection('users').doc(u.uid).set({pushTokens:arr},{merge:true}).catch(()=>{});
   }
   startNotificationsSync(){
     if(!this.fbReady)return;
@@ -4470,7 +4522,7 @@ class Component extends DCLogic {
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
             if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);this.startGoalWorkoutsSync(info.rosterId);}
-            this.startTeamContentSync();this.startNotificationsSync();
+            this.startTeamContentSync();this.startNotificationsSync();this.setupPush();
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
     };
@@ -5315,7 +5367,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -5382,7 +5434,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:'',showDeletePass:false}),
       closeDeletePanel:()=>this.setState({showDeletePanel:false}),
       showDeletePanel:st.showDeletePanel,
