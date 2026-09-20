@@ -2562,6 +2562,37 @@ class Component extends DCLogic {
   // already reads. Without this they only ever existed in the coach's own
   // localStorage, so a goal a coach set was invisible to the athlete it
   // was set for.
+  // An athlete's own goals live in the same doc as their logged times —
+  // data they own and already write to, so this needs no rules change.
+  // Before this they were localStorage-only, so reinstalling the app or
+  // signing in on another device lost every goal the athlete had set.
+  selfGoalsFor(rosterId){
+    const out={},sg=this.state.selfGoals;
+    Object.keys(sg).forEach(k=>{
+      const i=k.indexOf('|');
+      if(i>0&&k.slice(0,i)===rosterId&&sg[k]!=null)out[k.slice(i+1)]=sg[k];
+    });
+    return out;
+  }
+  mergeSelfGoals(rosterId,map){
+    if(!map)return null;
+    const sg={...this.state.selfGoals};
+    // A goal cleared on another device has to disappear here too, so the
+    // athlete's own keys are replaced wholesale rather than merged over.
+    Object.keys(sg).forEach(k=>{if(k.startsWith(rosterId+'|'))delete sg[k];});
+    Object.keys(map).forEach(ev=>{sg[rosterId+'|'+ev]=map[ev];});
+    return sg;
+  }
+  syncSelfGoalsToCloud(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._selfGoalTimers)this._selfGoalTimers={};
+    clearTimeout(this._selfGoalTimers[rosterId]);
+    this._selfGoalTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('myEvents').doc(rosterId)
+        .set({selfGoals:this.selfGoalsFor(rosterId)},{merge:true})
+        .catch(()=>this.toastMsg('Goal NOT saved — check your connection'));
+    },600);
+  }
   goalDeltaFor(rosterId){
     const out={},gd=this.state.goalDelta;
     Object.keys(gd).forEach(k=>{
@@ -3872,12 +3903,14 @@ class Component extends DCLogic {
         const entries=doc.data().entries||{};
         this.applyMyEvents(rosterId,entries);
         const myEvents={...this.state.myEvents,[rosterId]:entries};
-        this.setState({myEvents});
+        const sg=this.mergeSelfGoals(rosterId,doc.data().selfGoals);
+        this.setState(sg?{myEvents,selfGoals:sg}:{myEvents});
         this.saveMyEvents(myEvents);
+        if(sg)this.saveGoalPrefs(this.state.goalDelta,sg);
       }else if(!migrated){
         migrated=true;
         const local=this.state.myEvents[rosterId];
-        if(local&&Object.keys(local).length)ref.set({entries:local});
+        if(local&&Object.keys(local).length)ref.set({entries:local},{merge:true});
       }
     });
   }
@@ -4219,7 +4252,7 @@ class Component extends DCLogic {
     if(!this._myEventsSaveTimers)this._myEventsSaveTimers={};
     clearTimeout(this._myEventsSaveTimers[rosterId]);
     this._myEventsSaveTimers[rosterId]=setTimeout(()=>{
-      this.db.collection('myEvents').doc(rosterId).set({entries}).catch(()=>{});
+      this.db.collection('myEvents').doc(rosterId).set({entries},{merge:true}).catch(()=>{});
     },700);
   }
   // One-time fetch for viewing someone ELSE's training log, e.g. from the
@@ -4595,12 +4628,12 @@ class Component extends DCLogic {
       const ev=key.split('|')[1];const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
       const step=0.5;
-      const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
+      const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
         order:evOrder[ev]==null?999:evOrder[ev],
         inc:()=>setVal(val+(e.dive?-step:step)),
         dec:()=>setVal(val+(e.dive?step:-step)),
-        clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);}};
+        clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);}};
     }).sort((a,b)=>a.order-b.order);
     const selfCount=String(selfList.length);
     if(!st.showAllSelf)selfList=selfList.slice(0,3);
@@ -4613,6 +4646,7 @@ class Component extends DCLogic {
       sg[user.id+'|'+ev]=Math.round((em.dive?pb*1.04:pb*0.99)*2)/2;
       this.setState({selfGoals:sg});
       this.saveGoalPrefs(this.state.goalDelta,sg);
+      this.syncSelfGoalsToCloud(user.id);
       this.toastMsg(em.n+' goal added — tune it with − / +');
     };
     // Same real-data-only rule as everywhere else — a goal target measured
