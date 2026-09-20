@@ -13,20 +13,35 @@ that reaches a phone whose app is closed.
 4. Note the **Key ID** (on that page) and your **Team ID** (top right of the
    developer site).
 
-## 2. Firebase Cloud Messaging
+## 2. Register the iOS app with Firebase — do this BEFORE step 3
 
-1. Firebase Console → your project → ⚙ **Project settings** → **Cloud Messaging**
-2. Under *Apple app configuration*, upload the `.p8` with the Key ID and Team ID.
+The Cloud Messaging tab shows no Apple section until an iOS app exists in
+the project. If your project has only a Web app, that's why it looks like
+the upload spot is missing.
 
-## 3. Register the iOS app with Firebase
+1. Firebase Console → ⚙ **Project settings** → **General**
+2. Scroll to **Your apps** → **Add app** → the **iOS** icon
+3. Apple bundle ID: `edu.alma.scotswim` — it has to match exactly, it's
+   what ties the APNs key to this app
+4. App nickname: ScotSwim (optional). App Store ID: leave blank.
+5. **Register app** → **Download GoogleService-Info.plist**
+6. **Skip the remaining steps it shows you** (Add Firebase SDK, add
+   initialisation code, CocoaPods). The Capacitor plugin brings the native
+   SDK in itself — following those steps by hand causes duplicate-framework
+   build errors. Just download the file and click through to Continue to
+   console.
+7. Put the file at `mobile-app/ios/App/App/GoogleService-Info.plist`, then
+   in Xcode drag it into the **App** target (tick "Copy items if needed",
+   target **App**). Without it bundled, the app never gets an FCM token.
 
-1. Project settings → **General** → **Add app** → iOS
-2. Bundle ID: `edu.alma.scotswim`
-3. Download **`GoogleService-Info.plist`** and put it at
-   `mobile-app/ios/App/App/GoogleService-Info.plist`
-4. In Xcode, drag it into the **App** target so it's bundled (tick
-   "Copy items if needed", target **App**). Without this the app can't get
-   an FCM token.
+## 3. Upload the APNs key
+
+Now that the iOS app exists, the section is there:
+
+1. Project settings → **Cloud Messaging**
+2. Scroll to **Apple app configuration** — it appears under the iOS app you
+   just registered
+3. Upload the `.p8` with your **Key ID** and **Team ID**
 
 ## 4. Blaze plan
 
