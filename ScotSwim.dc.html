@@ -4585,17 +4585,23 @@ class Component extends DCLogic {
       return Math.round(e.b[user.gender]*1.12*100)/100;
     };
     const myKeys=Object.keys(st.selfGoals).filter(k=>k.startsWith(user.id+'|'));
+    // Ordered by event, not by how near the target is to the PB. Sorting on
+    // nearness meant every − / + tap re-sorted the list mid-edit, sliding
+    // the row out from under the finger and landing the next tap on someone
+    // else's event — and, with only three shown by default, sometimes
+    // pushing the goal being edited off the list entirely.
+    const evOrder={};this.EV.forEach((e,i)=>{evOrder[e.id]=i;});
     let selfList=myKeys.map(key=>{
       const ev=key.split('|')[1];const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
       const step=0.5;
       const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
-        close:Math.abs(pb-val)/pb,
+        order:evOrder[ev]==null?999:evOrder[ev],
         inc:()=>setVal(val+(e.dive?-step:step)),
         dec:()=>setVal(val+(e.dive?step:-step)),
         clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);}};
-    }).sort((a,b)=>a.close-b.close);
+    }).sort((a,b)=>a.order-b.order);
     const selfCount=String(selfList.length);
     if(!st.showAllSelf)selfList=selfList.slice(0,3);
     const evPool=user.diver?this.EV:this.EV.filter(e=>!e.dive);
