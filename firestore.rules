@@ -1,0 +1,134 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- helpers -------------------------------------------------
+    function signedIn() {
+      return request.auth != null;
+    }
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function isCoach() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && profile().role in ['coach', 'dcoach'];
+    }
+    // The athlete this document belongs to, matched on their roster name.
+    function isSelf(rosterId) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && profile().rosterId == rosterId;
+    }
+
+    // ---- accounts ------------------------------------------------
+    match /users/{uid} {
+      allow get: if signedIn();
+      // Deliberately open, and deliberately capped at one document: the
+      // "Forgot password?" check runs before anyone is signed in, and
+      // needs to tell a real address from a typo. It does mean someone
+      // who already knows an email can confirm it has an account.
+      allow list: if request.query.limit <= 1;
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && request.auth.uid == uid;
+      // Lets "Delete my account" clear the profile as well as the login.
+      // Without it the login is still destroyed, but the profile is left
+      // orphaned behind.
+      allow delete: if signedIn() && request.auth.uid == uid;
+    }
+
+    // Invite links. The token is the doc id, so knowing the link IS the
+    // grant — which is exactly why listing must stay shut: it would let
+    // anyone enumerate every outstanding invite.
+    match /invites/{token} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isCoach();
+      allow update: if signedIn();
+      allow delete: if false;
+    }
+
+    // ---- each athlete's own data ---------------------------------
+    // Readable by anyone on the team (coaches need them for the lift log
+    // and the dashboard), writable only by the athlete themselves.
+    // create, update rather than write: write would include delete, which
+    // would quietly undo the "allow delete: if false" below it.
+    match /myEvents/{rosterId} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update: if isSelf(rosterId);
+      allow delete: if false;
+    }
+
+    // Logged training entries, and the athlete's own lift ticks, which
+    // share this document — see the lift log in the Attendance tab.
+    match /trainingLog/{rosterId} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update: if isSelf(rosterId);
+      allow delete: if false;
+    }
+
+    // Coach-prescribed workouts: written by the coaches, read by the
+    // athlete they belong to.
+    match /goalWorkouts/{rosterId} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create, update: if isCoach();
+      allow delete: if false;
+    }
+
+    // ---- shared team data ----------------------------------------
+    // All of these are read by everyone on the team and written by the
+    // coaches. read covers both get and list, which announcements,
+    // workoutSheets and attendance all need, since each is queried as a
+    // collection rather than fetched one document at a time.
+    match /announcements/{annId} {
+      allow read: if signedIn();
+      allow create, delete: if isCoach();
+    }
+
+    // Weekly practice schedule, one document per week.
+    match /training/{weekId} {
+      allow read: if signedIn();
+      allow write: if isCoach();
+    }
+
+    // Season meet schedule (a single "meets" document).
+    match /schedule/{docId} {
+      allow read: if signedIn();
+      allow write: if isCoach();
+    }
+
+    // Dated workout sheets.
+    match /workoutSheets/{sheetId} {
+      allow read: if signedIn();
+      allow create, delete: if isCoach();
+    }
+
+    // Practice attendance, one document per day. Athletes read it for
+    // their own streak, so this must not be coach-only.
+    match /attendance/{dayId} {
+      allow read: if signedIn();
+      allow write: if isCoach();
+    }
+
+    // Who is on the team: the coaches' additions and removals on top of
+    // the built-in roster.
+    match /roster/{docId} {
+      allow read: if signedIn();
+      allow write: if isCoach();
+    }
+
+    // What a coach did that athletes should hear about. Team-wide items
+    // target 'team'; a goal targets one athlete's roster id. Created by
+    // coaches, read by everyone — the Cloud Function that turns these into
+    // push notifications runs with admin rights and bypasses these rules.
+    match /notifications/{notificationId} {
+      allow read: if signedIn();
+      allow create, delete: if isCoach();
+    }
+
+    // Anything not named above is denied by default.
+  }
+}
