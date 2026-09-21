@@ -10,7 +10,8 @@ Everything below is ready to paste into Play Console and App Store Connect.
 - **Publisher / developer name**: Rayane Debbarh
 - **Bundle ID / package name**: `edu.alma.scotswim` (already set in `capacitor.config.json` — this is permanent once submitted, changing it later means a new listing, not an update)
 - **Category**: Sports
-- **Support email**: ardebbarh@gmail.com
+- **Support email**: scotswim0@gmail.com (shown publicly on both store pages;
+  also the deletion-request address in `privacy.html`, so the two match)
 - **Privacy policy URL**: `https://rayanedebbarh.github.io/ScotSwim-app/privacy.html` (live once `privacy.html` is merged — already written, see that file)
 
 ---
