@@ -7,14 +7,38 @@ source: the root-level files. `www/` here is never committed — it's
 regenerated from the root on every build by `scripts/sync-web.sh`, so this
 folder can never drift out of sync with the live site.
 
-## Releases
+## OTA updates (Capgo Cloud)
 
-Everything ships through the app stores — there is no over-the-air update
-channel. One path to production means what's installed is always what was
-reviewed. See "Android: signed release build" below for the CI build, and
-`ios-build.yml` for the macOS compile check.
+`@capgo/capacitor-updater` is installed and wired in — `componentDidMount`
+in `ScotSwim.dc.html` calls `notifyAppReady()` (no-op outside the native
+app), and `PrivacyInfo.xcprivacy` declares the UserDefaults API usage
+Apple requires. Publishing an update is one step:
 
-## The device-frame wrapper (resolved)
+**GitHub → Actions → "Publish OTA Update (Capgo)" → Run workflow** (optionally
+type a comment describing the change first). That's the whole process —
+it builds the current web app, bumps the bundle version automatically, and
+pushes it live to every installed copy within minutes. No app store review,
+no manual zipping, no version bookkeeping.
+
+What this needs: the `CAPGO_API_KEY` repository secret (GitHub → repo
+Settings → Secrets and variables → Actions), and a Capgo plan that permits
+bundle uploads — the free trial does not, and an expired one fails the
+upload step with "Plan upgrade required". The workflow
+(`.github/workflows/capgo-publish.yml`) registers the app and a default
+"production" channel in Capgo Cloud automatically on first run if they
+don't already exist.
+
+**An OTA update only reaches phones running a build that contains this
+plugin.** The plugin was removed before 1.1 and restored for 1.2, so 1.2
+is the floor: anyone still on 1.1 or earlier keeps getting nothing from
+the OTA channel until they update from the store once.
+
+This is fully compliant with both stores: **Google Play and Apple both
+explicitly allow OTA JS/HTML/CSS updates** for interpreted code (see the
+plugin's compliance notes) — the one rule is it must never change native
+code or the app's core purpose, only content.
+
+## Known blocker before this is store-ready
 
 The app currently renders its entire UI inside a **fixed 402×874px mockup
 phone graphic** (fake status bar, rounded bezel, drop shadow), centered on a
@@ -108,11 +132,21 @@ be extended the same way as the Android one once you have an Apple
 Developer account, a Distribution certificate, and a provisioning profile
 to feed it as secrets).
 
-## Status
+## Still needed before either store submission
 
-- **iOS** — live on the App Store.
-- **Android** — signed `.aab` builds in CI; Play Console submission in
-  progress. New personal developer accounts must run a closed test with 12+
-  testers for 14 consecutive days before a production release is allowed.
-- App icon, screenshots, listing copy, support URL and privacy policy URL
-  are all done for both stores.
+1. **Add the `CAPGO_API_KEY` repo secret** (see above) to actually turn on
+   OTA updates — everything else for it is already wired up.
+2. ~~Real app icon~~ — done (Alma's real logo, generated into every
+   platform's icon set).
+3. **Apple Developer Program** account ($99/yr) — needed for App Store
+   signing certificates and provisioning profiles.
+4. **Google Play Console** account ($25 one-time) — needed to create the
+   store listing and upload the signed `.aab` from `android-release.yml`
+   above. New developer accounts also go through a mandatory ~14-day closed
+   testing period (12+ testers) before Google allows a production release.
+5. Once the Apple account/certificates exist, `ios-build.yml` can be
+   extended the same way `android-release.yml` was, using credentials
+   stored as GitHub Actions secrets.
+6. Store listing assets: screenshots (several device sizes each store
+   requires), an app description, a support URL, and a privacy policy URL
+   (required by both stores since this app collects account data).
