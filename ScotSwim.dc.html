@@ -389,8 +389,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No goals yet — pick an event with ＋ Add event and set your own target for the season.</div>
         </sc-if>
         <sc-for list="{{ selfList }}" as="g" hint-placeholder-count="3">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-            <div>
+          <div class="goalrow" style="display:flex;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <sc-if value="{{ g.canDrag }}" hint-placeholder-val="{{ true }}">
+              <div onPointerDown="{{ g.gripDown }}" title="Drag to reorder" style="flex:none;display:flex;flex-direction:column;gap:3px;padding:8px 4px;margin:-8px 0 -8px -4px;cursor:grab;touch-action:none">
+                <div style="width:14px;height:2px;border-radius:1px;background:rgba(42,18,24,.3)"></div>
+                <div style="width:14px;height:2px;border-radius:1px;background:rgba(42,18,24,.3)"></div>
+                <div style="width:14px;height:2px;border-radius:1px;background:rgba(42,18,24,.3)"></div>
+              </div>
+            </sc-if>
+            <div style="flex:1;min-width:0">
               <div style="font-size:13.5px;font-weight:600">{{ g.ev }}</div>
               <div style="font-size:11px;color:rgba(42,18,24,.5);white-space:nowrap">PB <span style="font-variant-numeric:tabular-nums;font-weight:700">{{ g.pb }}</span></div>
             </div>
@@ -2112,7 +2119,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -2201,6 +2208,7 @@ class Component extends DCLogic {
       const seenAt=parseInt(localStorage.getItem('scotswim.notifSeenAt')||'0',10);
       if(seenAt)this.state.notifSeenAt=seenAt;
         if(savedGoals.selfGoals)this.state.selfGoals=savedGoals.selfGoals;
+        if(savedGoals.selfOrder)this.state.selfOrder=savedGoals.selfOrder;
       }
     }catch(e){}
     // Restore coach-taken practice attendance (see saveAttendance) — the
@@ -2556,6 +2564,68 @@ class Component extends DCLogic {
         .catch(()=>this.toastMsg('Goal NOT saved — check your connection'));
     },600);
   }
+  // Drag-to-reorder for the athlete's own goals. Hand-rolled rather than
+  // HTML5 drag-and-drop, which never fires on touch — this is a phone app
+  // first. Nothing re-renders while a drag runs: the rows are moved with
+  // transforms and state is written once, on drop. That matters here more
+  // than usual, since sc-for keys rows by index, so a re-render mid-drag
+  // would swap the row's contents out from under the finger.
+  beginGoalDrag(e,rosterId,evIds,from){
+    if(this._goalDrag)return;
+    const handle=e.currentTarget||e.target;
+    const row=handle.closest&&handle.closest('.goalrow');
+    if(!row||!row.parentNode)return;
+    const rows=Array.from(row.parentNode.querySelectorAll('.goalrow'));
+    if(rows.length<2||rows[from]!==row)return;
+    if(e.preventDefault)e.preventDefault();
+    const h=row.getBoundingClientRect().height;
+    const startY=e.clientY;
+    let to=from;
+    this._goalDrag=true;
+    rows.forEach(r=>{r.style.transition='transform .14s ease';});
+    row.style.transition='none';
+    row.style.position='relative';
+    row.style.zIndex='5';
+    row.style.background='#fff';
+    row.style.borderRadius='6px';
+    row.style.boxShadow='0 6px 18px rgba(42,18,24,.18)';
+    const move=ev=>{
+      const dy=ev.clientY-startY;
+      row.style.transform='translateY('+dy+'px)';
+      const next=Math.max(0,Math.min(rows.length-1,from+Math.round(dy/h)));
+      if(next===to)return;
+      to=next;
+      // Everything between the row's old and new slot slides one place
+      // the other way, which is what opens the gap it will drop into.
+      rows.forEach((r,i)=>{
+        if(i===from)return;
+        let shift=0;
+        if(from<to&&i>from&&i<=to)shift=-h;
+        else if(from>to&&i>=to&&i<from)shift=h;
+        r.style.transform='translateY('+shift+'px)';
+      });
+    };
+    const end=()=>{
+      document.removeEventListener('pointermove',move);
+      document.removeEventListener('pointerup',end);
+      document.removeEventListener('pointercancel',end);
+      rows.forEach(r=>{r.style.transition='';r.style.transform='';r.style.position='';
+        r.style.zIndex='';r.style.background='';r.style.borderRadius='';r.style.boxShadow='';});
+      this._goalDrag=false;
+      if(to!==from)this.commitGoalOrder(rosterId,evIds,from,to);
+    };
+    document.addEventListener('pointermove',move,{passive:false});
+    document.addEventListener('pointerup',end);
+    document.addEventListener('pointercancel',end);
+  }
+  commitGoalOrder(rosterId,evIds,from,to){
+    const next=evIds.slice();
+    next.splice(to,0,next.splice(from,1)[0]);
+    const selfOrder={...(this.state.selfOrder||{}),[rosterId]:next};
+    this.setState({selfOrder});
+    this.saveGoalPrefs(this.state.goalDelta,this.state.selfGoals,selfOrder);
+    this.syncSelfOrderToCloud(rosterId);
+  }
   goalDeltaFor(rosterId){
     const out={},gd=this.state.goalDelta;
     Object.keys(gd).forEach(k=>{
@@ -2582,8 +2652,26 @@ class Component extends DCLogic {
     Object.keys(map).forEach(ev=>{gd[rosterId+'|'+ev]=map[ev];});
     return gd;
   }
-  saveGoalPrefs(goalDelta,selfGoals){
-    try{localStorage.setItem('scotswim.goals',JSON.stringify({goalDelta,selfGoals}))}catch(e){}
+  saveGoalPrefs(goalDelta,selfGoals,selfOrder){
+    const order=selfOrder||this.state.selfOrder||{};
+    try{localStorage.setItem('scotswim.goals',JSON.stringify({goalDelta,selfGoals,selfOrder:order}))}catch(e){}
+  }
+  // The athlete's hand-picked order for their own goals: the event ids of
+  // that roster entry's goals, most important first. Stored as a plain
+  // array in the same myEvents doc the goals themselves live in, so a
+  // reorder survives a reinstall and follows them to another device.
+  // Events with no stored position simply fall in after the ones that
+  // have one (see the sort in the Goals view), which is what keeps a
+  // newly added goal from landing in the middle of the list.
+  syncSelfOrderToCloud(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._selfOrderTimers)this._selfOrderTimers={};
+    clearTimeout(this._selfOrderTimers[rosterId]);
+    this._selfOrderTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('myEvents').doc(rosterId)
+        .set({selfOrder:(this.state.selfOrder||{})[rosterId]||[]},{merge:true})
+        .catch(()=>this.toastMsg('Order NOT saved — check your connection'));
+    },600);
   }
   toastMsg(m){this.setState({toast:m});clearTimeout(this._tt);this._tt=setTimeout(()=>this.setState({toast:''}),2200)}
   // "Nice" axis ticks spanning the given range. With a forceStep (e.g. the
@@ -3824,9 +3912,14 @@ class Component extends DCLogic {
         this.applyMyEvents(rosterId,entries);
         const myEvents={...this.state.myEvents,[rosterId]:entries};
         const sg=this.mergeSelfGoals(rosterId,doc.data().selfGoals);
-        this.setState(sg?{myEvents,selfGoals:sg}:{myEvents});
+        // A reorder made on another device arrives here. Skipped while a
+        // drag is in flight so the list can't reshuffle under the finger.
+        const cloudOrder=doc.data().selfOrder;
+        const so=(Array.isArray(cloudOrder)&&!this._goalDrag)
+          ?{...this.state.selfOrder,[rosterId]:cloudOrder}:null;
+        this.setState(Object.assign({myEvents},sg?{selfGoals:sg}:null,so?{selfOrder:so}:null));
         this.saveMyEvents(myEvents);
-        if(sg)this.saveGoalPrefs(this.state.goalDelta,sg);
+        if(sg||so)this.saveGoalPrefs(this.state.goalDelta,sg||this.state.selfGoals,so||this.state.selfOrder);
       }else if(!migrated){
         migrated=true;
         const local=this.state.myEvents[rosterId];
@@ -4583,17 +4676,36 @@ class Component extends DCLogic {
     // else's event — and, with only three shown by default, sometimes
     // pushing the goal being edited off the list entirely.
     const evOrder={};this.EV.forEach((e,i)=>{evOrder[e.id]=i;});
-    let selfList=myKeys.map(key=>{
-      const ev=key.split('|')[1];const e=this.evMap[ev];
+    // The athlete's own arrangement, dragged by the grip handles, wins
+    // wherever they've made one. A goal they haven't placed — one just
+    // added — sorts after everything they have, in event order, so
+    // adding a goal never reshuffles the ones above it.
+    const pref=(st.selfOrder&&st.selfOrder[user.id])||[];
+    const prefIdx={};pref.forEach((ev,i)=>{prefIdx[ev]=i;});
+    const posOf=ev=>prefIdx[ev]!=null?prefIdx[ev]
+      :pref.length+(evOrder[ev]==null?999:evOrder[ev]);
+    const ordered=myKeys.map(key=>({key,ev:key.split('|')[1]}))
+      // A goal against an event that no longer exists would otherwise
+      // take the whole render down inside pbOf, blanking the app rather
+      // than dropping one stale row.
+      .filter(o=>this.evMap[o.ev])
+      .sort((a,b)=>posOf(a.ev)-posOf(b.ev));
+    // The full arrangement, not the three that happen to be on screen —
+    // a drop has to write back the whole order, or collapsing the list
+    // would lose the position of everything below the third goal.
+    const orderedIds=ordered.map(o=>o.ev);
+    const canDrag=ordered.length>1;
+    let selfList=ordered.map(({key,ev},idx)=>{
+      const e=this.evMap[ev];
       const val=st.selfGoals[key];const pb=pbOf(ev);
       const step=0.5;
       const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
-        order:evOrder[ev]==null?999:evOrder[ev],
+        canDrag,gripDown:ev2=>this.beginGoalDrag(ev2,user.id,orderedIds,idx),
         inc:()=>setVal(val+(e.dive?-step:step)),
         dec:()=>setVal(val+(e.dive?step:-step)),
         clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);}};
-    }).sort((a,b)=>a.order-b.order);
+    });
     const selfCount=String(selfList.length);
     if(!st.showAllSelf)selfList=selfList.slice(0,3);
     const evPool=user.diver?this.EV:this.EV.filter(e=>!e.dive);
