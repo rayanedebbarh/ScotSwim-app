@@ -3918,12 +3918,22 @@ class Component extends DCLogic {
   // Asked for after sign-in rather than on first launch: a permission
   // prompt makes sense once someone can see what they'd be notified about.
   async setupPush(){
+    const C=window.Capacitor;
     const fm=this.pushPlugin();
     if(!fm||this._pushReady)return;
     this._pushReady=true;
     try{
       const perm=await fm.requestPermissions();
       if(perm&&perm.receive!=='granted')return;
+      // Android 8+ drops a notification whose channel doesn't exist, and
+      // the function sends everything on 'scotswim'. Creating it is
+      // idempotent, so this can run on every launch. iOS has no channels
+      // and no createChannel, hence the guard.
+      if(C.getPlatform&&C.getPlatform()==='android'&&fm.createChannel){
+        await fm.createChannel({id:'scotswim',name:'Team updates',
+          description:'Announcements, schedule changes and goals from your coaches',
+          importance:4,visibility:1}).catch(()=>{});
+      }
       // Listeners are attached before the first token is fetched: if that
       // fetch or its write fails, the rotation listener still has to be in
       // place, or the device never recovers a working token.
