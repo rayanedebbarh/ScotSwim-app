@@ -33,6 +33,26 @@ plugin.** The plugin was removed before 1.1 and restored for 1.2, so 1.2
 is the floor: anyone still on 1.1 or earlier keeps getting nothing from
 the OTA channel until they update from the store once.
 
+### Why it ships switched off
+
+`capacitor.config.json` sets `autoUpdater.autoUpdate: "off"`, so 1.2
+installs the plugin but never contacts Capgo. Two reasons:
+
+1. No plan is subscribed, so nothing can be published anyway.
+2. The old `production` channel in Capgo Cloud still holds a bundle from
+   2 Sep — the stale one that caused the original removal. With the
+   trial expired, that channel can't be deleted from the dashboard or the
+   CLI without subscribing, so the app is told not to look instead. The
+   channel was also renamed to `live` here, so even once auto-update is
+   turned back on, the stale `production` channel is not what devices ask
+   for.
+
+**Turning it on** means flipping `autoUpdate` to `"always"` (or
+`"onLaunch"`) and shipping one store build with that change — a config
+value baked into the native app, not something an OTA push can alter.
+Worth doing in whatever store release you are already making at the time
+you decide to subscribe.
+
 This is fully compliant with both stores: **Google Play and Apple both
 explicitly allow OTA JS/HTML/CSS updates** for interpreted code (see the
 plugin's compliance notes) — the one rule is it must never change native
