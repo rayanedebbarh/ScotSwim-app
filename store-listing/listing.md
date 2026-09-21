@@ -77,19 +77,27 @@ used to.
 **Collected, linked to the user, for App functionality — none of it shared
 with third parties, none of it used for tracking or advertising:**
 
-| Data type | Category | Why |
-|---|---|---|
-| Email address | Personal info | Sign-in (Firebase Authentication) |
-| Name | Personal info | Which roster entry the account belongs to |
-| Other user-generated content | App activity | Logged times, goals, training entries, attendance, announcements |
-| Device or other IDs | Device or other IDs | Push notification token, so a notification reaches the right phone |
+| Data type | Category | Why | Required? |
+|---|---|---|---|
+| Name | Personal info | Which roster entry the account belongs to | Required |
+| Email address | Personal info | Sign-in (Firebase Authentication) | Required |
+| Photos | Photos and videos | A coach can attach an image to a workout sheet | Optional |
+| Fitness info | Health and fitness | Training log (miles, minutes), lift check-ins, practice attendance | Optional |
+| Other user-generated content | App activity | Logged times, goals, announcements | Optional |
+| Device or other IDs | Device or other IDs | Push token, so a notification reaches the right phone | Optional |
 
-**Not collected:** location, contacts, financial info, health info,
-messages, calendar, search history, browsing history, installed apps,
-audio, files, or advertising data.
+**Not collected:** location, contacts, financial info, health info (as in
+medical), messages, calendar, search or browsing history, installed apps,
+audio, crash logs or analytics — there is no analytics SDK in the app.
 
-**Photos:** not collected. A profile photo and its framing are kept in the
-app's own storage on that device and are never uploaded.
+**Two that are easy to get wrong, both checked against the code:**
+
+- *Profile* photos are **not** collected — they and their framing stay in
+  the app's storage on that device. *Workout sheet* photos **are**: a coach
+  attaching one writes it to Firestore, so Photos has to be declared.
+- The training log records miles and minutes per session. That is exercise
+  data, which Play files under **Fitness info** rather than under
+  user-generated content.
 
 **Security practices:**
 - Data encrypted in transit: **Yes** (HTTPS / Firestore)
