@@ -2410,10 +2410,10 @@ class Component extends DCLogic {
     // `true` rather than the string so days taken before excused existed
     // keep the shape they already had.
     this.ATT_NEXT={present:'unexcused',unexcused:'excused',excused:true};
-    // LIFT is deliberately not a free-text field a coach types into — real
-    // lift exercises come from TeamBuildr once the season's lift schedule
-    // is out, so any LIFT-tagged session always displays as TBA (see
-    // liftLabel below) regardless of what's stored, coach edit or not.
+    // A LIFT-tagged session is named like any other — "Lift — team",
+    // "Team lift in Sherman" — and every one of them gets a Mark done
+    // button for athletes, since coaches don't take attendance at lifts.
+    // The tag is what drives that button, not the wording.
     this.TRAIN_TAGS=['POOL','DRY','LIFT','DIVE','REST'];
     // The season opened with lifts the week of Aug 31. Weeks before that
     // are empty by definition, so the Train tab won't page back past it
@@ -3320,26 +3320,38 @@ class Component extends DCLogic {
   // neither extends a streak nor ends one. Walks back day by day and
   // stops at the season's first week, since nothing was scheduled before
   // it and the walk would otherwise run backwards forever.
+  // Consecutive swim practices attended, walking back from today.
+  //
+  // Present is anything that isn't an explicit absence, which matters
+  // because the attendance screen invites coaches to "tap anyone who's
+  // out" — so an athlete who was there usually has no entry at all that
+  // day. Requiring a literal `true` meant every such athlete showed a
+  // streak of zero no matter how many practices they made.
+  //
+  // Either kind of absence ends the streak. A day nobody took attendance
+  // on is stepped over rather than counted against the athlete, the same
+  // way the attendance percentage skips it, and so are lift-only days.
   streakFor(id){
     const attendance=this.state.attendance;
     const isSwimDay=d=>!!this.swimDaysFor(this.mondayKey(d))[this.DAYS[(d.getDay()+6)%7]];
+    const stateOn=d=>{
+      const rec=attendance[this.ymd(d)];
+      return rec?this.attStateOf(rec[id]):null;   // null = not taken
+    };
     const d=new Date();
     if(isSwimDay(d)){
-      const todayVal=attendance[this.ymd(d)]&&attendance[this.ymd(d)][id];
-      if(this.attStateOf(todayVal)==='unexcused')return 0;
-      // An unmarked swim day today just means the coach hasn't taken
-      // attendance yet, so start counting from yesterday instead.
-      if(todayVal!==true)d.setDate(d.getDate()-1);
+      const today=stateOn(d);
+      if(today&&today!=='present')return 0;
+      // Not taken yet today — start counting from yesterday instead.
+      if(!today)d.setDate(d.getDate()-1);
     }else d.setDate(d.getDate()-1);
     let count=0;
     while(this.mondayKey(d)>=this.SEASON_FIRST_MONDAY){
       if(!isSwimDay(d)){d.setDate(d.getDate()-1);continue;}
-      const rec=attendance[this.ymd(d)];
-      // An excused absence is stepped over the same way a lift day is: it
-      // doesn't extend the streak, but it doesn't end one either.
-      if(rec&&this.attStateOf(rec[id])==='excused'){d.setDate(d.getDate()-1);continue;}
-      if(rec&&rec[id]===true){count++;d.setDate(d.getDate()-1);}
-      else break;
+      const st=stateOn(d);
+      if(st===null){d.setDate(d.getDate()-1);continue;}
+      if(st!=='present')break;
+      count++;d.setDate(d.getDate()-1);
     }
     return count;
   }
@@ -4781,7 +4793,7 @@ class Component extends DCLogic {
             onSoloTap:()=>this.toggleSoloLift(user.id,sessKey),
             onTChange:e=>update({t:e.target.value}),
             onNChange:e=>update({n:e.target.value}),
-            onTagChange:e=>{const tag=e.target.value;update(tag==='LIFT'?{tag,n:''}:{tag});},
+            onTagChange:e=>update({tag:e.target.value}),
             remove:()=>saveTrainDay(weekKey,day,sessions.filter((_,k)=>k!==j))};
         });
         const note=(wk.notes&&wk.notes[day])||'';
@@ -5421,12 +5433,14 @@ class Component extends DCLogic {
         const days=this.weekDataFor(thisMon).days||{};
         const monDate=new Date(thisMon+'T00:00:00');
         let done=0,total=0;
+        // Counted per day, not per session: a tick is stored against the
+        // date, so two lifts listed on one day are one thing to mark off
+        // and must not count as two.
         this.DAYS.forEach((day,i)=>{
-          (days[day]||[]).filter(s=>s.tag==='LIFT').forEach(()=>{
-            const d=new Date(monDate);d.setDate(d.getDate()+i);
-            total++;
-            if(this.soloLiftDone(user.id,this.ymd(d)))done++;
-          });
+          if(!(days[day]||[]).some(s=>s.tag==='LIFT'))return;
+          const d=new Date(monDate);d.setDate(d.getDate()+i);
+          total++;
+          if(this.soloLiftDone(user.id,this.ymd(d)))done++;
         });
         return done+' / '+total;
       })(),
