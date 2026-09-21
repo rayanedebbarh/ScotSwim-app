@@ -45,12 +45,37 @@ jobs:
 
       - name: Decode signing keystore
         working-directory: mobile-app/android/app
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
-          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+          if [ -z "$KS_B64" ]; then
             echo "::error::ANDROID_KEYSTORE_BASE64 repo secret is not set — see mobile-app/README.md" >&2
             exit 1
           fi
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+          # Strip whitespace before decoding: a value pasted into the
+          # secrets UI often picks up newlines, and base64 -d rejects the
+          # whole thing rather than ignoring them.
+          printf '%s' "$KS_B64" | tr -d '\r\n\t ' | base64 -d > release.keystore 2>/dev/null || true
+          if [ ! -s release.keystore ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 did not decode to anything. Regenerate it with:  base64 -i scotswim-release.keystore | tr -d '\n' | pbcopy  then paste it as the secret." >&2
+            exit 1
+          fi
+          # Prove it is a keystore AND that the password matches, rather
+          # than finding out several minutes later inside Gradle.
+          if ! keytool -list -keystore release.keystore -storepass "$KS_PASS" >/tmp/ks.txt 2>&1; then
+            echo "::error::The keystore decoded, but keytool could not open it. Either ANDROID_KEYSTORE_PASSWORD is wrong or the file is not a keystore." >&2
+            sed -e 's/^/    /' /tmp/ks.txt >&2
+            exit 1
+          fi
+          if ! grep -qi "$KS_ALIAS" /tmp/ks.txt; then
+            echo "::error::Keystore opened, but it contains no alias named '$KS_ALIAS'. Aliases present:" >&2
+            grep -i "alias name" /tmp/ks.txt | sed -e 's/^/    /' >&2
+            exit 1
+          fi
+          echo "Keystore decoded, opened, and contains alias '$KS_ALIAS'."
+
 
       - name: Build signed release AAB + APK
         working-directory: mobile-app/android
