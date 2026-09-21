@@ -1,0 +1,4 @@
+Lifts now show a Mark done button wherever they appear on the schedule,
+however your coach worded or tagged them — "Team Lift in Sherm" counts
+the same as one tagged LIFT. Marking one off updates your Lifts this week
+count and shows up in the coaches' lift attendance grid.
