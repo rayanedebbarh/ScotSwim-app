@@ -42,13 +42,13 @@ jobs:
             --name "ScotSwim" \
             --icon assets/icon-only.png
 
-      # Creates the "production" channel as the default (the one devices
+      # Creates the "live" channel as the default (the one devices
       # actually check for updates) if it doesn't exist yet; harmless (and
       # allowed to fail) if it's already set up.
-      - name: Ensure production channel exists and is default
+      - name: Ensure the live channel exists and is default
         continue-on-error: true
         run: |
-          npx @capgo/cli@latest channel add production edu.alma.scotswim \
+          npx @capgo/cli@latest channel add live edu.alma.scotswim \
             --apikey "${{ secrets.CAPGO_API_KEY }}" \
             --default
 
@@ -58,12 +58,12 @@ jobs:
       # genuinely there (verified via Playwright, see mobile-app/README.md)
       # and does fire correctly on the native app, the scanner just can't
       # see inside index.html's inline script.
-      - name: Upload and publish bundle to production channel
+      - name: Upload and publish bundle to the live channel
         run: |
           npx @capgo/cli@latest bundle upload edu.alma.scotswim \
             --apikey "${{ secrets.CAPGO_API_KEY }}" \
             --path www \
-            --channel production \
+            --channel live \
             --auto-bump patch \
             --no-code-check \
             --comment "${{ github.event.inputs.comment }}"

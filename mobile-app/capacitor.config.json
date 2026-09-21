@@ -4,5 +4,11 @@
   "webDir": "www",
   "ios": {
     "scrollEnabled": false
+  },
+  "plugins": {
+    "CapacitorUpdater": {
+      "autoUpdate": "off",
+      "defaultChannel": "live"
+    }
   }
 }
