@@ -62,10 +62,21 @@ jobs:
             echo "::error::ANDROID_KEYSTORE_BASE64 did not decode to anything. Regenerate it with:  base64 -i scotswim-release.keystore | tr -d '\n' | pbcopy  then paste it as the secret." >&2
             exit 1
           fi
-          # Prove it is a keystore AND that the password matches, rather
-          # than finding out several minutes later inside Gradle.
+          SIZE=$(wc -c < release.keystore | tr -d ' ')
+          MAGIC=$(head -c 4 release.keystore | od -An -tx1 | tr -d ' \n')
+          echo "decoded $SIZE bytes, leading bytes: $MAGIC"
+          # A keystore starts with a known signature: JKS is feedfeed,
+          # PKCS12 (keytool's default since Java 9) is a DER sequence, 3082.
+          case "$MAGIC" in
+            feedfeed*|3082*) ;;
+            *)
+              echo "::error::The decoded file is not a keystore — it begins $MAGIC, but a keystore begins feedfeed (JKS) or 3082 (PKCS12), and it is only $SIZE bytes (a real one is a few KB). The ANDROID_KEYSTORE_BASE64 secret is most likely truncated: it must be the WHOLE base64 string on one line. Regenerate with:  base64 -i scotswim-release.keystore | tr -d '\n' | pbcopy" >&2
+              exit 1 ;;
+          esac
+          # Prove the password opens it, rather than finding out several
+          # minutes later inside Gradle.
           if ! keytool -list -keystore release.keystore -storepass "$KS_PASS" >/tmp/ks.txt 2>&1; then
-            echo "::error::The keystore decoded, but keytool could not open it. Either ANDROID_KEYSTORE_PASSWORD is wrong or the file is not a keystore." >&2
+            echo "::error::The file is a keystore, but ANDROID_KEYSTORE_PASSWORD does not open it." >&2
             sed -e 's/^/    /' /tmp/ks.txt >&2
             exit 1
           fi
