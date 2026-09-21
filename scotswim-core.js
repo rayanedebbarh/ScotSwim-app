@@ -27,6 +27,20 @@
     const pts=gender==='W'?women:men;
     return seasons.map((season,i)=>({season,short:shorts[i],pts:pts[i]}));
   },
+  // Is this scheduled session a lift? The LIFT tag is the intended
+  // marker, but coaches routinely put lifts on the schedule under
+  // another tag — "Team Lift in Sherm" tagged DRY, say — and then the
+  // athletes get no Mark done button and their lift count stays at 0.
+  // So the session's name counts as well: any standalone "lift" word
+  // ("Lift — team", "Team lift in Sherman", "Lifting", "Lifts") makes it
+  // a lift regardless of tag. \b before the l keeps "uplifting" out, and
+  // the optional suffixes stop short of "deadlift"/"lift-off" since the
+  // \b at the front already requires lift to start the word.
+  isLiftSession(s){
+    if(!s)return false;
+    if(String(s.tag||'').trim().toUpperCase()==='LIFT')return true;
+    return /\blift(s|ed|ing)?\b/i.test(String(s.n||''));
+  },
   fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})},
   meetDateParts(startISO,endISO){
     const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];

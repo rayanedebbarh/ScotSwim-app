@@ -609,7 +609,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <sc-if value="{{ liftNoDays }}" hint-placeholder-val="{{ false }}">
             <div style="text-align:center;padding:18px 8px 6px">
               <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:rgba(42,18,24,.4)">NO LIFTS THIS WEEK</div>
-              <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Nothing tagged LIFT is on the schedule for this week.</div>
+              <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">No lifts are on the schedule for this week.</div>
             </div>
           </sc-if>
           <sc-if value="{{ liftHasDays }}" hint-placeholder-val="{{ true }}">
@@ -2410,10 +2410,10 @@ class Component extends DCLogic {
     // `true` rather than the string so days taken before excused existed
     // keep the shape they already had.
     this.ATT_NEXT={present:'unexcused',unexcused:'excused',excused:true};
-    // A LIFT-tagged session is named like any other — "Lift — team",
-    // "Team lift in Sherman" — and every one of them gets a Mark done
-    // button for athletes, since coaches don't take attendance at lifts.
-    // The tag is what drives that button, not the wording.
+    // Every lift gets a Mark done button for athletes, since coaches
+    // don't take attendance at lifts. The LIFT tag is the intended
+    // marker, but a lift the coach left tagged DRY is still a lift, so
+    // isLiftSession also reads the name — see that helper.
     this.TRAIN_TAGS=['POOL','DRY','LIFT','DIVE','REST'];
     // The season opened with lifts the week of Aug 31. Weeks before that
     // are empty by definition, so the Train tab won't page back past it
@@ -2498,6 +2498,7 @@ class Component extends DCLogic {
   // Real SwimCloud team season-points totals, 2016-17 through 2025-26.
   teamProgressionOf(...a){return ScotSwimCore.teamProgressionOf(...a);}
   fmtEv(ev,t){return this.evMap[ev]&&this.evMap[ev].dive?t.toFixed(1)+' pts':this.fmt(t)}
+  isLiftSession(...a){return ScotSwimCore.isLiftSession(...a);}
   fmtAnnDate(...a){return ScotSwimCore.fmtAnnDate(...a);}
   // Derives the meet-list display strings (month chip, day chip, full
   // date line) from real date fields instead of a coach hand-typing them
@@ -4777,7 +4778,7 @@ class Component extends DCLogic {
         const sessDate=new Date(monDate);sessDate.setDate(sessDate.getDate()+i);
         const sessKey=this.ymd(sessDate);
         const rows=sessions.map((s,j)=>{
-          const isLift=s.tag==='LIFT';
+          const isLift=this.isLiftSession(s);
           const update=patch=>saveTrainDay(weekKey,day,sessions.map((x,k)=>k===j?{...x,...patch}:x));
           // Coaches only take attendance at swim practice, so every lift
           // — the team ones as much as the Friday solo — is logged by the
@@ -5044,7 +5045,7 @@ class Component extends DCLogic {
     const liftDaysOfWeek=this.weekDataFor(liftWeekKey).days||{};
     const liftMonDate=new Date(liftWeekKey+'T00:00:00');
     const liftCols=this.DAYS.map((day,i)=>{
-      if(!(liftDaysOfWeek[day]||[]).some(s=>s.tag==='LIFT'))return null;
+      if(!(liftDaysOfWeek[day]||[]).some(s=>this.isLiftSession(s)))return null;
       const d=new Date(liftMonDate);d.setDate(d.getDate()+i);
       return {n:day.slice(0,3),key:this.ymd(d)};
     }).filter(Boolean);
@@ -5437,7 +5438,7 @@ class Component extends DCLogic {
         // date, so two lifts listed on one day are one thing to mark off
         // and must not count as two.
         this.DAYS.forEach((day,i)=>{
-          if(!(days[day]||[]).some(s=>s.tag==='LIFT'))return;
+          if(!(days[day]||[]).some(s=>this.isLiftSession(s)))return;
           const d=new Date(monDate);d.setDate(d.getDate()+i);
           total++;
           if(this.soloLiftDone(user.id,this.ymd(d)))done++;

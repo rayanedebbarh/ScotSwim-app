@@ -63,4 +63,22 @@ passed += 3;
 // --- fmt: the generic number formatter ---
 check('fmt keeps two decimals', C.fmt(27.5), '27.50');
 
+// --- isLiftSession: the Mark done button must find every lift ---
+// The tag is the intended marker...
+check('LIFT tag is a lift', C.isLiftSession({ tag: 'LIFT', n: 'Whatever' }), true);
+check('a lowercase tag still counts', C.isLiftSession({ tag: 'lift', n: '' }), true);
+// ...but coaches schedule lifts under other tags all the time, and the
+// name is what gives them away. This is the case that was reported.
+check('Team Lift in Sherm tagged DRY', C.isLiftSession({ tag: 'DRY', n: 'Team Lift in Sherm' }), true);
+check('Lift — team', C.isLiftSession({ tag: 'POOL', n: 'Lift — team' }), true);
+check('Lift on your own', C.isLiftSession({ tag: 'DRY', n: 'Lift on your own' }), true);
+check('plural lifts', C.isLiftSession({ tag: 'DRY', n: 'Morning lifts' }), true);
+check('lifting', C.isLiftSession({ tag: 'DRY', n: 'Lifting in Sherman' }), true);
+// And it must not drag ordinary sessions in with them.
+check('a pool set is not a lift', C.isLiftSession({ tag: 'POOL', n: 'Distance set' }), false);
+check('dryland is not a lift', C.isLiftSession({ tag: 'DRY', n: 'Core + bands' }), false);
+check('uplifting is not a lift', C.isLiftSession({ tag: 'POOL', n: 'Uplifting recovery swim' }), false);
+check('a missing session is not a lift', C.isLiftSession(null), false);
+check('an unnamed untagged session is not a lift', C.isLiftSession({}), false);
+
 console.log(`✓ ${passed} assertions passed`);
