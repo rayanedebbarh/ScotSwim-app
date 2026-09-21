@@ -26,33 +26,38 @@ Alma College Swimming & Diving — roster, schedule, times, and team goals.
 **Full description** (max 4000 characters):
 ```
 ScotSwim is the official team app for Alma College Swimming & Diving —
-built for the Scots' athletes and coaches to manage the season together in
+built for the Scots' athletes and coaches to run the season together in
 one place.
 
 FOR ATHLETES
 • Log your times and dive scores after every meet and watch your
   progression chart build itself
+• Set your own season goals, and see the goals and workouts your coach
+  has set for you
 • Track training volume — miles and minutes logged per session
-• See goals your coach has set for you, plus the specific workout they've
-  prescribed to hit them
-• Check the team roster, weekly practice schedule, and workout library
-• Get team announcements the moment your coach posts them
+• Mark off the lifts you do on your own
+• Check the weekly practice schedule, meet calendar and team roster
+• Follow your practice attendance and current streak
+• Get notified when a coach posts an announcement, changes the meet
+  schedule, or sets you a new goal
 
 FOR COACHES
+• Take practice attendance in seconds, marking absences excused or
+  unexcused
+• See at a glance who has been getting their lifts in
+• Set individual goals and write a prescribed workout for each athlete
+• Edit the roster and the season meet schedule as things change
+• Post announcements, workout sheets and lift schedules
 • Run a Meet Simulator to project dual-meet scores against MIAA and
   national Division III opponents, event by event
-• Set individual goals and write a specific prescribed workout for each
-  athlete
-• Take practice attendance and track team-wide participation
-• Post workout sheets, lift schedules, and team announcements
-• See real SwimCloud times and records alongside the team's own data
 
 Built specifically around swimming and diving — dive scores, boards, and
 diving-specific goal tracking work the same way times and swim goals do,
-not bolted on as an afterthought.
+rather than being bolted on afterwards.
 
-Accounts are by invite only, issued by your coach — this is a private team
-app, not a public directory.
+Accounts are by invite only, issued by your coach. This is a private team
+app, not a public directory: nothing in it is visible to anyone outside
+the roster.
 ```
 
 **Category**: Sports
@@ -61,10 +66,44 @@ ads, no in-app purchases, no location collection, no violence/mature
 content — should land in the lowest rating tier (Everyone) in every
 regional rating system Play asks about (ESRB/PEGI/etc., auto-generated
 from the questionnaire).
-**Data safety section**: matches `privacy.html` — collects email
-(account management), and user-entered content (times/training/goals);
-no data shared with third parties; no data sold; account data can be
-deleted on request (see privacy policy contact).
+### Data safety answers (Play Console)
+
+Play asks this as a questionnaire. These are the accurate answers for the
+current build — checked against what the app actually writes, not what it
+used to.
+
+**Does your app collect or share any of the required user data types?** Yes
+
+**Collected, linked to the user, for App functionality — none of it shared
+with third parties, none of it used for tracking or advertising:**
+
+| Data type | Category | Why |
+|---|---|---|
+| Email address | Personal info | Sign-in (Firebase Authentication) |
+| Name | Personal info | Which roster entry the account belongs to |
+| Other user-generated content | App activity | Logged times, goals, training entries, attendance, announcements |
+| Device or other IDs | Device or other IDs | Push notification token, so a notification reaches the right phone |
+
+**Not collected:** location, contacts, financial info, health info,
+messages, calendar, search history, browsing history, installed apps,
+audio, files, or advertising data.
+
+**Photos:** not collected. A profile photo and its framing are kept in the
+app's own storage on that device and are never uploaded.
+
+**Security practices:**
+- Data encrypted in transit: **Yes** (HTTPS / Firestore)
+- Users can request that data be deleted: **Yes** — in-app at Menu >
+  Delete my account, and by email, both documented in the privacy policy
+- Data can be deleted without leaving the app: **Yes**
+- Independent security review: No
+- Committed to Play Families Policy: not applicable — the app is not
+  directed at children
+
+**A note on Firebase:** Play distinguishes *sharing* (transfer to a third
+party) from transfer to a service provider processing data on your behalf.
+Firebase is the latter, so the honest answer to "shared with third
+parties" is **No**.
 
 ---
 
@@ -96,8 +135,20 @@ swimming,diving,alma college,scots,team,roster,times,meet,coach,training,goals,n
 
 ---
 
-## Still to do
+## Status
 
-Everything above is final. Screenshots for both stores are already
-generated (see `store-listing/screenshots/`). What's left is entirely on
-the account/submission side — see the main reply for the checklist.
+**App Store** — live. Version 1.1 submitted and in review.
+
+**Play Store** — not yet submitted. What's left:
+
+1. Play Console account ($25, Personal) — verification in progress
+2. Create the app, fill this listing, upload the signed `.aab` from the
+   "Android Release Build (signed)" workflow
+3. Closed testing: **12 testers opted in for 14 consecutive days** before
+   Google allows a production release. This is the long pole — new personal
+   developer accounts can't skip it. Invite ~20 people to land 12.
+4. Apply for production access, then submit
+
+Screenshots and graphics are in `screenshots/play/` and verified against
+Play's limits — see `README.md` here for what went wrong with the previous
+set and why.
