@@ -298,7 +298,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">UPCOMING MEETS</div>
           <button onClick="{{ goMeets }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">View all ›</button>
         </div>
-        <sc-for list="{{ upcoming }}" as="m" hint-placeholder-count="2">
+        <sc-for list="{{ upcoming }}" as="m" hint-placeholder-count="3">
           <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="min-width:44px;text-align:center">
               <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
@@ -518,7 +518,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">UPCOMING MEETS</div>
           <button onClick="{{ goMeets }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">View all ›</button>
         </div>
-        <sc-for list="{{ upcoming }}" as="m" hint-placeholder-count="2">
+        <sc-for list="{{ upcoming }}" as="m" hint-placeholder-count="3">
           <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="min-width:44px;text-align:center">
               <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
@@ -5527,7 +5527,7 @@ class Component extends DCLogic {
       goTrain:()=>this.setState({tab:'train'}),
       goSim:()=>this.setState({tab:'sim'}),
       goGoals:()=>this.setState({tab:'goals'}),
-      upcoming:schedT.slice(0,2),
+      upcoming:schedT.slice(0,3),
       myGoals,myGoalsEmpty,myRecent,myRecentEmpty:myRecent.length===0,sigEv:this.evMap[sig].n.toUpperCase(),chal,
       recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
       allLabel:user.diver?'All dives':'All swims',
