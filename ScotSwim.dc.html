@@ -917,7 +917,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <div style="font-variant-numeric:tabular-nums;font-weight:700;font-size:12.5px;color:#6B1F33;min-width:62px">{{ s.t }}</div>
                 <div style="flex:1;font-size:13px">{{ s.n }}</div>
                 <sc-if value="{{ s.showSolo }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ s.onSoloTap }}" style="flex:none;border:1.5px solid #1B7A78;background:{{ s.soloBg }};color:{{ s.soloFg }};border-radius:999px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">{{ s.soloLabel }}</button>
+                  <button onClick="{{ s.onSoloTap }}" style="flex:none;border:1.5px solid {{ s.soloBd }};background:{{ s.soloBg }};color:{{ s.soloFg }};border-radius:999px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">{{ s.soloLabel }}</button>
                 </sc-if>
                 <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:#1B7A78;border:1px solid #1B7A78;border-radius:3px;padding:2px 7px">{{ s.tag }}</div>
               </div>
@@ -4900,16 +4900,24 @@ class Component extends DCLogic {
           const update=patch=>saveTrainDay(weekKey,day,sessions.map((x,k)=>k===j?{...x,...patch}:x));
           // Coaches only take attendance at swim practice, so every lift
           // — the team ones as much as the Friday solo — is logged by the
-          // athlete instead. Their own only, and not before the day has
-          // come round, so a week can't be ticked off in advance.
-          const solo=isLift&&!editable&&!isCoach&&sessKey<=todayK;
-          const soloDone=solo&&this.soloLiftDone(user.id,sessKey);
+          // athlete instead, and their own only.
+          const solo=isLift&&!editable&&!isCoach;
+          // A lift still to come can't be ticked off, or the whole week
+          // could be claimed on Monday. It shows the button anyway, greyed
+          // and inert: hiding it entirely reads as the feature being
+          // broken, which is exactly how it was reported twice.
+          const soloFuture=solo&&sessKey>todayK;
+          const soloDone=solo&&!soloFuture&&this.soloLiftDone(user.id,sessKey);
           return {t:s.t,n:s.n,tag:s.tag,isLift,isNotLift:!isLift,editing:editable,notEditing:!editable,
             tValue:s.t,nValue:s.n,tagValue:s.tag,tagOpts,
             showSolo:solo,soloDone,soloNotDone:solo&&!soloDone,
             soloLabel:soloDone?'✓ Done':'Mark done',
-            soloBg:soloDone?'#1B7A78':'transparent',soloFg:soloDone?'#F5E9DC':'#1B7A78',
-            onSoloTap:()=>this.toggleSoloLift(user.id,sessKey),
+            soloBg:soloDone?'#1B7A78':'transparent',
+            soloFg:soloDone?'#F5E9DC':(soloFuture?'rgba(42,18,24,.33)':'#1B7A78'),
+            soloBd:soloFuture?'rgba(42,18,24,.2)':'#1B7A78',
+            onSoloTap:soloFuture
+              ?()=>this.toastMsg('You can mark this lift once the day comes round')
+              :()=>this.toggleSoloLift(user.id,sessKey),
             onTChange:e=>update({t:e.target.value}),
             onNChange:e=>update({n:e.target.value}),
             onTagChange:e=>update({tag:e.target.value}),
