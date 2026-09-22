@@ -1,4 +1,9 @@
 Lifts now show a Mark done button wherever they appear on the schedule,
 however your coach worded or tagged them — "Team Lift in Sherm" counts
-the same as one tagged LIFT. Marking one off updates your Lifts this week
-count and shows up in the coaches' lift attendance grid.
+the same as one tagged LIFT. Lifts later in the week show the button
+greyed out until the day arrives. Marking one off updates your Lifts
+this week count and shows in the coaches' lift attendance grid.
+
+Your Goals can now be put in the order you want: drag a goal by the
+handle on its left. The three you move to the top are the three shown
+when the list is collapsed, and the order follows you to any device.
