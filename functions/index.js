@@ -23,6 +23,7 @@ const TITLES = {
   announcement: 'Team announcement',
   schedule: 'Meet schedule updated',
   goal: 'New goal for you',
+  lineup: 'Meet lineup posted',
 };
 
 exports.sendTeamNotification = onDocumentCreated(

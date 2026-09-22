@@ -308,7 +308,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-weight:600;font-size:14.5px;line-height:1.25">{{ m.n }}</div>
               <div style="font-size:12px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
             </div>
-            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+            <sc-if value="{{ m.hasLineup }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ m.openLineup }}" style="border:none;background:#1B7A78;color:#fff;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;font-family:'Barlow';cursor:pointer;flex:none;white-space:nowrap">Lineup ›</button>
+            </sc-if>
+            <sc-if value="{{ m.noLineup }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+            </sc-if>
           </div>
         </sc-for>
       </div>
@@ -528,7 +533,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-weight:600;font-size:14.5px;line-height:1.25">{{ m.n }}</div>
               <div style="font-size:12px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
             </div>
-            <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+            <sc-if value="{{ m.hasLineup }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ m.openLineup }}" style="border:none;background:#1B7A78;color:#fff;border-radius:999px;padding:6px 12px;font-size:11px;font-weight:700;font-family:'Barlow';cursor:pointer;flex:none;white-space:nowrap">Lineup ›</button>
+            </sc-if>
+            <sc-if value="{{ m.noLineup }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+            </sc-if>
           </div>
         </sc-for>
       </div>
@@ -702,6 +712,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <button onClick="{{ openNextLineup }}" style="border:1px solid rgba(127,208,205,.5);background:rgba(127,208,205,.12);color:#7fd0cd;border-radius:8px;padding:9px 12px;font-family:'Barlow Condensed';font-weight:800;font-size:12.5px;letter-spacing:1px;cursor:pointer;flex:none;white-space:nowrap">LINEUP</button>
       </div>
+      <!-- Coaches post a lineup for the closest meet only, from the banner
+           that names it — so there is never a question of which meet a
+           lineup is being posted against. -->
+      <sc-if value="{{ canPostLineup }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ openLineupCompose }}" style="width:100%;border:1.5px solid #1B7A78;background:rgba(27,122,120,.07);color:#1B7A78;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;cursor:pointer">{{ postLineupLabel }}</button>
+      </sc-if>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 18px 6px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">SEASON SCHEDULE</div>
@@ -1934,12 +1950,31 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <button onClick="{{ closeLineup }}" style="border:none;background:rgba(245,233,220,.15);color:#F5E9DC;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none">✕</button>
       </div>
       <div style="padding:14px 16px 24px;display:flex;flex-direction:column;gap:12px">
-        <sc-if value="{{ lineup.noData }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ lineupEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:26px 18px;text-align:center">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1px;color:#6B1F33">LINEUP NOT POSTED YET</div>
             <div style="font-size:12.5px;color:rgba(42,18,24,.55);margin-top:6px;line-height:1.5">Heat sheets usually go up closer to the meet. Check back, or ask your coach.</div>
           </div>
         </sc-if>
+        <!-- the coach's note comes first: it's the part people read on the bus -->
+        <sc-if value="{{ lineupHasNotes }}" hint-placeholder-val="{{ false }}">
+          <div style="background:rgba(27,122,120,.1);border-left:2.5px solid #1B7A78;border-radius:4px;padding:11px 13px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+              <div style="font-size:9px;font-weight:800;letter-spacing:1px;color:#1B7A78">FROM {{ lineupAuthor }}</div>
+              <div style="font-size:10.5px;color:rgba(42,18,24,.45);flex:none">{{ lineupAgo }}</div>
+            </div>
+            <div style="font-size:13px;color:#1B4744;line-height:1.5;margin-top:3px;white-space:pre-wrap">{{ lineupNotes }}</div>
+          </div>
+        </sc-if>
+        <sc-for list="{{ lineupPages }}" as="p" hint-placeholder-count="1">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:rgba(42,18,24,.45)">{{ p.label }}</div>
+              <div style="font-size:11px;font-weight:700;color:#1B7A78">Tap to zoom</div>
+            </div>
+            <img onClick="{{ p.onTap }}" src="{{ p.img }}" alt="Meet lineup page" style="width:100%;display:block;border-radius:8px;border:1px solid rgba(42,18,24,.12);background:#fff;cursor:zoom-in">
+          </div>
+        </sc-for>
         <sc-if value="{{ lineup.hasMine }}" hint-placeholder-val="{{ false }}">
           <div style="background:#6B1F33;border-radius:8px;padding:14px 16px">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#F5E9DC">YOUR EVENTS</div>
@@ -1977,6 +2012,88 @@ input::placeholder{color:rgba(245,233,220,.5)}
               </sc-for>
             </div>
           </sc-for>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<!-- lineup page, full screen -->
+<sc-if value="{{ hasLineupZoom }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeLineupZoom }}" style="position:absolute;inset:0;background:rgba(20,8,11,.94);z-index:80;display:flex;align-items:center;justify-content:center;padding:10px;overflow:auto">
+    <img src="{{ lineupZoom }}" alt="Meet lineup page" style="max-width:100%;border-radius:6px">
+    <button onClick="{{ closeLineupZoom }}" style="position:absolute;top:16px;right:16px;border:none;background:rgba(245,233,220,.18);color:#F5E9DC;width:34px;height:34px;border-radius:50%;font-size:15px;cursor:pointer">✕</button>
+  </div>
+</sc-if>
+
+<!-- coach: post / edit the next meet's lineup -->
+<sc-if value="{{ showLineupCompose }}" hint-placeholder-val="{{ false }}">
+  <div onClick="{{ closeLineupCompose }}" style="position:absolute;inset:0;background:rgba(42,18,24,.55);z-index:70"></div>
+  <div style="position:absolute;left:0;right:0;bottom:0;max-height:92%;overflow-y:auto;background:#F2EDE5;border-radius:18px 18px 0 0;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease">
+    <div style="background:#2A1218;color:#F5E9DC;padding:14px 18px;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:2">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">POST MEET LINEUP</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;line-height:1.2;margin-top:2px">{{ composeMeetName }}</div>
+        <div style="font-size:11px;color:rgba(245,233,220,.7);margin-top:1px">{{ composeMeetDate }} · the next meet</div>
+      </div>
+      <button onClick="{{ closeLineupCompose }}" style="border:none;background:rgba(245,233,220,.15);color:#F5E9DC;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none">✕</button>
+    </div>
+    <div style="padding:14px 16px 26px">
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LINEUP SOURCE</div>
+        <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:3px">Pick one — athletes see pages either way.</div>
+        <div style="display:flex;background:#F2EDE5;border-radius:999px;padding:4px;margin-top:12px;gap:3px">
+          <sc-for list="{{ srcTabs }}" as="s" hint-placeholder-count="2">
+            <button onClick="{{ s.onTap }}" style="flex:1;border:none;background:{{ s.bg }};color:{{ s.fg }};border-radius:999px;padding:8px 4px;font-size:11.5px;font-weight:700;font-family:'Barlow';cursor:pointer">{{ s.n }}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ isPhotoSrc }}" hint-placeholder-val="{{ true }}">
+          <label style="display:block;border:1.5px dashed rgba(42,18,24,.25);border-radius:8px;padding:20px 14px;text-align:center;margin-top:12px;cursor:pointer">
+            <!-- multiple="multiple", not a bare `multiple`: the template
+                 parser drops valueless attributes, which silently left
+                 coaches able to add only one page at a time. -->
+            <input type="file" accept="image/*" multiple="multiple" onChange="{{ addLineupPhotos }}" style="display:none">
+            <div style="font-size:25px;opacity:.35">🖼</div>
+            <div style="font-size:13px;font-weight:700;margin-top:6px">Add photos of the lineup</div>
+            <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Pick as many pages as you need</div>
+          </label>
+        </sc-if>
+        <sc-if value="{{ isPdfSrc }}" hint-placeholder-val="{{ false }}">
+          <label style="display:block;border:1.5px dashed rgba(42,18,24,.25);border-radius:8px;padding:20px 14px;text-align:center;margin-top:12px;cursor:pointer">
+            <input type="file" accept="application/pdf,.pdf" onChange="{{ addLineupPdf }}" style="display:none">
+            <div style="font-size:25px;opacity:.35">📄</div>
+            <div style="font-size:13px;font-weight:700;margin-top:6px">Choose a PDF</div>
+            <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Every page becomes an image athletes<br>can read without leaving the app</div>
+          </label>
+          <div style="display:flex;gap:9px;align-items:flex-start;background:rgba(107,31,51,.06);border-radius:6px;padding:10px 12px;margin-top:11px;font-size:11.5px;line-height:1.45;color:#6B1F33">
+            <div>ℹ</div><div>Word documents can't be shown as pages — save yours as a PDF, or photograph it.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ lineupWorking }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;font-size:12px;font-weight:700;color:#1B7A78;margin-top:12px">{{ lineupBusy }}</div>
+        </sc-if>
+
+        <sc-if value="{{ draftHasPages }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+            <sc-for list="{{ draftPages }}" as="p" hint-placeholder-count="2">
+              <div style="position:relative;width:72px;height:92px;border-radius:6px;overflow:hidden;border:1px solid rgba(42,18,24,.15);background:#fff">
+                <img src="{{ p.img }}" alt="Lineup page" style="width:100%;height:100%;object-fit:cover;display:block">
+                <button onClick="{{ p.remove }}" style="position:absolute;top:3px;right:3px;width:19px;height:19px;border:none;border-radius:50%;background:rgba(42,18,24,.72);color:#fff;font-size:11px;cursor:pointer;padding:0;line-height:1">✕</button>
+                <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(42,18,24,.72);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:2px">{{ p.n }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:7px">{{ draftPageCount }} · shown to athletes in this order</div>
+        </sc-if>
+
+        <textarea value="{{ draftNotes }}" onInput="{{ onDraftNotes }}" rows="3" placeholder="Notes for the team (optional) — e.g. bus leaves 2:15, warm-up 4:30" style="width:100%;border:1px solid rgba(42,18,24,.16);border-radius:6px;padding:9px 11px;font-family:'Barlow';font-size:12.5px;margin-top:12px;resize:none;color:#2A1218;outline:none"></textarea>
+
+        <button onClick="{{ doPostLineup }}" style="width:100%;margin-top:12px;border:none;background:#1B7A78;color:#fff;border-radius:999px;padding:12px;font-size:13px;font-weight:700;letter-spacing:.5px;font-family:'Barlow';cursor:pointer">POST LINEUP</button>
+        <div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:9px;text-align:center;line-height:1.45">Everyone gets a notification · you can replace it any time</div>
+        <sc-if value="{{ canDeleteLineup }}" hint-placeholder-val="{{ false }}">
+          <button onClick="{{ doDeleteLineup }}" style="width:100%;margin-top:10px;border:none;background:none;color:rgba(42,18,24,.45);padding:6px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">Remove this lineup</button>
         </sc-if>
       </div>
     </div>
@@ -2120,6 +2237,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
+      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -3236,6 +3354,159 @@ class Component extends DCLogic {
     };
     reader.readAsDataURL(file);
   }
+  // ---- meet lineups -------------------------------------------------
+  // A posted lineup is a set of page images plus the coach's notes. Each
+  // page is its own Firestore document rather than an array on one doc:
+  // a page is a few hundred KB of base64 and a document caps at 1MB, so
+  // one doc per meet would hold two pages at most. Deterministic ids
+  // ("<meetId>#p3", "<meetId>#notes") mean replacing a lineup overwrites
+  // in place and never leaves orphans behind.
+  LINEUP_MAX_BYTES=880000;
+  lineupPageId(meetId,i){return meetId+'#p'+i;}
+  lineupNotesId(meetId){return meetId+'#notes';}
+  startLineupsSync(){
+    if(!this.fbReady)return;
+    if(this._lineupUnsub)this._lineupUnsub();
+    this._lineupUnsub=this.db.collection('meetLineups').limit(80)
+      .onSnapshot(snap=>{
+        this.setState({meetLineups:snap.docs.map(d=>({id:d.id,...d.data()}))});
+      },()=>{});
+  }
+  stopLineupsSync(){if(this._lineupUnsub){this._lineupUnsub();this._lineupUnsub=null;}}
+  lineupPagesFor(meetId){
+    return (this.state.meetLineups||[])
+      .filter(d=>d.meetId===meetId&&d.img)
+      .sort((a,b)=>(a.page||0)-(b.page||0));
+  }
+  lineupNotesFor(meetId){
+    const d=(this.state.meetLineups||[]).find(x=>x.id===this.lineupNotesId(meetId));
+    return d||null;
+  }
+  hasLineupFor(meetId){
+    return this.lineupPagesFor(meetId).length>0||!!(this.lineupNotesFor(meetId)||{}).notes;
+  }
+  // Re-encodes a page until it fits in a document. Text needs more pixels
+  // than a photo of a face does, so this starts large and gives up
+  // quality before it gives up size — a heat sheet that's too soft to
+  // read is worse than one that took an extra second to post.
+  readLineupImage(file,cb){
+    if(!file||!/^image\//.test(file.type)){this.toastMsg('That file is not an image');return;}
+    const reader=new FileReader();
+    reader.onerror=()=>this.toastMsg("Couldn't read that file");
+    reader.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>this.toastMsg("Couldn't read that image");
+      img.onload=()=>{
+        const steps=[[1600,.78],[1400,.72],[1200,.66],[1000,.6]];
+        for(const [max,q] of steps){
+          const out=this.drawToJpeg(img,max,q);
+          if(out.length<=this.LINEUP_MAX_BYTES){cb(out);return;}
+        }
+        this.toastMsg('That image is too large — try photographing one page at a time');
+      };
+      img.src=reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  drawToJpeg(src,max,quality){
+    const w0=src.width||src.videoWidth,h0=src.height||src.videoHeight;
+    const scale=Math.min(1,max/Math.max(w0,h0));
+    const w=Math.max(1,Math.round(w0*scale)),h=Math.max(1,Math.round(h0*scale));
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    canvas.getContext('2d').drawImage(src,0,0,w,h);
+    return canvas.toDataURL('image/jpeg',quality);
+  }
+  // pdf.js is fetched only when a coach actually picks a PDF — it is a
+  // sizeable library and no athlete ever needs it.
+  loadPdfLib(){
+    if(this._pdfLib)return Promise.resolve(this._pdfLib);
+    if(this._pdfLibPromise)return this._pdfLibPromise;
+    const SRC='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.6.82/pdf.min.mjs';
+    const WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.6.82/pdf.worker.min.mjs';
+    this._pdfLibPromise=import(SRC).then(lib=>{
+      lib.GlobalWorkerOptions.workerSrc=WORKER;
+      this._pdfLib=lib;return lib;
+    });
+    return this._pdfLibPromise;
+  }
+  // Every page of the PDF becomes a page image, rendered here on the
+  // coach's phone. Athletes then never need a PDF reader, and never need
+  // a signal at the pool to read what was posted.
+  readLineupPdf(file){
+    if(!file)return;
+    this.setState({lineupBusy:'Reading PDF…'});
+    const reader=new FileReader();
+    reader.onerror=()=>this.setState({lineupBusy:''},()=>this.toastMsg("Couldn't read that file"));
+    reader.onload=()=>{
+      this.loadPdfLib().then(async lib=>{
+        const pdf=await lib.getDocument({data:new Uint8Array(reader.result)}).promise;
+        const out=[];
+        for(let i=1;i<=pdf.numPages;i++){
+          this.setState({lineupBusy:'Converting page '+i+' of '+pdf.numPages+'…'});
+          const page=await pdf.getPage(i);
+          // 2x gives text that survives being read on a phone; the JPEG
+          // step below brings the bytes back down.
+          const vp=page.getViewport({scale:2});
+          const canvas=document.createElement('canvas');
+          canvas.width=Math.round(vp.width);canvas.height=Math.round(vp.height);
+          const ctx=canvas.getContext('2d');
+          ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);
+          await page.render({canvasContext:ctx,viewport:vp}).promise;
+          let img='';
+          for(const [max,q] of [[1600,.78],[1400,.72],[1200,.66],[1000,.6]]){
+            img=this.drawToJpeg(canvas,max,q);
+            if(img.length<=this.LINEUP_MAX_BYTES)break;
+          }
+          out.push(img);
+        }
+        const d=this.state.lineupDraft;
+        this.setState({lineupDraft:{...d,pages:[...d.pages,...out]},lineupBusy:''});
+        this.toastMsg(out.length+(out.length===1?' page added':' pages added'));
+      }).catch(()=>{
+        this.setState({lineupBusy:''});
+        this.toastMsg("Couldn't read that PDF — try photographing it instead");
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  // Written page by page so one oversized page can't take the whole post
+  // down, and the old lineup's surplus pages are cleared afterwards —
+  // replacing a 4-page sheet with a 2-page one must not leave pages 3
+  // and 4 showing.
+  postLineup(meetId,meetName){
+    const {pages,notes}=this.state.lineupDraft;
+    if(!this.fbReady||!this.isCoachRole())return;
+    if(!pages.length&&!notes.trim()){this.toastMsg('Add a page or a note first');return;}
+    this.setState({lineupBusy:'Posting…'});
+    const postedAt=Date.now();
+    const writes=pages.map((img,i)=>
+      this.db.collection('meetLineups').doc(this.lineupPageId(meetId,i))
+        .set({meetId,page:i,img,postedAt}));
+    writes.push(this.db.collection('meetLineups').doc(this.lineupNotesId(meetId))
+      .set({meetId,notes:notes.trim(),postedAt,author:this.state.userId||'',
+            authorName:this.coachDisplayName()}));
+    // Anything left over from a longer previous lineup.
+    const stale=this.lineupPagesFor(meetId).filter(p=>(p.page||0)>=pages.length);
+    stale.forEach(p=>writes.push(this.db.collection('meetLineups').doc(p.id).delete()));
+    Promise.all(writes).then(()=>{
+      this.setState({lineupBusy:'',lineupCompose:null,lineupDraft:{pages:[],notes:''},lineupSrc:'photo'});
+      this.toastMsg('Lineup posted');
+      this.pushNotification({type:'lineup',target:'team',tab:'meets',
+        msg:this.coachDisplayName()+' posted the lineup for '+meetName});
+    }).catch(()=>{
+      this.setState({lineupBusy:''});
+      this.toastMsg('Lineup NOT posted — check your connection');
+    });
+  }
+  deleteLineup(meetId){
+    if(!this.fbReady||!this.isCoachRole())return;
+    const docs=[...this.lineupPagesFor(meetId)];
+    const n=this.lineupNotesFor(meetId);if(n)docs.push(n);
+    Promise.all(docs.map(d=>this.db.collection('meetLineups').doc(d.id).delete()))
+      .then(()=>{this.setState({lineupCompose:null,lineupDraft:{pages:[],notes:''}});
+        this.toastMsg('Lineup removed');})
+      .catch(()=>this.toastMsg('Could not remove it — check your connection'));
+  }
   ymd(...a){return ScotSwimCore.ymd(...a);}
   // The training schedule is keyed by the Monday (YYYY-MM-DD) of the week
   // it belongs to — see startTeamContentSync/syncTrainingToCloud — so
@@ -3786,7 +4057,7 @@ class Component extends DCLogic {
     if(this.fbReady)this.auth.onAuthStateChanged(user=>this.onAuthChange(user));
     else this.setState({authChecking:false});
   }
-  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);this.clearAuthWatchdog();clearTimeout(this._othersFlush);window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();}
+  componentWillUnmount(){clearInterval(this._ct);clearTimeout(this._tt);clearTimeout(this._satT);this.clearAuthWatchdog();clearTimeout(this._othersFlush);window.removeEventListener('resize',this._onResize);window.removeEventListener('orientationchange',this._onOrient);this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();}
   // Firestore lookup for a not-yet-used invite (by its unguessable token —
   // the doc's own id is the capability, security rules only allow a get
   // by exact id, never listing the collection). inviteInfo stays
@@ -3887,7 +4158,7 @@ class Component extends DCLogic {
       // re-rendered that many times before anything appeared on screen.
       setTimeout(()=>{
         if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
-        this.startTeamContentSync();this.startNotificationsSync();this.setupPush();
+        this.startTeamContentSync();this.startNotificationsSync();this.startLineupsSync();this.setupPush();
       },0);
     }).catch(err=>{
       // Signed in, but their profile couldn't be read — leaving the auth
@@ -4430,7 +4701,7 @@ class Component extends DCLogic {
       .then(()=>this.db.collection('users').doc(user.uid).delete().catch(()=>null))
       .then(()=>user.delete())
       .then(()=>{
-        this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();
+        this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();
         this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,
           showDeletePanel:false,deletePassword:'',deleteBusy:false,authUser:null,
           uname:'',pass:'',authMsg:'Your account has been deleted.'});
@@ -4528,7 +4799,7 @@ class Component extends DCLogic {
             history.replaceState(null,'',location.pathname+location.hash);
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
             if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);this.startGoalWorkoutsSync(info.rosterId);}
-            this.startTeamContentSync();this.startNotificationsSync();this.setupPush();
+            this.startTeamContentSync();this.startNotificationsSync();this.startLineupsSync();this.setupPush();
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
     };
@@ -4638,7 +4909,47 @@ class Component extends DCLogic {
     // a single button on the next/closest meet banner up top.
     const openNextLineup=()=>{if(nextMeet.id)this.setState({lineupMeet:nextMeet.id});};
     const lineup=st.lineupMeet?this.lineupFor(st.lineupMeet,user):null;
-    const closeLineup=()=>this.setState({lineupMeet:null});
+    const closeLineup=()=>this.setState({lineupMeet:null,lineupZoom:null});
+    // ---- posted lineups (pages + notes) ----
+    // Only the closest meet can take one: a lineup is a meet-week thing,
+    // and letting coaches post against any future meet invites posting
+    // against the wrong one. Once that meet passes, the next becomes the
+    // one that can be posted to, and the old lineup stays readable on its
+    // own meet.
+    const nextMeetId=nextMeet.id||null;
+    const lineupNotesDoc=st.lineupMeet?this.lineupNotesFor(st.lineupMeet):null;
+    const lineupPages=st.lineupMeet?this.lineupPagesFor(st.lineupMeet).map((p,i,all)=>({
+      img:p.img,label:'PAGE '+(i+1)+' OF '+all.length,
+      onTap:()=>this.setState({lineupZoom:p.img})})):[];
+    const lineupMeetRow=st.lineupMeet
+      ?(meetsList.find(m=>m.id===st.lineupMeet)||null):null;
+    const lineupHead=lineupMeetRow?this.meetDateParts(lineupMeetRow.dateStart,lineupMeetRow.dateEnd):null;
+    const draft=st.lineupDraft||{pages:[],notes:''};
+    const setDraft=patch=>this.setState({lineupDraft:{...this.state.lineupDraft,...patch}});
+    const openLineupCompose=()=>{
+      if(!nextMeetId)return;
+      // Opens with whatever is already posted, so "replace" is really an
+      // edit — a coach fixing one page doesn't have to re-add the rest.
+      this.setState({lineupCompose:nextMeetId,lineupSrc:'photo',
+        lineupDraft:{pages:this.lineupPagesFor(nextMeetId).map(p=>p.img),
+                     notes:(this.lineupNotesFor(nextMeetId)||{}).notes||''}});
+    };
+    const addLineupPhotos=e=>{
+      const files=[...(e.target.files||[])];
+      e.target.value='';
+      files.forEach(f=>this.readLineupImage(f,img=>{
+        const d=this.state.lineupDraft;
+        this.setState({lineupDraft:{...d,pages:[...d.pages,img]}});
+      }));
+    };
+    const addLineupPdf=e=>{const f=(e.target.files||[])[0];e.target.value='';this.readLineupPdf(f);};
+    const draftPages=draft.pages.map((img,i)=>({img,n:String(i+1),
+      remove:()=>setDraft({pages:draft.pages.filter((_,k)=>k!==i)})}));
+    const srcTabs=[['photo','Photos'],['pdf','PDF']].map(([id,n])=>({n,
+      bg:st.lineupSrc===id?M:'transparent',fg:st.lineupSrc===id?C:'rgba(42,18,24,.5)',
+      onTap:()=>this.setState({lineupSrc:id})}));
+    const composeMeet=st.lineupCompose?(meetsList.find(m=>m.id===st.lineupCompose)||null):null;
+    const composeParts=composeMeet?this.meetDateParts(composeMeet.dateStart,composeMeet.dateEnd):null;
     // athlete home
     const sig=user.primary[0];
     // Same real-data-only rule as the profile/progression chart (see
@@ -5407,7 +5718,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -5474,7 +5785,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
       openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:'',showDeletePass:false}),
       closeDeletePanel:()=>this.setState({showDeletePanel:false}),
       showDeletePanel:st.showDeletePanel,
@@ -5527,7 +5838,14 @@ class Component extends DCLogic {
       goTrain:()=>this.setState({tab:'train'}),
       goSim:()=>this.setState({tab:'sim'}),
       goGoals:()=>this.setState({tab:'goals'}),
-      upcoming:schedT.slice(0,3),
+      // The dashboard rows swap their HOME/AWAY chip for a Lineup button
+      // once a coach has posted one, so there is never a button that
+      // opens an empty sheet.
+      upcoming:schedT.slice(0,3).map(m=>{
+        const has=this.hasLineupFor(m.id);
+        return {...m,hasLineup:has,noLineup:!has,
+          openLineup:()=>this.setState({lineupMeet:m.id})};
+      }),
       myGoals,myGoalsEmpty,myRecent,myRecentEmpty:myRecent.length===0,sigEv:this.evMap[sig].n.toUpperCase(),chal,
       recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
       allLabel:user.diver?'All dives':'All swims',
@@ -5603,6 +5921,37 @@ class Component extends DCLogic {
       staff:this.staffList.map(c=>({...c,slotId:this.slotIdOf(c.name),photo:this.photoOf(c.name)})),
       sched:schedT,results:this.results,schedEditing,toggleSchedEdit,schedEditLabel,addMeet,
       hasLineup:!!lineup,lineup,closeLineup,openNextLineup,
+      // posted lineup — viewer
+      lineupPages,lineupHasPages:lineupPages.length>0,
+      lineupNotes:(lineupNotesDoc||{}).notes||'',
+      lineupHasNotes:!!((lineupNotesDoc||{}).notes||'').trim(),
+      lineupAuthor:(lineupNotesDoc||{}).authorName||'Your coach',
+      lineupAgo:lineupNotesDoc&&lineupNotesDoc.postedAt?this.agoLabel(lineupNotesDoc.postedAt):'',
+      lineupEmpty:lineupPages.length===0&&!((lineupNotesDoc||{}).notes||'').trim(),
+      lineupName:lineupMeetRow?lineupMeetRow.n:'',
+      lineupDate:lineupHead?lineupHead.d:'',
+      lineupLoc:lineupMeetRow?lineupMeetRow.loc:'',
+      lineupZoom:st.lineupZoom,hasLineupZoom:!!st.lineupZoom,
+      closeLineupZoom:()=>this.setState({lineupZoom:null}),
+      // posted lineup — coach compose
+      canPostLineup:isCoach&&!!nextMeetId,
+      nextMeetHasLineup:!!(nextMeetId&&this.hasLineupFor(nextMeetId)),
+      postLineupLabel:nextMeetId&&this.hasLineupFor(nextMeetId)?'✎ EDIT MEET LINEUP':'＋ POST MEET LINEUP',
+      openLineupCompose,
+      showLineupCompose:!!st.lineupCompose,
+      closeLineupCompose:()=>this.setState({lineupCompose:null,lineupDraft:{pages:[],notes:''}}),
+      composeMeetName:composeMeet?composeMeet.n:'',
+      composeMeetDate:composeParts?composeParts.d:'',
+      srcTabs,isPhotoSrc:st.lineupSrc==='photo',isPdfSrc:st.lineupSrc==='pdf',
+      addLineupPhotos,addLineupPdf,
+      draftPages,draftHasPages:draftPages.length>0,
+      draftPageCount:draftPages.length===1?'1 page':draftPages.length+' pages',
+      draftNotes:draft.notes,
+      onDraftNotes:e=>setDraft({notes:e.target.value}),
+      lineupBusy:st.lineupBusy,lineupWorking:!!st.lineupBusy,lineupIdle:!st.lineupBusy,
+      doPostLineup:()=>this.postLineup(st.lineupCompose,(composeMeet||{}).n||'the next meet'),
+      doDeleteLineup:()=>this.deleteLineup(st.lineupCompose),
+      canDeleteLineup:!!(st.lineupCompose&&this.hasLineupFor(st.lineupCompose)),
       swimcloudResultsUrl:'https://www.swimcloud.com/results/iframe/?team=213',
       // SwimCloud's gender param is F for women (not W) — this was wrong
       // before and would have silently shown men's records under Women.
