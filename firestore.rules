@@ -120,6 +120,17 @@ service cloud.firestore {
       allow write: if isCoach();
     }
 
+    // Posted meet lineups: one document per page image, plus one holding
+    // the coach's notes. Read by the whole team, written by coaches. The
+    // app only offers the closest meet, but that is a UI decision — these
+    // rules deliberately don't encode "which meet is next", since that
+    // changes with the calendar and would make the rules a second, and
+    // eventually disagreeing, copy of the schedule.
+    match /meetLineups/{pageId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isCoach();
+    }
+
     // What a coach did that athletes should hear about. Team-wide items
     // target 'team'; a goal targets one athlete's roster id. Created by
     // coaches, read by everyone — the Cloud Function that turns these into
