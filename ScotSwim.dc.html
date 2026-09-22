@@ -4730,7 +4730,14 @@ class Component extends DCLogic {
     // against a made-up PB isn't a real goal, so this stays empty until
     // the athlete has logged a real time to measure progress against.
     const myWorkouts=this.state.goalWorkouts[user.id]||{};
-    const myGoals=(hasRealHome?(st.showAllCoach?user.primary:user.primary.slice(0,3)):[]).map(ev=>{
+    // Every event the athlete has a coach target in, before the list is
+    // cut to three. The Home tile counts this, so the number on the
+    // dashboard is the number of rows in the block below it — they were
+    // measuring different things, and the tile read 0 for an athlete
+    // looking at a list of seven.
+    const coachGoalEvents=hasRealHome?user.primary:[];
+    const coachGoalCount=coachGoalEvents.length;
+    const myGoals=(st.showAllCoach?coachGoalEvents:coachGoalEvents.slice(0,3)).map(ev=>{
       const pb=user.diver?Math.max(...user.hist[ev]):user.pbs[ev];
       const goal=this.goalOf(user,ev);
       const start_=user.hist[ev]?user.hist[ev][0]:pb*1.05;
@@ -5514,7 +5521,7 @@ class Component extends DCLogic {
       rivalOpts,rivalId,rivalSel,rivalEv:rEv,rivalEvOpts,rivalEvSel,rivalryLabel,hasRival,hasRivalEv,rivalNoEvent,rivalNoOpponent,
       workoutLib,
       oppGroups,
-      goalCount:String(user.primary.filter(ev=>(st.goalDelta[user.id+'|'+ev]||0)!==0).length),
+      goalCount:String(coachGoalCount),
       goMeets:()=>this.setState({tab:'meets'}),
       goMe:()=>this.setState({tab:'me'}),
       goTrain:()=>this.setState({tab:'train'}),
