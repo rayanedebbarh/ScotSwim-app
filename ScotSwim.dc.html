@@ -282,26 +282,38 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">NEXT MEET IN</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#6B1F33;margin-top:6px">{{ cdDays }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">days · {{ nextShortName }}</div>
+      <!-- Pulled out of the small stat grid into its own full-width card:
+           this is the one thing on the dashboard someone checks daily,
+           and a quarter-width tile buried it among three unrelated
+           counts. Styled like the MEETS tab's own next-meet banner, so
+           it reads as the same piece of information wherever it's seen. -->
+      <div style="background:#2A1218;color:#F5E9DC;border-radius:10px;padding:17px 19px;display:flex;align-items:center;gap:16px">
+        <div style="text-align:center;flex:none">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:44px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6);margin-top:3px">DAYS</div>
         </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">YOUR GOALS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ selfCount }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set by you</div>
+        <div style="width:1px;align-self:stretch;background:rgba(245,233,220,.15)"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">NEXT MEET</div>
+          <div style="font-family:'Barlow Condensed';font-weight:700;font-size:20px;line-height:1.2;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ nextMeet.n }}</div>
+          <div style="font-size:12.5px;color:rgba(245,233,220,.7);margin-top:2px">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
         </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">PERSONAL BESTS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ pbCount }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set last season</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">YOUR GOALS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ selfCount }}</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">set by you</div>
         </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">COACH GOALS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ goalCount }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">targets active</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">PBS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ pbCount }}</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">last season</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">COACH GOALS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#1B7A78;margin-top:5px">{{ goalCount }}</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">active</div>
         </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
@@ -435,20 +447,29 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log a time in My Events to see goal progress here.</div>
         </sc-if>
         <sc-for list="{{ myGoals }}" as="g" hint-placeholder-count="2">
-          <div style="margin-top:12px;padding:6px 8px;margin-left:-8px;margin-right:-8px;border-radius:6px;background:{{ g.hlBg }};transition:background .6s ease">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600">
-              <span>{{ g.ev }}</span>
-              <span style="font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;margin-left:10px"><span style="color:rgba(42,18,24,.5)">PB {{ g.pb }}</span> → <span style="color:#1B7A78;font-weight:700">{{ g.goal }}</span></span>
-            </div>
-            <div style="margin-top:6px;height:6px;border-radius:3px;background:rgba(42,18,24,.08);overflow:hidden">
-              <div style="height:100%;width:{{ g.pct }}%;border-radius:3px;background:linear-gradient(90deg,#1B7A78,#6B1F33)"></div>
-            </div>
-            <sc-if value="{{ g.hasWorkout }}" hint-placeholder-val="{{ false }}">
-              <div style="margin-top:8px;padding:8px 10px;background:rgba(27,122,120,.08);border-left:2.5px solid #1B7A78;border-radius:4px">
-                <div style="font-size:9px;font-weight:800;letter-spacing:1px;color:#1B7A78">COACH'S WORKOUT</div>
-                <div style="font-size:12px;color:#1B4744;line-height:1.4;margin-top:2px">{{ g.workout }}</div>
+          <div class="goalrow" style="display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:6px 8px;margin-left:-8px;margin-right:-8px;border-radius:6px;background:{{ g.hlBg }};transition:background .6s ease">
+            <sc-if value="{{ g.canDrag }}" hint-placeholder-val="{{ true }}">
+              <div onPointerDown="{{ g.gripDown }}" title="Drag to reorder" style="flex:none;display:flex;flex-direction:column;gap:3px;padding:8px 4px;margin:-2px 0 -8px -4px;cursor:grab;touch-action:none">
+                <div style="width:14px;height:2px;border-radius:1px;background:rgba(42,18,24,.3)"></div>
+                <div style="width:14px;height:2px;border-radius:1px;background:rgba(42,18,24,.3)"></div>
+                <div style="width:14px;height:2px;border-radius:1px;background:rgba(42,18,24,.3)"></div>
               </div>
             </sc-if>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600">
+                <span>{{ g.ev }}</span>
+                <span style="font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;margin-left:10px"><span style="color:rgba(42,18,24,.5)">PB {{ g.pb }}</span> → <span style="color:#1B7A78;font-weight:700">{{ g.goal }}</span></span>
+              </div>
+              <div style="margin-top:6px;height:6px;border-radius:3px;background:rgba(42,18,24,.08);overflow:hidden">
+                <div style="height:100%;width:{{ g.pct }}%;border-radius:3px;background:linear-gradient(90deg,#1B7A78,#6B1F33)"></div>
+              </div>
+              <sc-if value="{{ g.hasWorkout }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:8px;padding:8px 10px;background:rgba(27,122,120,.08);border-left:2.5px solid #1B7A78;border-radius:4px">
+                  <div style="font-size:9px;font-weight:800;letter-spacing:1px;color:#1B7A78">COACH'S WORKOUT</div>
+                  <div style="font-size:12px;color:#1B4744;line-height:1.4;margin-top:2px">{{ g.workout }}</div>
+                </div>
+              </sc-if>
+            </div>
           </div>
         </sc-for>
       </div>
@@ -503,26 +524,33 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">{{ coachSubtitle }}</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">{{ totalTileLabel }}</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ nAll }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6);white-space:pre-line">{{ nBreakdown }}</div>
+      <div style="background:#2A1218;color:#F5E9DC;border-radius:10px;padding:17px 19px;display:flex;align-items:center;gap:16px">
+        <div style="text-align:center;flex:none">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:44px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6);margin-top:3px">DAYS</div>
         </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DAYS TO OPENER</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#6B1F33;margin-top:6px">{{ cdDays }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ nextShortName }}</div>
+        <div style="width:1px;align-self:stretch;background:rgba(245,233,220,.15)"></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">NEXT MEET</div>
+          <div style="font-family:'Barlow Condensed';font-weight:700;font-size:20px;line-height:1.2;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ nextMeet.n }}</div>
+          <div style="font-size:12.5px;color:rgba(245,233,220,.7);margin-top:2px">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
         </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ attPctDisplay }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ attStatSubtitle }}</div>
-         </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">SEASON PBS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ seasonPbCount }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">Logged this season</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">{{ totalTileLabel }}</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ nAll }}</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.6);white-space:pre-line">{{ nBreakdown }}</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#1B7A78;margin-top:5px">{{ attPctDisplay }}</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">{{ attStatSubtitle }}</div>
+        </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">SEASON PBS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ seasonPbCount }}</div>
+          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">this season</div>
         </div>
       </div>
       <div style="display:flex;gap:10px">
@@ -2323,7 +2351,7 @@ class Component extends DCLogic {
   constructor(p){
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
-      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
+      simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},coachGoalOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       meetLineups:[],lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
@@ -2414,6 +2442,7 @@ class Component extends DCLogic {
       if(seenAt)this.state.notifSeenAt=seenAt;
         if(savedGoals.selfGoals)this.state.selfGoals=savedGoals.selfGoals;
         if(savedGoals.selfOrder)this.state.selfOrder=savedGoals.selfOrder;
+        if(savedGoals.coachGoalOrder)this.state.coachGoalOrder=savedGoals.coachGoalOrder;
       }
     }catch(e){}
     // Restore coach-taken practice attendance (see saveAttendance) — the
@@ -2775,39 +2804,63 @@ class Component extends DCLogic {
   // transforms and state is written once, on drop. That matters here more
   // than usual, since sc-for keys rows by index, so a re-render mid-drag
   // would swap the row's contents out from under the finger.
-  beginGoalDrag(e,rosterId,evIds,from){
+  // kind picks which order this drag is arranging: 'self' for YOUR GOALS
+  // (the athlete's own targets), 'coach' for COACH'S GOALS FOR YOU (the
+  // same drag, same row markup, reordering a different list). Both are
+  // the athlete's own read-order preference either way — nothing about
+  // what the coach set is touched, only how this one athlete sees it.
+  // Rows are measured individually rather than assumed a fixed height:
+  // YOUR GOALS rows are all the same height, but a COACH'S GOALS FOR YOU
+  // row grows when it carries a workout note, and a single shared height
+  // would open the wrong-size gap and mis-time when a row is passed.
+  // `order[k]` is the ORIGINAL index of whichever row currently sits in
+  // display slot k — a permutation built the same way the lineup pics
+  // grid drag tracks it, since which row a given slot's position belongs
+  // to keeps changing as the dragged row passes others of different
+  // heights.
+  beginGoalDrag(e,rosterId,evIds,from,kind){
     if(this._goalDrag)return;
     const handle=e.currentTarget||e.target;
     const row=handle.closest&&handle.closest('.goalrow');
     if(!row||!row.parentNode)return;
     const rows=Array.from(row.parentNode.querySelectorAll('.goalrow'));
-    if(rows.length<2||rows[from]!==row)return;
+    const n=rows.length;
+    if(n<2||rows[from]!==row)return;
     if(e.preventDefault)e.preventDefault();
-    const h=row.getBoundingClientRect().height;
-    const startY=e.clientY;
+    const rects=rows.map(r=>r.getBoundingClientRect());
+    const origin=rects[0].top;
+    const slotCenter=i=>rects[i].top-origin+rects[i].height/2;
+    const startCenter=slotCenter(from);
+    const sy=e.clientY;
     let to=from;
+    let order=rows.map((_,i)=>i);
     this._goalDrag=true;
-    rows.forEach(r=>{r.style.transition='transform .14s ease';});
     row.style.transition='none';
     row.style.position='relative';
     row.style.zIndex='5';
     row.style.background='#fff';
     row.style.borderRadius='6px';
     row.style.boxShadow='0 6px 18px rgba(42,18,24,.18)';
+    rows.forEach(r=>{if(r!==row)r.style.transition='transform .14s ease';});
     const move=ev=>{
-      const dy=ev.clientY-startY;
+      const dy=ev.clientY-sy;
       row.style.transform='translateY('+dy+'px)';
-      const next=Math.max(0,Math.min(rows.length-1,from+Math.round(dy/h)));
-      if(next===to)return;
-      to=next;
-      // Everything between the row's old and new slot slides one place
-      // the other way, which is what opens the gap it will drop into.
-      rows.forEach((r,i)=>{
-        if(i===from)return;
-        let shift=0;
-        if(from<to&&i>from&&i<=to)shift=-h;
-        else if(from>to&&i>=to&&i<from)shift=h;
-        r.style.transform='translateY('+shift+'px)';
+      const cy=startCenter+dy;
+      let best=to,bd=Infinity;
+      for(let i=0;i<n;i++){
+        const d=Math.abs(cy-slotCenter(i));
+        if(d<bd){bd=d;best=i;}
+      }
+      if(best===to)return;
+      to=best;
+      order.splice(order.indexOf(from),1);
+      order.splice(to,0,from);
+      // Every other row slides to wherever it now sits — its original
+      // slot was slotCenter(its own index), since order started as the
+      // identity permutation.
+      order.forEach((origIdx,slot)=>{
+        if(origIdx===from)return;
+        rows[origIdx].style.transform='translateY('+(slotCenter(slot)-slotCenter(origIdx))+'px)';
       });
     };
     const end=()=>{
@@ -2817,15 +2870,26 @@ class Component extends DCLogic {
       rows.forEach(r=>{r.style.transition='';r.style.transform='';r.style.position='';
         r.style.zIndex='';r.style.background='';r.style.borderRadius='';r.style.boxShadow='';});
       this._goalDrag=false;
-      if(to!==from)this.commitGoalOrder(rosterId,evIds,from,to);
+      // Moving the dragged row to its final slot, one splice, gives the
+      // same result as the live permutation above regardless of the path
+      // it took to get there — it's always the same row being relocated,
+      // so only where it ends up matters.
+      if(to!==from)this.commitGoalOrder(rosterId,evIds,from,to,kind);
     };
     document.addEventListener('pointermove',move,{passive:false});
     document.addEventListener('pointerup',end);
     document.addEventListener('pointercancel',end);
   }
-  commitGoalOrder(rosterId,evIds,from,to){
+  commitGoalOrder(rosterId,evIds,from,to,kind){
     const next=evIds.slice();
     next.splice(to,0,next.splice(from,1)[0]);
+    if(kind==='coach'){
+      const coachGoalOrder={...(this.state.coachGoalOrder||{}),[rosterId]:next};
+      this.setState({coachGoalOrder});
+      this.saveGoalPrefs(this.state.goalDelta,this.state.selfGoals,this.state.selfOrder,coachGoalOrder);
+      this.syncCoachGoalOrderToCloud(rosterId);
+      return;
+    }
     const selfOrder={...(this.state.selfOrder||{}),[rosterId]:next};
     this.setState({selfOrder});
     this.saveGoalPrefs(this.state.goalDelta,this.state.selfGoals,selfOrder);
@@ -2857,9 +2921,10 @@ class Component extends DCLogic {
     Object.keys(map).forEach(ev=>{gd[rosterId+'|'+ev]=map[ev];});
     return gd;
   }
-  saveGoalPrefs(goalDelta,selfGoals,selfOrder){
+  saveGoalPrefs(goalDelta,selfGoals,selfOrder,coachGoalOrder){
     const order=selfOrder||this.state.selfOrder||{};
-    try{localStorage.setItem('scotswim.goals',JSON.stringify({goalDelta,selfGoals,selfOrder:order}))}catch(e){}
+    const corder=coachGoalOrder||this.state.coachGoalOrder||{};
+    try{localStorage.setItem('scotswim.goals',JSON.stringify({goalDelta,selfGoals,selfOrder:order,coachGoalOrder:corder}))}catch(e){}
   }
   // The athlete's hand-picked order for their own goals: the event ids of
   // that roster entry's goals, most important first. Stored as a plain
@@ -2868,6 +2933,20 @@ class Component extends DCLogic {
   // Events with no stored position simply fall in after the ones that
   // have one (see the sort in the Goals view), which is what keeps a
   // newly added goal from landing in the middle of the list.
+  // Same idea, same doc, for the order an athlete has dragged the
+  // coach's goals into — a different array (coachGoalOrder) since it's a
+  // different list of events, but otherwise identical: theirs alone,
+  // survives a reinstall, follows them to another device.
+  syncCoachGoalOrderToCloud(rosterId){
+    if(!this.fbReady||!rosterId)return;
+    if(!this._coachGoalOrderTimers)this._coachGoalOrderTimers={};
+    clearTimeout(this._coachGoalOrderTimers[rosterId]);
+    this._coachGoalOrderTimers[rosterId]=setTimeout(()=>{
+      this.db.collection('myEvents').doc(rosterId)
+        .set({coachGoalOrder:(this.state.coachGoalOrder||{})[rosterId]||[]},{merge:true})
+        .catch(()=>this.toastMsg('Order NOT saved — check your connection'));
+    },600);
+  }
   syncSelfOrderToCloud(rosterId){
     if(!this.fbReady||!rosterId)return;
     if(!this._selfOrderTimers)this._selfOrderTimers={};
@@ -4384,7 +4463,7 @@ class Component extends DCLogic {
       // showing the login form — it starts true and only this clears it.
       authChecking:false,
       myEvents:{},trainingLog:{},soloLifts:{},goalWorkouts:{},goalDelta:{},
-      selfGoals:{},selfOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
+      selfGoals:{},selfOrder:{},coachGoalOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
       notifications:[],notifOpen:false,notifSeenAt:0,
       meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
       lineupDraft:{pics:[],pdf:null,notes:''},lineupZoom:null,
@@ -4480,9 +4559,12 @@ class Component extends DCLogic {
         const cloudOrder=doc.data().selfOrder;
         const so=(Array.isArray(cloudOrder)&&!this._goalDrag)
           ?{...this.state.selfOrder,[rosterId]:cloudOrder}:null;
-        this.setState(Object.assign({myEvents},sg?{selfGoals:sg}:null,so?{selfOrder:so}:null));
+        const cloudCoachOrder=doc.data().coachGoalOrder;
+        const co=(Array.isArray(cloudCoachOrder)&&!this._goalDrag)
+          ?{...this.state.coachGoalOrder,[rosterId]:cloudCoachOrder}:null;
+        this.setState(Object.assign({myEvents},sg?{selfGoals:sg}:null,so?{selfOrder:so}:null,co?{coachGoalOrder:co}:null));
         this.saveMyEvents(myEvents);
-        if(sg||so)this.saveGoalPrefs(this.state.goalDelta,sg||this.state.selfGoals,so||this.state.selfOrder);
+        if(sg||so||co)this.saveGoalPrefs(this.state.goalDelta,sg||this.state.selfGoals,so||this.state.selfOrder,co||this.state.coachGoalOrder);
       }else if(!migrated){
         migrated=true;
         const local=this.state.myEvents[rosterId];
@@ -5545,7 +5627,7 @@ class Component extends DCLogic {
       const step=0.5;
       const setVal=v=>{const sg={...this.state.selfGoals};sg[key]=Math.round(v*2)/2;this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);};
       return {ev:e.n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,val),
-        canDrag,gripDown:ev2=>this.beginGoalDrag(ev2,user.id,orderedIds,idx),
+        canDrag,gripDown:ev2=>this.beginGoalDrag(ev2,user.id,orderedIds,idx,'self'),
         inc:()=>setVal(val+(e.dive?-step:step)),
         dec:()=>setVal(val+(e.dive?step:-step)),
         clear:()=>{const sg={...this.state.selfGoals};delete sg[key];this.setState({selfGoals:sg});this.saveGoalPrefs(this.state.goalDelta,sg);this.syncSelfGoalsToCloud(user.id);}};
@@ -5573,19 +5655,34 @@ class Component extends DCLogic {
     // dashboard is the number of rows in the block below it — they were
     // measuring different things, and the tile read 0 for an athlete
     // looking at a list of seven.
-    const coachGoalEvents=hasRealHome?user.primary:[];
+    // Same drag-to-reorder as YOUR GOALS, same rule for where an
+    // unplaced event falls (evOrder is the shared season-event order
+    // computed above, for selfList): the athlete's own arrangement wins
+    // wherever they've dragged one, and anything not yet placed sorts
+    // after it rather than jumping to the top.
+    const coachPref=(st.coachGoalOrder&&st.coachGoalOrder[user.id])||[];
+    const coachPrefIdx={};coachPref.forEach((ev,i)=>{coachPrefIdx[ev]=i;});
+    const coachPosOf=ev=>coachPrefIdx[ev]!=null?coachPrefIdx[ev]
+      :coachPref.length+(evOrder[ev]==null?999:evOrder[ev]);
+    const coachGoalEvents=(hasRealHome?user.primary:[]).slice().sort((a,b)=>coachPosOf(a)-coachPosOf(b));
     const coachGoalCount=coachGoalEvents.length;
-    const myGoals=(st.showAllCoach?coachGoalEvents:coachGoalEvents.slice(0,3)).map(ev=>{
+    const canDragCoach=coachGoalEvents.length>1;
+    let myGoals=coachGoalEvents.map((ev,idx)=>{
       const pb=user.diver?Math.max(...user.hist[ev]):user.pbs[ev];
       const goal=this.goalOf(user,ev);
       const start_=user.hist[ev]?user.hist[ev][0]:pb*1.05;
       const pct=user.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
       const workout=myWorkouts[ev]||'';
       const hl=st.focusKey==='goal:'+this.evMap[ev].n;
+      const canDrag=canDragCoach,gripDown=ev2=>this.beginGoalDrag(ev2,user.id,coachGoalEvents,idx,'coach');
       return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),workout,hasWorkout:!!workout,
-        hlBg:hl?'rgba(27,122,120,.13)':'transparent'};
+        hlBg:hl?'rgba(27,122,120,.13)':'transparent',canDrag,gripDown};
     });
     const myGoalsEmpty=myGoals.length===0;
+    // The count on the Home tile and "All goals ›" toggle count the full
+    // arrangement; only the on-screen rows are cut to three, same as
+    // YOUR GOALS, so collapsing never loses where anything not shown sits.
+    if(!st.showAllCoach)myGoals=myGoals.slice(0,3);
     // A rivalry needs a real time on both sides — comparing a made-up PB
     // against another made-up PB isn't a real rivalry. So this only ever
     // offers events the athlete has actually logged (hasRealPrimary), and
@@ -6130,7 +6227,7 @@ class Component extends DCLogic {
     // a glance (not a separate diving-only tile any more).
     const homeMen=this.men;
     const homeWomen=this.women;
-    const totalTileLabel='TOTAL ATHLETES';
+    const totalTileLabel='ATHLETES';
     const nDivers=this.all.filter(s=>s.diver).length;
     const nSwimmers=this.all.length-nDivers;
     // The swimmer/diver split gets its own line (via the \n +
