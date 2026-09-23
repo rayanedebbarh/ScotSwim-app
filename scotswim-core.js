@@ -90,7 +90,16 @@
     for(const k of ['pics','pdf','note'])if(ch[k])return who+' '+say[k][ch[k]]+L;
     return null;
   },
-  fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})},
+  // Full posted-at stamp for an announcement — day of week, exact date and
+  // time, not just "Sep 23". A coach may post more than one thing in a
+  // day, and athletes reading it later want to know how recent it is.
+  fmtAnnDate(ms){
+    const d=new Date(ms);
+    const day=d.toLocaleDateString('en-US',{weekday:'short'});
+    const date=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const time=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    return day+', '+date+' · '+time;
+  },
   meetDateParts(startISO,endISO){
     const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
