@@ -133,6 +133,17 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" dark="{{ isLogin }}" hide-status-bar="{{ isLogin }}" hint-size="440px,920px">
 <div style="height:100%;display:flex;flex-direction:column;background:#F2EDE5;color:#2A1218;font-family:'Barlow',sans-serif;position:relative;overflow:hidden">
 
+<!-- signed in, but no longer on the team roster -->
+<sc-if value="{{ offRoster }}" hint-placeholder-val="{{ false }}">
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:32px 28px;text-align:center;background:#2A1218;color:#F5E9DC">
+    <div style="font-size:11px;font-weight:700;letter-spacing:2.5px;color:#7fd0cd">ALMA COLLEGE · SWIMMING &amp; DIVING</div>
+    <div style="font-family:'Barlow Condensed';font-weight:800;font-size:28px;line-height:1.15;margin-top:14px">You're no longer on the team roster</div>
+    <div style="font-size:14px;line-height:1.55;color:rgba(245,233,220,.75);margin-top:14px;max-width:320px">Your ScotSwim account still exists, but <strong style="color:#F5E9DC">{{ offRosterName }}</strong> has been taken off the roster, so there's nothing for it to show.</div>
+    <div style="font-size:13.5px;line-height:1.55;color:rgba(245,233,220,.6);margin-top:12px;max-width:320px">If that's a mistake, ask a coach to add you back — everything comes straight back when they do.</div>
+    <button onClick="{{ offRosterSignOut }}" style="margin-top:26px;border:1.5px solid rgba(245,233,220,.45);background:none;color:#F5E9DC;border-radius:999px;padding:11px 26px;font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;cursor:pointer">SIGN OUT</button>
+  </div>
+</sc-if>
+
 <sc-if value="{{ isLogin }}" hint-placeholder-val="{{ true }}">
   <div style="position:absolute;inset:0;background-image:url('uploads/background4.png');background-size:cover;background-position:center top;background-repeat:no-repeat;background-color:#2A1218"></div>
   <div style="position:relative;flex:1;display:flex;flex-direction:column;justify-content:flex-end">
@@ -2237,7 +2248,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,
+      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -4169,7 +4180,7 @@ class Component extends DCLogic {
       myEvents:{},trainingLog:{},soloLifts:{},goalWorkouts:{},goalDelta:{},
       selfGoals:{},selfOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
       notifications:[],notifOpen:false,notifSeenAt:0,
-      meetLineups:[],lineupMeet:null,lineupCompose:null,
+      meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,
       lineupDraft:{pages:[],notes:''},lineupZoom:null,
       announcements:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
   }
@@ -4516,7 +4527,12 @@ class Component extends DCLogic {
       const d=doc.exists?doc.data():null;
       const rosterEdits={removed:(d&&d.removed)||[],added:(d&&d.added)||[]};
       this.buildRoster(rosterEdits);
-      this.setState({rosterEdits});
+      // rosterLoaded gates the "no longer on the roster" screen. Until the
+      // real list has arrived the app is working from the seed roster,
+      // which has everyone in it and none of the coaches' additions — so
+      // an athlete a coach added would briefly look removed and be shown
+      // the lockout. Only judge once the true list is in hand.
+      this.setState({rosterEdits,rosterLoaded:true});
     },()=>{});
     if(this._attUnsub)this._attUnsub();
     this._attUnsub=this.db.collection('attendance')
@@ -4779,7 +4795,10 @@ class Component extends DCLogic {
     const screen=st.screen??(start==='login'?'login':'app');
     const role=st.role??(start==='coach'?'coach':'athlete');
     const isLogin=screen==='login';
-    const isApp=screen==='app';
+    // isApp is what every view flag below is built from, so the
+    // off-roster lockout is folded in further down by reassigning it —
+    // see offRoster.
+    let isApp=screen==='app';
     const isCoach=role==='coach'||role==='dcoach';
     const isDivingCoach=role==='dcoach';
     const tab=st.tab;
@@ -4790,6 +4809,22 @@ class Component extends DCLogic {
     // yours. A stand-in carrying the signed-in name keeps the coach
     // screens working without ever borrowing an athlete's identity.
     const user=this.byId[st.userId]||this.placeholderAthlete(st.userId);
+    // An athlete whose roster entry a coach has taken off the team. Their
+    // login still works — removing someone from the roster deliberately
+    // doesn't destroy their account — but there is no roster spot for the
+    // app to show, so they get told plainly instead of a half-empty
+    // dashboard. Coaches are never on the athlete roster, so they are
+    // exempt by definition, and rosterLoaded keeps this from firing on the
+    // seed data before the real list arrives.
+    const offRoster=screen==='app'&&!isCoach&&!!st.userId&&st.rosterLoaded&&!this.byId[st.userId];
+    // Nothing should keep buzzing a phone whose account is off the team.
+    if(offRoster&&!this._offRosterHandled){
+      this._offRosterHandled=true;
+      this.clearPushToken();
+    }else if(!offRoster&&this._offRosterHandled){
+      this._offRosterHandled=false;
+    }
+    if(offRoster)isApp=false;
     // Season meet schedule — coach-editable (see syncScheduleToCloud);
     // falls back to the seed data (this.sched) until a coach saves an
     // edit for the first time. "Next meet" is whichever meet hasn't
@@ -5782,6 +5817,8 @@ class Component extends DCLogic {
       onView:()=>this.setState({sel:gSel.id,meEvent:null})};
     return {
       isLogin,isApp,isCoach,
+      offRoster,offRosterName:st.userId||'',
+      offRosterSignOut:()=>this.signOutEverything(),
       coachWelcome:isDivingCoach?'Welcome, Coach Stone':'Welcome, Coach Hamstra',
       coachSubtitle:isDivingCoach?'Alma Scots · Diving · Head Coach':'Alma Scots · Swimming · Head Coach',
       heroIsCoachDiver:isDivingCoach,heroIsCoachMen:!isDivingCoach,
