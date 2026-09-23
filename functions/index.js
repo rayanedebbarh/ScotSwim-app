@@ -57,7 +57,9 @@ exports.sendTeamNotification = onDocumentCreated(
       tokens,
       notification: {title: TITLES[n.type] || 'ScotSwim', body: n.msg},
       // Read by the app when the banner is tapped, to open the right screen.
-      data: {tab: String(n.tab || 'home'), type: String(n.type || '')},
+      // ref points at the specific item (announcement id, meet id, event),
+      // so tapping the banner opens that item rather than just its tab.
+      data: {tab: String(n.tab || 'home'), type: String(n.type || ''), ref: String(n.ref || '')},
       apns: {payload: {aps: {sound: 'default', badge: 1}}},
       android: {notification: {sound: 'default', channelId: 'scotswim'}},
     });

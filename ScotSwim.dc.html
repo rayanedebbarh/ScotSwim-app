@@ -426,7 +426,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+      <div data-focus="coach-goals" style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px;scroll-margin-top:12px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">COACH'S GOALS FOR YOU</div>
           <button onClick="{{ allCoachBtn }}" style="border:none;background:none;color:#1B7A78;font-size:12px;font-weight:700;cursor:pointer;padding:0">{{ allCoachLabel }}</button>
@@ -435,7 +435,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log a time in My Events to see goal progress here.</div>
         </sc-if>
         <sc-for list="{{ myGoals }}" as="g" hint-placeholder-count="2">
-          <div style="margin-top:12px">
+          <div style="margin-top:12px;padding:6px 8px;margin-left:-8px;margin-right:-8px;border-radius:6px;background:{{ g.hlBg }};transition:background .6s ease">
             <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:13px;font-weight:600">
               <span>{{ g.ev }}</span>
               <span style="font-variant-numeric:tabular-nums;white-space:nowrap;flex:none;margin-left:10px"><span style="color:rgba(42,18,24,.5)">PB {{ g.pb }}</span> → <span style="color:#1B7A78;font-weight:700">{{ g.goal }}</span></span>
@@ -468,7 +468,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+      <div data-focus="announcements" style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px;scroll-margin-top:12px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ANNOUNCEMENTS</div>
         <sc-if value="{{ annsEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="text-align:center;padding:22px 8px 6px">
@@ -477,7 +477,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
-          <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+          <div style="display:flex;gap:10px;padding:10px 8px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07);background:{{ a.hlBg }};border-radius:6px;transition:background .6s ease">
             <div style="width:7px;height:7px;border-radius:50%;background:#1B7A78;margin-top:5px;flex:none"></div>
             <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ a.d }}</div></div>
           </div>
@@ -569,7 +569,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
+      <div data-focus="announcements" style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px;scroll-margin-top:12px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TEAM ANNOUNCEMENTS</div>
         <div style="display:flex;gap:8px;margin-top:12px">
           <input value="{{ annPost }}" onChange="{{ annPostChange }}" placeholder="Write an announcement…" style="flex:1;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:8px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
@@ -582,7 +582,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
-          <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 8px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07);background:{{ a.hlBg }};border-radius:6px;transition:background .6s ease">
             <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
             <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">Posted {{ a.d }}</div></div>
             <button onClick="{{ a.remove }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:13px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
@@ -729,7 +729,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ canPostLineup }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ openLineupCompose }}" style="width:100%;border:1.5px solid #1B7A78;background:rgba(27,122,120,.07);color:#1B7A78;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;cursor:pointer">{{ postLineupLabel }}</button>
       </sc-if>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 18px 6px">
+      <div data-focus="schedule" style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 18px 6px;scroll-margin-top:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">SEASON SCHEDULE</div>
           <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
@@ -2248,7 +2248,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,
+      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -3502,7 +3502,7 @@ class Component extends DCLogic {
     Promise.all(writes).then(()=>{
       this.setState({lineupBusy:'',lineupCompose:null,lineupDraft:{pages:[],notes:''},lineupSrc:'photo'});
       this.toastMsg('Lineup posted');
-      this.pushNotification({type:'lineup',target:'team',tab:'meets',
+      this.pushNotification({type:'lineup',target:'team',tab:'meets',ref:meetId,
         msg:this.coachDisplayName()+' posted the lineup for '+meetName});
     }).catch(()=>{
       this.setState({lineupBusy:''});
@@ -4180,7 +4180,7 @@ class Component extends DCLogic {
       myEvents:{},trainingLog:{},soloLifts:{},goalWorkouts:{},goalDelta:{},
       selfGoals:{},selfOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
       notifications:[],notifOpen:false,notifSeenAt:0,
-      meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,
+      meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',
       lineupDraft:{pages:[],notes:''},lineupZoom:null,
       announcements:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
   }
@@ -4348,7 +4348,7 @@ class Component extends DCLogic {
   pushNotification(n){
     if(!this.fbReady||!this.isCoachRole())return;
     this.db.collection('notifications').add({
-      type:n.type,msg:n.msg,target:n.target||'team',tab:n.tab||'home',
+      type:n.type,msg:n.msg,target:n.target||'team',tab:n.tab||'home',ref:n.ref||'',
       author:this.state.userId||'',authorName:this.coachDisplayName(),
       createdAt:Date.now()
     }).catch(()=>{});
@@ -4361,9 +4361,72 @@ class Component extends DCLogic {
     clearTimeout(this._goalNotifTimers[key]);
     this._goalNotifTimers[key]=setTimeout(()=>{
       delete this._goalNotifTimers[key];
-      this.pushNotification({type:'goal',target:rosterId,tab:'goals',
+      this.pushNotification({type:'goal',target:rosterId,tab:'goals',ref:eventName,
         msg:this.coachDisplayName()+' set a new goal for you in '+eventName});
     },6000);
+  }
+  // ---- where a notification leads ----------------------------------
+  // The one place that knows where each kind of notification lives.
+  // Both the in-app list and a tapped lock-screen banner come through
+  // here, so "Read it" and the banner can never disagree about where
+  // they go. Before this, both only switched tab — nothing opened or
+  // scrolled to the item itself, and a goal sent athletes to a Goals tab
+  // that only coaches have, leaving them on a blank screen.
+  //   ref: announcement → its doc id; lineup → meet id; goal → event name.
+  // Notifications written before ref existed still land in the right
+  // place, just without the specific item singled out.
+  openNotificationTarget(n){
+    n=n||{};
+    const type=n.type||'',ref=n.ref||'';
+    this.markNotificationsSeen();
+    const base={notifOpen:false,sel:null,menuOpen:false,lineupZoom:null};
+    if(type==='lineup'){
+      // The lineup viewer is an overlay over the Meets tab, so closing it
+      // leaves you somewhere sensible rather than back where you were.
+      this.setState({...base,tab:'meets',lineupMeet:ref||this.latestLineupMeetId()});
+      return;
+    }
+    if(type==='goal'){
+      // Athletes' goals are on Home, not a tab of their own. The list is
+      // expanded so the new goal can't be hidden below the top three.
+      this.setState({...base,tab:this.isCoachRole()?'goals':'home',
+        showAllCoach:true,focusKey:'goal:'+ref});
+      this.scrollToFocus('coach-goals');
+      return;
+    }
+    if(type==='schedule'){
+      this.setState({...base,tab:'meets',focusKey:''});
+      this.scrollToFocus('schedule');
+      return;
+    }
+    // Announcements, and anything of a kind this build doesn't know.
+    this.setState({...base,tab:'home',focusKey:'ann:'+ref});
+    this.scrollToFocus('announcements');
+  }
+  // For a lineup notification with no meet on it (written before ref
+  // existed): the soonest meet that has one posted, else the latest.
+  latestLineupMeetId(){
+    const meets=(this.state.meetsSchedule||this.sched||[])
+      .filter(m=>this.hasLineupFor(m.id))
+      .sort((a,b)=>a.dateStart<b.dateStart?-1:a.dateStart>b.dateStart?1:0);
+    const today=this.ymd(new Date());
+    const m=meets.find(x=>(x.dateEnd||x.dateStart)>=today)||meets[meets.length-1];
+    return m?m.id:null;
+  }
+  // Scrolls a block into view once the tab it's on has rendered. Retries
+  // briefly because the tab switch and the scroll are requested together
+  // and the block doesn't exist until the new tab paints. The highlight
+  // (focusKey) is cleared afterwards so it reads as "here it is" rather
+  // than a permanent state.
+  scrollToFocus(name){
+    clearTimeout(this._focusT);clearTimeout(this._focusClearT);
+    const go=tries=>{
+      const el=document.querySelector('[data-focus="'+name+'"]');
+      if(el){try{el.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){el.scrollIntoView(true);}}
+      else if(tries>0)this._focusT=setTimeout(()=>go(tries-1),80);
+    };
+    this._focusT=setTimeout(()=>go(12),60);
+    this._focusClearT=setTimeout(()=>{if(this.state.focusKey)this.setState({focusKey:''});},2800);
   }
   // ---- push (native app only) ---------------------------------------
   // The in-app bell works everywhere; this is the extra delivery channel
@@ -4400,8 +4463,8 @@ class Component extends DCLogic {
       fm.addListener('tokenReceived',ev=>{if(ev&&ev.token)this.savePushToken(ev.token);});
       // Tapping the banner should land on the screen it's about.
       fm.addListener('notificationActionPerformed',ev=>{
-        const tab=ev&&ev.notification&&ev.notification.data&&ev.notification.data.tab;
-        if(tab)this.setState({tab,sel:null,notifOpen:false});
+        const d=(ev&&ev.notification&&ev.notification.data)||{};
+        if(d.type||d.tab)this.openNotificationTarget({type:d.type,tab:d.tab,ref:d.ref});
       });
       const {token}=await fm.getToken();
       if(token)this.savePushToken(token);
@@ -4558,8 +4621,11 @@ class Component extends DCLogic {
     if(!text||!this.fbReady)return;
     const authorName=this.state.role==='dcoach'?'Coach Stone':'Coach Hamstra';
     this.setState({annPost:''});
-    this.db.collection('announcements').add({text,postedAt:Date.now(),authorName}).catch(()=>{});
-    this.pushNotification({type:'announcement',target:'team',tab:'home',
+    // The id is made here rather than by add() so the notification can
+    // point at this exact announcement — "Read it" highlights it.
+    const id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'ann-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+    this.db.collection('announcements').doc(id).set({text,postedAt:Date.now(),authorName}).catch(()=>{});
+    this.pushNotification({type:'announcement',target:'team',tab:'home',ref:id,
       msg:authorName+' wrote a new team announcement'});
   }
   deleteAnnouncement(id){
@@ -5167,7 +5233,9 @@ class Component extends DCLogic {
       const start_=user.hist[ev]?user.hist[ev][0]:pb*1.05;
       const pct=user.diver?Math.min(100,Math.max(6,(pb-start_)/(goal-start_)*100)):Math.min(100,Math.max(6,(start_-pb)/(start_-goal)*100));
       const workout=myWorkouts[ev]||'';
-      return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),workout,hasWorkout:!!workout};
+      const hl=st.focusKey==='goal:'+this.evMap[ev].n;
+      return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),workout,hasWorkout:!!workout,
+        hlBg:hl?'rgba(27,122,120,.13)':'transparent'};
     });
     const myGoalsEmpty=myGoals.length===0;
     // A rivalry needs a real time on both sides — comparing a made-up PB
@@ -5209,7 +5277,8 @@ class Component extends DCLogic {
     const notifLook={
       announcement:{icon:'\ud83d\udce3',iconBg:'#6B1F33',cta:'Read it'},
       schedule:{icon:'\ud83d\udcc5',iconBg:'#1B7A78',cta:'See the schedule'},
-      goal:{icon:'\ud83c\udfaf',iconBg:'#2A1218',cta:'See your goal'}
+      goal:{icon:'\ud83c\udfaf',iconBg:'#2A1218',cta:'See your goal'},
+      lineup:{icon:'\ud83d\udccb',iconBg:'#1B7A78',cta:'See the lineup'}
     };
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
@@ -5218,7 +5287,7 @@ class Component extends DCLogic {
         icon:look.icon,iconBg:look.iconBg,cta:look.cta,isNew,
         bg:isNew?'#FFFFFF':'rgba(255,255,255,.55)',
         bd:isNew?'rgba(107,31,51,.22)':'rgba(42,18,24,.07)',
-        onTap:()=>{this.markNotificationsSeen();this.setState({notifOpen:false,tab:n.tab||'home',sel:null});}};
+        onTap:()=>this.openNotificationTarget(n)};
     });
     // Marked seen on the way out, not on the way in: opening the list
     // would otherwise clear the "new" dots while you were still reading
@@ -5434,7 +5503,16 @@ class Component extends DCLogic {
       :[buildLibCard('POOL'),buildLibCard('DRY'),buildLibCard('LIFT')];
     const annPostChange=e=>this.setState({annPost:e.target.value});
     const annPostSubmit=()=>this.postAnnouncement();
-    const anns=st.announcements.map(a=>({id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),remove:()=>this.deleteAnnouncement(a.id)}));
+    // A notification pointing here highlights its announcement; one from
+    // before notifications carried a ref ('ann:' alone) highlights the
+    // newest, which is almost always the one it was about.
+    const annFocus=(st.focusKey||'').startsWith('ann:')?st.focusKey.slice(4):null;
+    const anns=st.announcements.map((a,i)=>{
+      const hl=annFocus!==null&&(annFocus?a.id===annFocus:i===0);
+      return {id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),
+        hlBg:hl?'rgba(27,122,120,.13)':'transparent',
+        remove:()=>this.deleteAnnouncement(a.id)};
+    });
     const annsEmpty=anns.length===0;
     // team
     const segList=[['M','MEN'],['W','WOMEN'],['S','STAFF']];
