@@ -4422,15 +4422,51 @@ class Component extends DCLogic {
   // and the block doesn't exist until the new tab paints. The highlight
   // (focusKey) is cleared afterwards so it reads as "here it is" rather
   // than a permanent state.
+  //
+  // Deliberately not scrollIntoView. That passed every test in Chromium
+  // and did nothing on an actual iPhone: WebKit's smooth scrollIntoView
+  // inside nested overflow containers (this app has two) is unreliable,
+  // and an in-flight smooth scroll is dropped by the re-renders that
+  // follow a notification tap. Instead: find the ancestor that is really
+  // scrolling, set its position directly, and put it back a few times as
+  // the page settles — the tab switch, the highlight and the expanded
+  // goal list all move things after the first placement. Any touch or
+  // wheel from the person stops the corrections, so it never fights them.
   scrollToFocus(name){
     clearTimeout(this._focusT);clearTimeout(this._focusClearT);
-    const go=tries=>{
-      const el=document.querySelector('[data-focus="'+name+'"]');
-      if(el){try{el.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){el.scrollIntoView(true);}}
-      else if(tries>0)this._focusT=setTimeout(()=>go(tries-1),80);
+    (this._focusTimers||[]).forEach(clearTimeout);this._focusTimers=[];
+    let userMoved=false;
+    const stop=()=>{userMoved=true;};
+    ['touchstart','wheel'].forEach(ev=>window.addEventListener(ev,stop,{passive:true,once:true}));
+    const scrollerOf=el=>{
+      for(let p=el.parentElement;p;p=p.parentElement){
+        const oy=getComputedStyle(p).overflowY;
+        if((oy==='auto'||oy==='scroll')&&p.scrollHeight>p.clientHeight+1)return p;
+      }
+      return document.scrollingElement||document.documentElement;
     };
-    this._focusT=setTimeout(()=>go(12),60);
-    this._focusClearT=setTimeout(()=>{if(this.state.focusKey)this.setState({focusKey:''});},2800);
+    const place=()=>{
+      if(userMoved)return true;
+      const el=document.querySelector('[data-focus="'+name+'"]');
+      if(!el)return false;
+      const sc=scrollerOf(el);
+      const top=sc.scrollTop+el.getBoundingClientRect().top-sc.getBoundingClientRect().top-12;
+      sc.scrollTop=Math.max(0,Math.min(top,sc.scrollHeight-sc.clientHeight));
+      return true;
+    };
+    // Wait for the block to exist (the tab may still be painting), then
+    // place it and correct over the next second or so.
+    let tries=0;
+    const first=()=>{
+      if(place()){
+        [120,300,600,1000,1500].forEach(ms=>this._focusTimers.push(setTimeout(place,ms)));
+      }else if(++tries<40){this._focusT=setTimeout(first,50);}
+    };
+    this._focusT=setTimeout(first,30);
+    this._focusClearT=setTimeout(()=>{
+      ['touchstart','wheel'].forEach(ev=>window.removeEventListener(ev,stop));
+      if(this.state.focusKey)this.setState({focusKey:''});
+    },3200);
   }
   // ---- push (native app only) ---------------------------------------
   // The in-app bell works everywhere; this is the extra delivery channel
