@@ -1692,34 +1692,75 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
   <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);display:flex;flex-direction:column;justify-content:flex-end;z-index:45">
     <div onClick="{{ closeNotifs }}" style="flex:1"></div>
-    <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:80%;overflow-y:auto;animation:fadeUp .3s ease">
-      <div style="background:#6B1F33;color:#F5E9DC;padding:16px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1">
+    <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
+      <div style="background:#6B1F33;color:#F5E9DC;padding:17px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1">
         <div style="flex:1">
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">FROM YOUR COACHES</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:23px;line-height:1.1;margin-top:2px">Notifications</div>
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">FROM YOUR COACHES</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:25px;line-height:1.1">Notifications</div>
+            <sc-if value="{{ hasNotifNew }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:11.5px;font-weight:800;background:#F5E9DC;color:#6B1F33;border-radius:999px;padding:3px 9px">{{ notifNewLabel }}</div>
+            </sc-if>
+          </div>
         </div>
         <button onClick="{{ closeNotifs }}" style="border:none;background:rgba(245,233,220,.15);color:#F5E9DC;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none">✕</button>
       </div>
-      <div style="padding:6px 16px 22px">
+      <div style="padding:4px 16px 26px">
         <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ true }}">
-          <div style="text-align:center;padding:34px 10px 26px">
-            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:rgba(42,18,24,.4)">ALL CAUGHT UP</div>
-            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:7px;line-height:1.45">Announcements, schedule changes and new goals will show up here.</div>
+          <div style="text-align:center;padding:38px 14px 28px">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:2px;color:rgba(42,18,24,.45)">ALL CAUGHT UP</div>
+            <div style="font-size:14px;color:rgba(42,18,24,.55);margin-top:8px;line-height:1.5">Announcements, lineups, schedule changes and new goals will show up here.</div>
           </div>
         </sc-if>
-        <sc-for list="{{ notifRows }}" as="n" hint-placeholder-count="3">
-          <div onClick="{{ n.onTap }}" style="display:flex;align-items:flex-start;gap:12px;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:12px;padding:13px 14px;margin-top:9px;cursor:pointer">
-            <div style="width:32px;height:32px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px">{{ n.icon }}</div>
+        <!-- New first, then earlier: the headings show where unread stops. -->
+        <sc-if value="{{ hasNotifNew }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;color:#6B1F33;margin-top:14px">NEW</div>
+        </sc-if>
+        <sc-for list="{{ notifNew }}" as="n" hint-placeholder-count="2">
+          <div onClick="{{ n.onTap }}" style="display:flex;gap:13px;align-items:flex-start;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:14px;padding:15px 15px 14px;margin-top:10px;cursor:pointer;opacity:{{ n.op }}">
+            <div style="width:40px;height:40px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px">{{ n.icon }}</div>
             <div style="flex:1;min-width:0">
-              <div style="font-size:13.5px;font-weight:600;line-height:1.35;color:#2A1218">{{ n.msg }}</div>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-                <div style="font-size:11.5px;color:rgba(42,18,24,.45)">{{ n.ago }}</div>
-                <div style="font-size:11.5px;font-weight:700;color:#1B7A78">{{ n.cta }} ›</div>
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <div style="flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.38;color:#2A1218">{{ n.msg }}</div>
+                <sc-if value="{{ n.isNew }}" hint-placeholder-val="{{ true }}">
+                  <div style="width:9px;height:9px;border-radius:50%;background:#6B1F33;flex:none;margin-top:6px"></div>
+                </sc-if>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px">
+                <div style="font-size:12.5px;color:rgba(42,18,24,.5)">{{ n.ago }}</div>
+                <sc-if value="{{ n.live }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:13.5px;font-weight:700;color:{{ n.ctaFg }};background:{{ n.ctaBg }};border:1.5px solid #1B7A78;border-radius:999px;padding:7px 15px;white-space:nowrap;line-height:1.2">{{ n.cta }} ›</div>
+                </sc-if>
+                <sc-if value="{{ n.gone }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px;font-weight:700;color:rgba(42,18,24,.55);background:rgba(42,18,24,.07);border-radius:999px;padding:7px 14px;white-space:nowrap;line-height:1.2">Deleted</div>
+                </sc-if>
               </div>
             </div>
-            <sc-if value="{{ n.isNew }}" hint-placeholder-val="{{ true }}">
-              <div style="width:8px;height:8px;border-radius:50%;background:#6B1F33;flex:none;margin-top:6px"></div>
-            </sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{ hasNotifEarlier }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;color:rgba(42,18,24,.45);margin-top:20px">EARLIER</div>
+        </sc-if>
+        <sc-for list="{{ notifEarlier }}" as="n" hint-placeholder-count="2">
+          <div onClick="{{ n.onTap }}" style="display:flex;gap:13px;align-items:flex-start;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:14px;padding:15px 15px 14px;margin-top:10px;cursor:pointer;opacity:{{ n.op }}">
+            <div style="width:40px;height:40px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px">{{ n.icon }}</div>
+            <div style="flex:1;min-width:0">
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <div style="flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.38;color:#2A1218">{{ n.msg }}</div>
+                <sc-if value="{{ n.isNew }}" hint-placeholder-val="{{ true }}">
+                  <div style="width:9px;height:9px;border-radius:50%;background:#6B1F33;flex:none;margin-top:6px"></div>
+                </sc-if>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px">
+                <div style="font-size:12.5px;color:rgba(42,18,24,.5)">{{ n.ago }}</div>
+                <sc-if value="{{ n.live }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-size:13.5px;font-weight:700;color:{{ n.ctaFg }};background:{{ n.ctaBg }};border:1.5px solid #1B7A78;border-radius:999px;padding:7px 15px;white-space:nowrap;line-height:1.2">{{ n.cta }} ›</div>
+                </sc-if>
+                <sc-if value="{{ n.gone }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:12.5px;font-weight:700;color:rgba(42,18,24,.55);background:rgba(42,18,24,.07);border-radius:999px;padding:7px 14px;white-space:nowrap;line-height:1.2">Deleted</div>
+                </sc-if>
+              </div>
+            </div>
           </div>
         </sc-for>
       </div>
@@ -2182,7 +2223,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
 
 <!-- toast -->
 <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
-  <div style="position:absolute;bottom:96px;left:24px;right:24px;background:#2A1218;color:#F5E9DC;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:600;text-align:center;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.3)">{{ toast }}</div>
+  <div style="position:absolute;bottom:96px;left:24px;right:24px;background:#2A1218;color:#F5E9DC;border-radius:12px;padding:13px 18px;font-size:14px;font-weight:600;line-height:1.4;text-align:center;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.3)">{{ toast }}</div>
 </sc-if>
 
 <!-- profile photo sheet -->
@@ -2248,7 +2289,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',
+      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -2802,7 +2843,9 @@ class Component extends DCLogic {
         .catch(()=>this.toastMsg('Order NOT saved — check your connection'));
     },600);
   }
-  toastMsg(m){this.setState({toast:m});clearTimeout(this._tt);this._tt=setTimeout(()=>this.setState({toast:''}),2200)}
+  // ms: how long it stays up. Short confirmations use the default; a
+  // message someone has to actually read ("that was deleted") passes more.
+  toastMsg(m,ms){this.setState({toast:m});clearTimeout(this._tt);this._tt=setTimeout(()=>this.setState({toast:''}),ms||2200)}
   // "Nice" axis ticks spanning the given range. With a forceStep (e.g. the
   // 0.5s SwimCloud uses) every gridline lands on that exact increment;
   // otherwise falls back to the standard 1/2/2.5/5/10 × power-of-ten pick.
@@ -4180,7 +4223,7 @@ class Component extends DCLogic {
       myEvents:{},trainingLog:{},soloLifts:{},goalWorkouts:{},goalDelta:{},
       selfGoals:{},selfOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
       notifications:[],notifOpen:false,notifSeenAt:0,
-      meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',
+      meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
       lineupDraft:{pages:[],notes:''},lineupZoom:null,
       announcements:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
   }
@@ -4379,15 +4422,69 @@ class Component extends DCLogic {
   //   ref: announcement → its doc id; lineup → meet id; goal → event name.
   // Notifications written before ref existed still land in the right
   // place, just without the specific item singled out.
-  openNotificationTarget(n){
+  // Is the thing a notification points at still there? Resolves to a
+  // message when it has been deleted, or null when it exists — and also
+  // null whenever it can't tell (no ref on an old notification, offline),
+  // because telling someone a post was deleted when it wasn't is worse
+  // than just opening where it would have been.
+  // The local copy answers most taps instantly; only a miss goes to the
+  // server, since the local lists are capped (announcements at 30) and an
+  // older post missing from them isn't necessarily gone.
+  async notificationTargetGone(n){
+    const type=n.type||'',ref=n.ref||'';
+    if(!ref)return null;
+    try{
+      if(type==='announcement'){
+        if((this.state.announcements||[]).some(a=>a.id===ref))return null;
+        if(!this.fbReady)return null;
+        const d=await this.db.collection('announcements').doc(ref).get();
+        return d.exists?null:'That announcement was deleted by your coach.';
+      }
+      if(type==='lineup'){
+        if(this.hasLineupFor(ref))return null;
+        if(!this.fbReady)return null;
+        const [notes,p0]=await Promise.all([
+          this.db.collection('meetLineups').doc(this.lineupNotesId(ref)).get(),
+          this.db.collection('meetLineups').doc(this.lineupPageId(ref,0)).get()]);
+        return (notes.exists||p0.exists)?null:'That lineup was taken down by your coach.';
+      }
+      if(type==='goal'){
+        // A coach goal is one of the athlete's events; if the event is no
+        // longer one of theirs, the goal went with it.
+        const u=this.byId[this.state.userId];
+        if(!u||!u.primary||!u.primary.length)return null;
+        const names=u.primary.map(ev=>this.evMap[ev]&&this.evMap[ev].n);
+        return names.includes(ref)?null:'That goal was removed by your coach.';
+      }
+    }catch(e){}
+    return null;
+  }
+  async openNotificationTarget(n){
     n=n||{};
     const type=n.type||'',ref=n.ref||'';
+    const gone=await this.notificationTargetGone(n);
+    if(gone){
+      // Stay put — there's nowhere to take them — say why, and mark the
+      // row so the list stops offering it as something to open. The rest
+      // are deliberately not marked read here: the panel stays open, and
+      // doing it now would reshuffle New into Earlier under the finger.
+      // Closing the panel marks them, as it always has.
+      if(n.id)this.setState({deadNotifs:{...(this.state.deadNotifs||{}),[n.id]:true}});
+      this.toastMsg(gone,3600);
+      return;
+    }
     this.markNotificationsSeen();
     const base={notifOpen:false,sel:null,menuOpen:false,lineupZoom:null};
     if(type==='lineup'){
       // The lineup viewer is an overlay over the Meets tab, so closing it
       // leaves you somewhere sensible rather than back where you were.
-      this.setState({...base,tab:'meets',lineupMeet:ref||this.latestLineupMeetId()});
+      const meetId=ref||this.latestLineupMeetId();
+      this.setState({...base,tab:'meets',lineupMeet:meetId});
+      // A lineup reposted after this notification went out is still the
+      // one to show — but say it isn't the version the notification meant.
+      const notes=meetId&&this.lineupNotesFor(meetId);
+      if(notes&&n.createdAt&&notes.postedAt>n.createdAt+60000)
+        this.toastMsg('Your coach has updated this lineup since — showing the latest.',3600);
       return;
     }
     if(type==='goal'){
@@ -5337,15 +5434,27 @@ class Component extends DCLogic {
       goal:{icon:'\ud83c\udfaf',iconBg:'#2A1218',cta:'See your goal'},
       lineup:{icon:'\ud83d\udccb',iconBg:'#1B7A78',cta:'See the lineup'}
     };
+    const dead=st.deadNotifs||{};
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
       const isNew=n.createdAt>seenAt;
+      const gone=!!dead[n.id];
       return {id:n.id,msg:n.msg,ago:this.agoLabel(n.createdAt),
-        icon:look.icon,iconBg:look.iconBg,cta:look.cta,isNew,
-        bg:isNew?'#FFFFFF':'rgba(255,255,255,.55)',
-        bd:isNew?'rgba(107,31,51,.22)':'rgba(42,18,24,.07)',
+        icon:look.icon,iconBg:gone?'rgba(42,18,24,.28)':look.iconBg,cta:look.cta,isNew,
+        // Unread rows are solid white with a maroon edge; read ones sit
+        // back. A row whose post has since been deleted is dimmed and says
+        // so in place of its button, rather than offering to open nothing.
+        bg:gone?'rgba(255,255,255,.35)':isNew?'#FFFFFF':'rgba(255,255,255,.62)',
+        bd:isNew&&!gone?'rgba(107,31,51,.28)':'rgba(42,18,24,.08)',
+        op:gone?'.62':'1',
+        gone,live:!gone,
+        ctaBg:isNew?'#1B7A78':'transparent',ctaFg:isNew?'#FFFFFF':'#1B7A78',
         onTap:()=>this.openNotificationTarget(n)};
     });
+    // Split into new and earlier, so what's new reads first and the
+    // headings tell you where the unread ones stop.
+    const notifNew=notifRows.filter(r=>r.isNew);
+    const notifEarlier=notifRows.filter(r=>!r.isNew);
     // Marked seen on the way out, not on the way in: opening the list
     // would otherwise clear the "new" dots while you were still reading
     // which ones were new.
@@ -5354,6 +5463,8 @@ class Component extends DCLogic {
     const notifVals={
       notifOpen:!!st.notifOpen,closeNotifs,
       openNotifs,notifRows,notifEmpty:notifRows.length===0,
+      notifNew,notifEarlier,hasNotifNew:notifNew.length>0,hasNotifEarlier:notifEarlier.length>0,
+      notifNewLabel:notifNew.length===1?'1 new':notifNew.length+' new',
       hasUnread:unread>0,unreadLabel:unread>9?'9+':String(unread)
     };
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
