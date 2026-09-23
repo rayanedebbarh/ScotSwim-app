@@ -3478,13 +3478,17 @@ class Component extends DCLogic {
   // than a photo of a face does, so this starts large and gives up
   // quality before it gives up size — a heat sheet that's too soft to
   // read is worse than one that took an extra second to post.
-  readLineupImage(file,cb){
-    if(!file||!/^image\//.test(file.type)){this.toastMsg('That file is not an image');return;}
+  // onFail (optional) fires whenever cb won't be — a caller reading
+  // several files in parallel and waiting for all of them (see
+  // addLineupPhotos) needs to know a file is done, even the ones that
+  // didn't pan out, or one bad file leaves it waiting forever.
+  readLineupImage(file,cb,onFail){
+    if(!file||!/^image\//.test(file.type)){this.toastMsg('That file is not an image');if(onFail)onFail();return;}
     const reader=new FileReader();
-    reader.onerror=()=>this.toastMsg("Couldn't read that file");
+    reader.onerror=()=>{this.toastMsg("Couldn't read that file");if(onFail)onFail();};
     reader.onload=()=>{
       const img=new Image();
-      img.onerror=()=>this.toastMsg("Couldn't read that image");
+      img.onerror=()=>{this.toastMsg("Couldn't read that image");if(onFail)onFail();};
       img.onload=()=>{
         const steps=[[1600,.78],[1400,.72],[1200,.66],[1000,.6]];
         for(const [max,q] of steps){
@@ -3492,6 +3496,7 @@ class Component extends DCLogic {
           if(out.length<=this.LINEUP_MAX_BYTES){cb(out);return;}
         }
         this.toastMsg('That image is too large — try photographing one page at a time');
+        if(onFail)onFail();
       };
       img.src=reader.result;
     };
@@ -3635,43 +3640,84 @@ class Component extends DCLogic {
       }))
       .catch(()=>{});
   }
-  // Drag-to-reorder for the pics in the lineup editor. Same approach as
-  // the goals list — pointer events, nothing re-rendered mid-drag — but
-  // in two dimensions, since the thumbnails wrap onto several rows: the
-  // drop slot is whichever thumbnail's centre is nearest the finger, and
-  // it is outlined while dragging. A few pixels of movement are needed
-  // before it counts as a drag, so the ✕ and plain taps still work.
+  // Drag-to-reorder for the pics in the lineup editor. Same pointer-event
+  // approach as the goals list — nothing re-rendered mid-drag — but in
+  // two dimensions, since the thumbnails wrap onto several rows. Unlike
+  // the goals list, this doesn't just mark a drop target and swap on
+  // release: the dragged pic follows the finger continuously and the
+  // others slide out of the way live to open the gap, so it lands
+  // wherever it's released, the way reordering photos works in Tinder or
+  // Duolingo — not "outline the one you're replacing".
+  //
+  // `order[k]` is the ORIGINAL index of whichever pic currently sits in
+  // display slot k — a full permutation, not an offset, because a 2D
+  // grid can't be shifted with one "everything between here and there"
+  // move the way a single column can. `slotCenter(i)` maps a slot index
+  // to on-screen coordinates (relative to the first thumbnail) using the
+  // row length actually measured off the thumbnails, since how many fit
+  // per row depends on the screen. The drop slot is whichever slot's
+  // centre the dragged pic's centre is nearest to — robust to a half-
+  // empty last row, unlike snapping to row/column arithmetic.
   beginPicDrag(e,from){
     if(this._picDrag)return;
     if(e.target&&e.target.closest&&e.target.closest('.picx'))return;
     const el=e.currentTarget||e.target.closest('.picthumb');
     if(!el||!el.parentNode)return;
     const all=Array.from(el.parentNode.querySelectorAll('.picthumb'));
-    if(all.length<2||all[from]!==el)return;
+    const n=all.length;
+    if(n<2||all[from]!==el)return;
     const rects=all.map(t=>t.getBoundingClientRect());
-    const sx=e.clientX,sy=e.clientY;let started=false,to=from;
+    const origin=rects[0];
+    let perRow=1;
+    while(perRow<n&&Math.abs(rects[perRow].top-origin.top)<origin.height/2)perRow++;
+    const cellW=perRow>1?rects[1].left-rects[0].left:origin.width+9;
+    const cellH=n>perRow?rects[perRow].top-rects[0].top:origin.height+9;
+    const slotCenter=i=>({x:(i%perRow)*cellW+origin.width/2,y:Math.floor(i/perRow)*cellH+origin.height/2});
+    const dragRect=rects[from];
+    const startCenter={x:dragRect.left-origin.left+dragRect.width/2,y:dragRect.top-origin.top+dragRect.height/2};
+    const sx=e.clientX,sy=e.clientY;
+    let started=false,to=from;
+    let order=all.map((_,i)=>i);
     this._picDrag=true;
-    const mark=i=>all.forEach((t,k)=>{t.style.outline=k===i&&i!==from?'2.5px dashed #1B7A78':'';t.style.outlineOffset='2px';});
     const move=ev=>{
       const dx=ev.clientX-sx,dy=ev.clientY-sy;
-      if(!started){if(Math.hypot(dx,dy)<6)return;started=true;
-        el.style.zIndex='5';el.style.boxShadow='0 8px 20px rgba(42,18,24,.28)';el.style.transition='none';}
+      if(!started){
+        if(Math.hypot(dx,dy)<6)return;
+        started=true;
+        el.style.zIndex='5';el.style.boxShadow='0 8px 20px rgba(42,18,24,.28)';el.style.transition='none';
+        all.forEach(t=>{if(t!==el)t.style.transition='transform .16s ease';});
+      }
       if(ev.cancelable)ev.preventDefault();
       el.style.transform='translate('+dx+'px,'+dy+'px) scale(1.05)';
-      let best=from,bd=Infinity;
-      rects.forEach((r,i)=>{const d=Math.hypot(ev.clientX-(r.left+r.width/2),ev.clientY-(r.top+r.height/2));if(d<bd){bd=d;best=i;}});
-      to=best;mark(to);
+      const cx=startCenter.x+dx,cy=startCenter.y+dy;
+      let best=to,bd=Infinity;
+      for(let i=0;i<n;i++){
+        const c=slotCenter(i),d=Math.hypot(cx-c.x,cy-c.y);
+        if(d<bd){bd=d;best=i;}
+      }
+      if(best===to)return;
+      to=best;
+      order.splice(order.indexOf(from),1);
+      order.splice(to,0,from);
+      // Every pic slides to wherever it now sits — its original slot was
+      // slotCenter(its own index), since order started as the identity.
+      order.forEach((origIdx,slot)=>{
+        if(origIdx===from)return;
+        const home=slotCenter(origIdx),target=slotCenter(slot);
+        all[origIdx].style.transform='translate('+(target.x-home.x)+'px,'+(target.y-home.y)+'px)';
+      });
     };
     const end=()=>{
       document.removeEventListener('pointermove',move);
       document.removeEventListener('pointerup',end);
       document.removeEventListener('pointercancel',end);
-      all.forEach(t=>{t.style.outline='';t.style.transform='';t.style.zIndex='';t.style.boxShadow='';t.style.transition='';});
+      all.forEach(t=>{t.style.transition='';t.style.transform='';t.style.zIndex='';t.style.boxShadow='';});
       this._picDrag=false;
-      if(started&&to!==from){
-        const dr=this.state.lineupDraft;const next=(dr.pics||[]).slice();
-        next.splice(to,0,next.splice(from,1)[0]);
-        this.setState({lineupDraft:{...dr,pics:next}});
+      if(to!==from){
+        const cur=(this.state.lineupDraft&&this.state.lineupDraft.pics)||[];
+        if(cur.length===n){
+          this.setState({lineupDraft:{...this.state.lineupDraft,pics:order.map(i=>cur[i])}});
+        }
       }
     };
     document.addEventListener('pointermove',move,{passive:false});
@@ -5399,10 +5445,22 @@ class Component extends DCLogic {
     const addLineupPhotos=e=>{
       const files=[...(e.target.files||[])];
       e.target.value='';
-      files.forEach(f=>this.readLineupImage(f,img=>{
+      // Every file is read and re-encoded in parallel for speed, but they
+      // don't finish in the order they were picked — a bigger photo takes
+      // longer to decode — so appending each one as it lands scrambled a
+      // multi-photo selection. Results are slotted back into the order
+      // the files were chosen, and applied together once every one is
+      // in (or has failed, e.g. a non-image was picked), so a slow one
+      // can't leave the rest waiting indefinitely.
+      const results=new Array(files.length);
+      let left=files.length;
+      if(!left)return;
+      const finish=()=>{
+        if(--left>0)return;
         const d=this.state.lineupDraft;
-        this.setState({lineupDraft:{...d,pics:[...(d.pics||[]),img]}});
-      }));
+        this.setState({lineupDraft:{...d,pics:[...(d.pics||[]),...results.filter(Boolean)]}});
+      };
+      files.forEach((f,i)=>this.readLineupImage(f,img=>{results[i]=img;finish();},finish));
     };
     const addLineupPdf=e=>{const f=(e.target.files||[])[0];e.target.value='';this.readLineupPdf(f);};
     // A pic added in this session is outlined and marked NEW, so a coach
