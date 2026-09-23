@@ -81,4 +81,36 @@ check('uplifting is not a lift', C.isLiftSession({ tag: 'POOL', n: 'Uplifting re
 check('a missing session is not a lift', C.isLiftSession(null), false);
 check('an unnamed untagged session is not a lift', C.isLiftSession({}), false);
 
+// --- lineupChange / lineupChangeMessage: say what the coach actually did ---
+{
+  const W = 'Coach Hamstra', M = 'Alma at Albion';
+  const msg = (b, a) => C.lineupChangeMessage(C.lineupChange(b, a), W, M);
+  const base = { pics: ['A', 'B'], pdf: null, notes: 'Bus 2:15' };
+  check('first post', msg(null, base), 'Coach Hamstra posted the lineup for Alma at Albion');
+  check('nothing changed -> no notification', msg(base, { ...base }), null);
+  check('added one pic', msg(base, { ...base, pics: ['A', 'B', 'C'] }), 'Coach Hamstra added a pic to the lineup for Alma at Albion');
+  check('added two pics', msg(base, { ...base, pics: ['A', 'B', 'C', 'D'] }), 'Coach Hamstra added 2 pics to the lineup for Alma at Albion');
+  check('removed a pic', msg(base, { ...base, pics: ['A'] }), 'Coach Hamstra removed a pic from the lineup for Alma at Albion');
+  check('reordered pics', msg(base, { ...base, pics: ['B', 'A'] }), 'Coach Hamstra updated the pics on the lineup for Alma at Albion');
+  check('swapped a pic', msg(base, { ...base, pics: ['A', 'Z'] }), 'Coach Hamstra updated the pics on the lineup for Alma at Albion');
+  check('note updated', msg(base, { ...base, notes: 'Bus 2:00' }), 'Coach Hamstra updated the note on the lineup for Alma at Albion');
+  check('note removed', msg(base, { ...base, notes: '' }), 'Coach Hamstra removed the note from the lineup for Alma at Albion');
+  check('note added', msg({ ...base, notes: '' }, base), 'Coach Hamstra added a note to the lineup for Alma at Albion');
+  check('whitespace-only edit is not a change', msg(base, { ...base, notes: '  Bus 2:15 ' }), null);
+  const pdf = { name: 'heat.pdf', pages: ['p1', 'p2'] };
+  check('PDF added', msg(base, { ...base, pdf }), 'Coach Hamstra added a PDF to the lineup for Alma at Albion');
+  check('PDF removed', msg({ ...base, pdf }, base), 'Coach Hamstra removed the PDF from the lineup for Alma at Albion');
+  check('PDF replaced (same name, new pages)', msg({ ...base, pdf }, { ...base, pdf: { name: 'heat.pdf', pages: ['p1', 'p9'] } }),
+    'Coach Hamstra replaced the PDF on the lineup for Alma at Albion');
+  check('pics and note', msg(base, { ...base, pics: ['A'], notes: 'x' }), 'Coach Hamstra updated the pics and the note on the lineup for Alma at Albion');
+  check('all three', msg(base, { pics: ['A'], pdf, notes: 'x' }), 'Coach Hamstra updated the pics, the PDF and the note on the lineup for Alma at Albion');
+  check('removed PDF and note', msg({ ...base, pdf }, { ...base, notes: '' }),
+    'Coach Hamstra removed the PDF and the note from the lineup for Alma at Albion');
+  check('added pics and a PDF', msg(base, { ...base, pics: ['A', 'B', 'C', 'D'], pdf }),
+    'Coach Hamstra added 2 pics and a PDF to the lineup for Alma at Albion');
+  check('mixed kinds stay "updated"', msg({ ...base, pdf }, { ...base, pics: ['A', 'B', 'C'] }),
+    'Coach Hamstra updated the pics and the PDF on the lineup for Alma at Albion');
+  check('emptied lineup is flagged', C.lineupChange(base, { pics: [], pdf: null, notes: '' }).empty, true);
+}
+
 console.log(`✓ ${passed} assertions passed`);

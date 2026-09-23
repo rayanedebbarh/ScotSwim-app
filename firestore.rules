@@ -150,6 +150,13 @@ service cloud.firestore {
     match /notifications/{notificationId} {
       allow read: if signedIn();
       allow create, delete: if isCoach();
+      // When a coach deletes an announcement or lineup, its notifications
+      // are flagged so every athlete's bell shows them as Deleted. That
+      // one flag is the only thing a coach may change on a notification
+      // that already exists — never the message, target or author.
+      allow update: if isCoach()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['targetDeleted'])
+        && request.resource.data.targetDeleted == true;
     }
 
     // Anything not named above is denied by default.
