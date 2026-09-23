@@ -3559,6 +3559,27 @@ class Component extends DCLogic {
     });
     return out;
   }
+  // A stand-in for a signed-in account with no roster entry: a coach
+  // (coaches are never on the athlete roster) or an athlete a coach has
+  // removed. It carries the account's own name and no data at all, so
+  // every "has this person logged anything real" check answers no and the
+  // athlete-only blocks stay empty instead of filling with a stranger's
+  // times. Cached per name so each render doesn't produce a new object.
+  placeholderAthlete(name){
+    const id=name||'—';
+    if(!this._placeholders)this._placeholders={};
+    if(!this._placeholders[id]){
+      // primary carries one real event rather than being empty: plenty of
+      // the dashboard derives labels from primary[0] and would throw on
+      // an empty list. pbs/hist stay empty, so hasLogged is false and
+      // every real-data gate keeps the athlete blocks blank — the event
+      // is only ever used to name a heading that isn't shown.
+      this._placeholders[id]={id,name:id,gender:'M',cls:'',pos:'',home:'',
+        diver:false,primary:['50FR'],pbs:{},hist:{},goals:{},
+        hasLogged:false,placeholder:true};
+    }
+    return this._placeholders[id];
+  }
   buildRoster(edits){
     const ed=edits||(this.state&&this.state.rosterEdits)||{};
     const removed=new Set(ed.removed||[]);
@@ -4131,10 +4152,53 @@ class Component extends DCLogic {
         throw err;
       });
   }
+  // Everything that belongs to whoever was signed in. Sign-out has to wipe
+  // all of it: leaving userId behind meant that if the next sign-in's
+  // profile read was slow, failed, or was overtaken, the app went on
+  // rendering the previous person — and since byId holds only athletes,
+  // a coach's own name misses it and the fallback used to land on a real
+  // athlete's account. Someone signing in as a coach could be shown an
+  // athlete's dashboard, which is how this was reported.
+  SIGNED_OUT_STATE(){
+    return {authUser:null,role:null,userId:null,screen:'login',
+      tab:'home',sel:null,pickerEv:null,menuOpen:false,
+      uname:'',pass:'',showPass:false,authErr:'',authMsg:'',authBusy:false,
+      // Without this the app stays on the checking splash instead of
+      // showing the login form — it starts true and only this clears it.
+      authChecking:false,
+      myEvents:{},trainingLog:{},soloLifts:{},goalWorkouts:{},goalDelta:{},
+      selfGoals:{},selfOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
+      notifications:[],notifOpen:false,notifSeenAt:0,
+      meetLineups:[],lineupMeet:null,lineupCompose:null,
+      lineupDraft:{pages:[],notes:''},lineupZoom:null,
+      announcements:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
+  }
+  signOutEverything(){
+    this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();
+    this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();
+    this.clearPushToken();
+    // Marks every auth event already in flight as stale, so a late
+    // callback from the session being torn down can't overwrite the next
+    // one. Signing out and straight back in as someone else is exactly
+    // when those overlap.
+    this._authEpoch=(this._authEpoch||0)+1;
+    this.setState(this.SIGNED_OUT_STATE());
+    this._signOutPending=this.fbReady
+      ? this.auth.signOut().catch(()=>{}).then(()=>{this._signOutPending=null;})
+      : null;
+    this.buildRoster();
+  }
   onAuthChange(user){
     if(this.state.screen==='invite')return;
-    if(!user){this.clearAuthWatchdog();this.setState({authUser:null,authChecking:false,authBusy:false,screen:'login'});return;}
+    const epoch=(this._authEpoch=(this._authEpoch||0)+1);
+    if(!user){this.clearAuthWatchdog();this.setState(this.SIGNED_OUT_STATE());return;}
     this.loadProfile(user).then(doc=>{
+      // A profile read is several round trips with retries. If another
+      // auth event happened while it was in flight — a sign-out, or a
+      // different account signing in — this answer is about a session
+      // that no longer exists and must not be applied.
+      if(epoch!==this._authEpoch)return;
+      if(this.auth&&this.auth.currentUser&&this.auth.currentUser.uid!==user.uid)return;
       this.clearAuthWatchdog();
       if(!doc.exists){
         this.auth.signOut();
@@ -4165,9 +4229,10 @@ class Component extends DCLogic {
       // session half-established with no explanation looked exactly like
       // the sign-in silently failing. Sign back out so the next attempt
       // starts clean, and say why.
+      if(epoch!==this._authEpoch)return;
       this.clearAuthWatchdog();
       if(this.fbReady)this.auth.signOut().catch(()=>{});
-      this.setState({authChecking:false,authBusy:false,authErr:this.authErrMsg(err)});
+      this.setState({...this.SIGNED_OUT_STATE(),authErr:this.authErrMsg(err)});
     });
   }
   // Keeps this athlete's own logged times/dates live across every device
@@ -4718,7 +4783,13 @@ class Component extends DCLogic {
     const isCoach=role==='coach'||role==='dcoach';
     const isDivingCoach=role==='dcoach';
     const tab=st.tab;
-    const user=this.byId[st.userId]||this.men[4];
+    // Never fall back to a real athlete. byId holds athletes only, so a
+    // coach's name misses it every time, and a removed athlete's does
+    // too — and the old fallback was men[4], a real person, so either
+    // case silently rendered somebody else's account as if it were
+    // yours. A stand-in carrying the signed-in name keeps the coach
+    // screens working without ever borrowing an athlete's identity.
+    const user=this.byId[st.userId]||this.placeholderAthlete(st.userId);
     // Season meet schedule — coach-editable (see syncScheduleToCloud);
     // falls back to the seed data (this.sched) until a coach saves an
     // edit for the first time. "Next meet" is whichever meet hasn't
@@ -4747,10 +4818,17 @@ class Component extends DCLogic {
       if(!email||!st.pass){this.setState({authErr:'Enter your email and password.'});return;}
       this.setState({authBusy:true,authErr:'',authMsg:''});
       this.startAuthWatchdog();
-      this.withRetry(()=>this.auth.signInWithEmailAndPassword(email,st.pass)).catch(err=>{
-        this.clearAuthWatchdog();
-        this.setState({authBusy:false,authErr:this.authErrMsg(err)});
-      });
+      // Signing out is asynchronous, and the login form appears before it
+      // finishes. Starting a new sign-in on top of one still tearing down
+      // lets the two auth callbacks interleave, and whichever lands last
+      // wins — which is how signing in as a coach could land on the
+      // previous athlete's account. Wait for the old session to be gone.
+      Promise.resolve(this._signOutPending)
+        .then(()=>this.withRetry(()=>this.auth.signInWithEmailAndPassword(email,st.pass)))
+        .catch(err=>{
+          this.clearAuthWatchdog();
+          this.setState({authBusy:false,authErr:this.authErrMsg(err)});
+        });
     };
     // Firebase's own "forgot password" flow emails a reset link straight
     // from Firebase — but modern Firebase projects have email-enumeration
@@ -5718,7 +5796,7 @@ class Component extends DCLogic {
       authMsg:st.authMsg,hasAuthMsg:!!st.authMsg,
       loginBtnLabel:st.authBusy?'SIGNING IN…':'LOG IN',
       signupBtnLabel:st.authBusy?'CREATING ACCOUNT…':'CREATE ACCOUNT',
-      logout:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      logout:()=>{this.signOutEverything();},
       // Invite/sign-up screen (replaces the login screen when the URL
       // carries ?invite=TOKEN). inviteInfo is undefined while the token
       // is being looked up in Firestore, null once we know it's bad.
@@ -5785,7 +5863,7 @@ class Component extends DCLogic {
       hasMenu:isApp&&st.menuOpen,
       openMenu:()=>this.setState({menuOpen:true}),
       closeMenu:()=>this.setState({menuOpen:false}),
-      menuSignOut:()=>{this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();this.clearPushToken();if(this.fbReady)this.auth.signOut();this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,uname:'',pass:'',showPass:false,authErr:'',authMsg:''});},
+      menuSignOut:()=>{this.signOutEverything();},
       openDeletePanel:()=>this.setState({showDeletePanel:true,menuOpen:false,deletePassword:'',deleteErr:'',showDeletePass:false}),
       closeDeletePanel:()=>this.setState({showDeletePanel:false}),
       showDeletePanel:st.showDeletePanel,
@@ -5846,7 +5924,7 @@ class Component extends DCLogic {
         return {...m,hasLineup:has,noLineup:!has,
           openLineup:()=>this.setState({lineupMeet:m.id})};
       }),
-      myGoals,myGoalsEmpty,myRecent,myRecentEmpty:myRecent.length===0,sigEv:this.evMap[sig].n.toUpperCase(),chal,
+      myGoals,myGoalsEmpty,myRecent,myRecentEmpty:myRecent.length===0,sigEv:((this.evMap[sig]||{}).n||"").toUpperCase(),chal,
       recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
       allLabel:user.diver?'All dives':'All swims',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
