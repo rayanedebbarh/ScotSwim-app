@@ -113,4 +113,13 @@ check('an unnamed untagged session is not a lift', C.isLiftSession({}), false);
   check('emptied lineup is flagged', C.lineupChange(base, { pics: [], pdf: null, notes: '' }).empty, true);
 }
 
+// --- fmtAnnDate: day, exact date and time, not just the date ---
+{
+  const ms = new Date('2026-09-23T16:12:00').getTime(); // a Wednesday
+  const s = C.fmtAnnDate(ms);
+  check('has the weekday', /^Wed,/.test(s), true);
+  check('has the date', s.includes('Sep 23'), true);
+  check('has a time', /\d{1,2}:\d{2}\s?[AP]M/i.test(s), true);
+}
+
 console.log(`✓ ${passed} assertions passed`);
