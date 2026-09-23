@@ -4187,7 +4187,9 @@ class Component extends DCLogic {
   signOutEverything(){
     this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();
     this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();
-    this.clearPushToken();
+    // Started before the state reset below: it reads the signed-in user
+    // synchronously, and signOut waits for it to finish.
+    const tokenCleared=this.clearPushToken();
     // Marks every auth event already in flight as stale, so a late
     // callback from the session being torn down can't overwrite the next
     // one. Signing out and straight back in as someone else is exactly
@@ -4195,7 +4197,9 @@ class Component extends DCLogic {
     this._authEpoch=(this._authEpoch||0)+1;
     this.setState(this.SIGNED_OUT_STATE());
     this._signOutPending=this.fbReady
-      ? this.auth.signOut().catch(()=>{}).then(()=>{this._signOutPending=null;})
+      ? Promise.resolve(tokenCleared).catch(()=>{})
+          .then(()=>this.auth.signOut()).catch(()=>{})
+          .then(()=>{this._signOutPending=null;})
       : null;
     this.buildRoster();
   }
@@ -4479,16 +4483,33 @@ class Component extends DCLogic {
     try{
       const arr=window.firebase.firestore.FieldValue.arrayUnion(token);
       this.db.collection('users').doc(u.uid).set({pushTokens:arr},{merge:true}).catch(()=>{});
+      // A token is a phone, and a phone belongs to whoever signed in on it
+      // last. This record is what the Cloud Function trusts: the same token
+      // can linger on several accounts' lists (a test phone signed into
+      // three of them had), and without an owner every one of those
+      // accounts' notifications reached that phone — including a coach's
+      // own posts, which buzzed while the bell rightly showed nothing.
+      this.db.collection('pushTokens').doc(token)
+        .set({uid:u.uid,updatedAt:Date.now()}).catch(()=>{});
       this._lastPushToken=token;
     }catch(e){/* sentinel unavailable — retried on the next token event */}
   }
-  // Signing out should stop that device buzzing for the account that left it.
+  // Signing out should stop that device buzzing for the account that left
+  // it. Both writes need this account's credentials, so they must finish
+  // before signOut — racing them, as sign-out used to, let the rules
+  // reject them silently and left the token behind on the account, which
+  // is how one test phone came to be on three accounts. Bounded, so a
+  // phone with no signal still signs out promptly.
   async clearPushToken(){
     const u=this.state.authUser,t=this._lastPushToken;
     this._lastPushToken=null;this._pushReady=false;
     if(!this.fbReady||!u||!t)return;
     const arr=window.firebase.firestore.FieldValue.arrayRemove(t);
-    await this.db.collection('users').doc(u.uid).set({pushTokens:arr},{merge:true}).catch(()=>{});
+    const work=Promise.all([
+      this.db.collection('users').doc(u.uid).set({pushTokens:arr},{merge:true}).catch(()=>{}),
+      this.db.collection('pushTokens').doc(t).delete().catch(()=>{}),
+    ]);
+    await Promise.race([work,new Promise(r=>setTimeout(r,2500))]);
   }
   startNotificationsSync(){
     if(!this.fbReady)return;

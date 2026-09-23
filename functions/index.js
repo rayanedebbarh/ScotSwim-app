@@ -40,15 +40,49 @@ exports.sendTeamNotification = onDocumentCreated(
     }
     const users = await query.get();
 
-    // token -> the user doc it came from, so invalid ones can be cleaned
-    // up afterwards without a second lookup.
-    const owners = new Map();
+    // Every account listing each token. One phone can appear on several
+    // accounts' lists: sign out of one and into another on the same phone
+    // and the old listing can survive. Taken at face value, that phone
+    // then receives every one of those accounts' notifications — a coach
+    // got a banner for their own post, with nothing in their bell.
+    const listedBy = new Map(); // token -> [{ref, rosterId}]
     users.forEach((doc) => {
       const u = doc.data() || {};
-      // Nobody needs their phone buzzing about something they just did.
-      if (n.author && u.rosterId === n.author) return;
-      (u.pushTokens || []).forEach((t) => owners.set(t, doc.ref));
+      (u.pushTokens || []).forEach((t) => {
+        if (!listedBy.has(t)) listedBy.set(t, []);
+        listedBy.get(t).push({ref: doc.ref, uid: doc.id, rosterId: u.rosterId});
+      });
     });
+    if (listedBy.size === 0) return;
+
+    // pushTokens/{token} records who signed in on that phone most recently,
+    // and that account alone owns it. A token with no record comes from a
+    // build older than the record; it is trusted only when exactly one
+    // account lists it, since otherwise there is no telling whose phone it is.
+    const ownerDocs = await db.getAll(
+      ...[...listedBy.keys()].map((t) => db.collection('pushTokens').doc(t)));
+    const owners = new Map(); // token -> user doc ref, for the send + cleanup
+    const disowned = [];      // listings on accounts that no longer own the phone
+    ownerDocs.forEach((snap) => {
+      const t = snap.id;
+      const listings = listedBy.get(t);
+      const ownerUid = snap.exists ? (snap.data() || {}).uid : null;
+      let owner = null;
+      if (ownerUid) {
+        owner = listings.find((l) => l.uid === ownerUid) || null;
+        listings.filter((l) => l.uid !== ownerUid).forEach((l) => disowned.push({ref: l.ref, t}));
+      } else if (listings.length === 1) {
+        owner = listings[0];
+      }
+      // Nobody needs their phone buzzing about something they just did —
+      // and it's the phone's owner that decides whose phone this is.
+      if (!owner || (n.author && owner.rosterId === n.author)) return;
+      owners.set(t, owner.ref);
+    });
+    if (disowned.length) {
+      await Promise.all(disowned.map(({ref, t}) =>
+        ref.update({pushTokens: FieldValue.arrayRemove(t)}).catch(() => {})));
+    }
 
     const tokens = [...owners.keys()];
     if (tokens.length === 0) return;
