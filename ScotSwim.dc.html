@@ -282,38 +282,26 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">Alma Scots · Swimming &amp; Diving</div>
         </div>
       </div>
-      <!-- Pulled out of the small stat grid into its own full-width card:
-           this is the one thing on the dashboard someone checks daily,
-           and a quarter-width tile buried it among three unrelated
-           counts. Styled like the MEETS tab's own next-meet banner, so
-           it reads as the same piece of information wherever it's seen. -->
-      <div style="background:#2A1218;color:#F5E9DC;border-radius:10px;padding:17px 19px;display:flex;align-items:center;gap:16px">
-        <div style="text-align:center;flex:none">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:44px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6);margin-top:3px">DAYS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">NEXT MEET IN</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#6B1F33;margin-top:6px">{{ cdDays }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">days · {{ nextShortName }}</div>
         </div>
-        <div style="width:1px;align-self:stretch;background:rgba(245,233,220,.15)"></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">NEXT MEET</div>
-          <div style="font-family:'Barlow Condensed';font-weight:700;font-size:20px;line-height:1.2;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ nextMeet.n }}</div>
-          <div style="font-size:12.5px;color:rgba(245,233,220,.7);margin-top:2px">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">YOUR GOALS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ selfCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set by you</div>
         </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">YOUR GOALS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ selfCount }}</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">set by you</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">PERSONAL BESTS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ pbCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set last season</div>
         </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">PBS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ pbCount }}</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">last season</div>
-        </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">COACH GOALS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#1B7A78;margin-top:5px">{{ goalCount }}</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">active</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">COACH GOALS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ goalCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">targets active</div>
         </div>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
@@ -524,33 +512,26 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:13.5px;color:rgba(245,233,220,.85);margin-top:6px;text-shadow:0 1px 4px rgba(0,0,0,.7)">{{ coachSubtitle }}</div>
         </div>
       </div>
-      <div style="background:#2A1218;color:#F5E9DC;border-radius:10px;padding:17px 19px;display:flex;align-items:center;gap:16px">
-        <div style="text-align:center;flex:none">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:44px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6);margin-top:3px">DAYS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">{{ totalTileLabel }}</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ nAll }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6);white-space:pre-line">{{ nBreakdown }}</div>
         </div>
-        <div style="width:1px;align-self:stretch;background:rgba(245,233,220,.15)"></div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">NEXT MEET</div>
-          <div style="font-family:'Barlow Condensed';font-weight:700;font-size:20px;line-height:1.2;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ nextMeet.n }}</div>
-          <div style="font-size:12.5px;color:rgba(245,233,220,.7);margin-top:2px">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">DAYS TO OPENER</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#6B1F33;margin-top:6px">{{ cdDays }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ nextShortName }}</div>
         </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">{{ totalTileLabel }}</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ nAll }}</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.6);white-space:pre-line">{{ nBreakdown }}</div>
-        </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#1B7A78;margin-top:5px">{{ attPctDisplay }}</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">{{ attStatSubtitle }}</div>
-        </div>
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:13px 12px">
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55)">SEASON PBS</div>
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:29px;color:#2A1218;margin-top:5px">{{ seasonPbCount }}</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.6)">this season</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">ATTENDANCE</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#1B7A78;margin-top:6px">{{ attPctDisplay }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">{{ attStatSubtitle }}</div>
+         </div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">SEASON PBS</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ seasonPbCount }}</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">Logged this season</div>
         </div>
       </div>
       <div style="display:flex;gap:10px">
@@ -739,17 +720,18 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ MEETS ============ -->
   <sc-if value="{{ vMeets }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:16px 18px;display:flex;align-items:center;gap:14px">
-        <div style="text-align:center">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:36px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
-          <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6)">DAYS</div>
+      <div style="background:#2A1218;color:#F5E9DC;border-radius:10px;padding:20px 22px;display:flex;align-items:center;gap:18px">
+        <div style="text-align:center;flex:none">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:46px;line-height:1;color:#7fd0cd">{{ cdDays }}</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:rgba(245,233,220,.6);margin-top:3px">DAYS</div>
         </div>
+        <div style="width:1px;align-self:stretch;background:rgba(245,233,220,.15)"></div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">SEASON OPENER</div>
-          <div style="font-family:'Barlow Condensed';font-weight:700;font-size:19px;line-height:1.15">{{ nextMeet.n }}</div>
-          <div style="font-size:12px;color:rgba(245,233,220,.7)">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#7fd0cd">SEASON OPENER</div>
+          <div style="font-family:'Barlow Condensed';font-weight:700;font-size:23px;line-height:1.2;margin-top:2px">{{ nextMeet.n }}</div>
+          <div style="font-size:13.5px;color:rgba(245,233,220,.7);margin-top:2px">{{ nextMeet.d }} · {{ nextMeet.loc }}</div>
         </div>
-        <button onClick="{{ openNextLineup }}" style="border:1px solid rgba(127,208,205,.5);background:rgba(127,208,205,.12);color:#7fd0cd;border-radius:8px;padding:9px 12px;font-family:'Barlow Condensed';font-weight:800;font-size:12.5px;letter-spacing:1px;cursor:pointer;flex:none;white-space:nowrap">LINEUP</button>
+        <button onClick="{{ openNextLineup }}" style="border:1px solid rgba(127,208,205,.5);background:rgba(127,208,205,.12);color:#7fd0cd;border-radius:8px;padding:10px 14px;font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;flex:none;white-space:nowrap">LINEUP</button>
       </div>
       <!-- Coaches post a lineup for the closest meet only, from the banner
            that names it — so there is never a question of which meet a
@@ -1745,7 +1727,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;color:#6B1F33;margin-top:14px">NEW</div>
         </sc-if>
         <sc-for list="{{ notifNew }}" as="n" hint-placeholder-count="2">
-          <div onClick="{{ n.onTap }}" style="display:flex;gap:13px;align-items:flex-start;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:14px;padding:15px 15px 14px;margin-top:10px;cursor:pointer;opacity:{{ n.op }}">
+          <div onClick="{{ n.onTap }}" style="display:flex;gap:13px;align-items:flex-start;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:14px;padding:15px 15px 14px;margin-top:10px;cursor:pointer">
             <div style="width:40px;height:40px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px">{{ n.icon }}</div>
             <div style="flex:1;min-width:0">
               <div style="display:flex;gap:8px;align-items:flex-start">
@@ -1756,12 +1738,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px">
                 <div style="font-size:12.5px;color:rgba(42,18,24,.5)">{{ n.ago }}</div>
-                <sc-if value="{{ n.live }}" hint-placeholder-val="{{ true }}">
-                  <div style="font-size:13.5px;font-weight:700;color:{{ n.ctaFg }};background:{{ n.ctaBg }};border:1.5px solid #1B7A78;border-radius:999px;padding:7px 15px;white-space:nowrap;line-height:1.2">{{ n.cta }} ›</div>
-                </sc-if>
-                <sc-if value="{{ n.gone }}" hint-placeholder-val="{{ false }}">
-                  <div style="font-size:12.5px;font-weight:700;color:rgba(42,18,24,.55);background:rgba(42,18,24,.07);border-radius:999px;padding:7px 14px;white-space:nowrap;line-height:1.2">Deleted</div>
-                </sc-if>
+                <div style="font-size:13.5px;font-weight:700;color:{{ n.ctaFg }};background:{{ n.ctaBg }};border:1.5px solid #1B7A78;border-radius:999px;padding:7px 15px;white-space:nowrap;line-height:1.2">{{ n.cta }} ›</div>
               </div>
             </div>
           </div>
@@ -1770,7 +1747,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:11px;font-weight:800;letter-spacing:1.8px;color:rgba(42,18,24,.45);margin-top:20px">EARLIER</div>
         </sc-if>
         <sc-for list="{{ notifEarlier }}" as="n" hint-placeholder-count="2">
-          <div onClick="{{ n.onTap }}" style="display:flex;gap:13px;align-items:flex-start;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:14px;padding:15px 15px 14px;margin-top:10px;cursor:pointer;opacity:{{ n.op }}">
+          <div onClick="{{ n.onTap }}" style="display:flex;gap:13px;align-items:flex-start;background:{{ n.bg }};border:1px solid {{ n.bd }};border-radius:14px;padding:15px 15px 14px;margin-top:10px;cursor:pointer">
             <div style="width:40px;height:40px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px">{{ n.icon }}</div>
             <div style="flex:1;min-width:0">
               <div style="display:flex;gap:8px;align-items:flex-start">
@@ -1781,12 +1758,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
               </div>
               <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:11px">
                 <div style="font-size:12.5px;color:rgba(42,18,24,.5)">{{ n.ago }}</div>
-                <sc-if value="{{ n.live }}" hint-placeholder-val="{{ true }}">
-                  <div style="font-size:13.5px;font-weight:700;color:{{ n.ctaFg }};background:{{ n.ctaBg }};border:1.5px solid #1B7A78;border-radius:999px;padding:7px 15px;white-space:nowrap;line-height:1.2">{{ n.cta }} ›</div>
-                </sc-if>
-                <sc-if value="{{ n.gone }}" hint-placeholder-val="{{ false }}">
-                  <div style="font-size:12.5px;font-weight:700;color:rgba(42,18,24,.55);background:rgba(42,18,24,.07);border-radius:999px;padding:7px 14px;white-space:nowrap;line-height:1.2">Deleted</div>
-                </sc-if>
+                <div style="font-size:13.5px;font-weight:700;color:{{ n.ctaFg }};background:{{ n.ctaBg }};border:1.5px solid #1B7A78;border-radius:999px;padding:7px 15px;white-space:nowrap;line-height:1.2">{{ n.cta }} ›</div>
               </div>
             </div>
           </div>
@@ -2352,7 +2324,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},coachGoalOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      meetLineups:[],lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
+      meetLineups:[],lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -3705,10 +3677,9 @@ class Component extends DCLogic {
       .catch(()=>this.toastMsg('Could not remove it — check your connection'));
   }
   // When a coach deletes something athletes were notified about, flag
-  // those notifications so every athlete's bell shows them as Deleted
-  // straight away — through the live notifications listener, with no
-  // tap needed. Only the flag is written; rules allow coaches nothing
-  // else on an existing notification.
+  // those notifications so a tap can say what happened instantly instead
+  // of needing a round trip to check. Only the flag is written; rules
+  // allow coaches nothing else on an existing notification.
   markTargetDeleted(type,ref){
     if(!this.fbReady||!ref)return;
     this.db.collection('notifications').where('ref','==',ref).get()
@@ -4465,7 +4436,7 @@ class Component extends DCLogic {
       myEvents:{},trainingLog:{},soloLifts:{},goalWorkouts:{},goalDelta:{},
       selfGoals:{},selfOrder:{},coachGoalOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
       notifications:[],notifOpen:false,notifSeenAt:0,
-      meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
+      meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',
       lineupDraft:{pics:[],pdf:null,notes:''},lineupZoom:null,
       announcements:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
   }
@@ -4714,12 +4685,12 @@ class Component extends DCLogic {
          lineup:'That lineup was taken down by your coach.'}[type]||'That was deleted by your coach.')
       :await this.notificationTargetGone(n);
     if(gone){
-      // Stay put — there's nowhere to take them — say why, and mark the
-      // row so the list stops offering it as something to open. The rest
-      // are deliberately not marked read here: the panel stays open, and
-      // doing it now would reshuffle New into Earlier under the finger.
-      // Closing the panel marks them, as it always has.
-      if(n.id)this.setState({deadNotifs:{...(this.state.deadNotifs||{}),[n.id]:true}});
+      // Stay put — there's nowhere to take them — and just say why. The
+      // row itself is left exactly as it was: no permanent "Deleted" mark,
+      // no dimming, nothing else changes. It's deliberately not marked
+      // read here either: the panel stays open, and doing it now would
+      // reshuffle New into Earlier under the finger. Closing the panel
+      // marks them, as it always has.
       this.toastMsg(gone,3600);
       return;
     }
@@ -5725,20 +5696,16 @@ class Component extends DCLogic {
       goal:{icon:'\ud83c\udfaf',iconBg:'#2A1218',cta:'See your goal'},
       lineup:{icon:'\ud83d\udccb',iconBg:'#1B7A78',cta:'See the lineup'}
     };
-    const dead=st.deadNotifs||{};
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
       const isNew=n.createdAt>seenAt;
-      const gone=!!dead[n.id]||!!n.targetDeleted;
       return {id:n.id,msg:n.msg,ago:this.agoLabel(n.createdAt),
-        icon:look.icon,iconBg:gone?'rgba(42,18,24,.28)':look.iconBg,cta:look.cta,isNew,
+        icon:look.icon,iconBg:look.iconBg,cta:look.cta,isNew,
         // Unread rows are solid white with a maroon edge; read ones sit
-        // back. A row whose post has since been deleted is dimmed and says
-        // so in place of its button, rather than offering to open nothing.
-        bg:gone?'rgba(255,255,255,.35)':isNew?'#FFFFFF':'rgba(255,255,255,.62)',
-        bd:isNew&&!gone?'rgba(107,31,51,.28)':'rgba(42,18,24,.08)',
-        op:gone?'.62':'1',
-        gone,live:!gone,
+        // back. Tapping a row whose post has since been deleted just says
+        // so in a toast — the row itself never changes.
+        bg:isNew?'#FFFFFF':'rgba(255,255,255,.62)',
+        bd:isNew?'rgba(107,31,51,.28)':'rgba(42,18,24,.08)',
         ctaBg:isNew?'#1B7A78':'transparent',ctaFg:isNew?'#FFFFFF':'#1B7A78',
         onTap:()=>this.openNotificationTarget(n)};
     });
@@ -6227,7 +6194,7 @@ class Component extends DCLogic {
     // a glance (not a separate diving-only tile any more).
     const homeMen=this.men;
     const homeWomen=this.women;
-    const totalTileLabel='ATHLETES';
+    const totalTileLabel='TOTAL ATHLETES';
     const nDivers=this.all.filter(s=>s.diver).length;
     const nSwimmers=this.all.length-nDivers;
     // The swimmer/diver split gets its own line (via the \n +
