@@ -41,6 +41,55 @@
     if(String(s.tag||'').trim().toUpperCase()==='LIFT')return true;
     return /\blift(s|ed|ing)?\b/i.test(String(s.n||''));
   },
+  // What a coach changed when they tapped Done on a meet lineup, so the
+  // notification can say it ("added 2 pics", "updated the note") instead
+  // of a generic "updated the lineup". A lineup is {pics:[img], pdf:
+  // {name,pages:[img]}|null, notes}. before is null for a first post.
+  // Pics are compared by content, so a reorder shows up as a change to
+  // the pics without being mistaken for adding or removing any.
+  lineupChange(before,after){
+    const first=!before;
+    const b=before||{pics:[],pdf:null,notes:''},a=after||{pics:[],pdf:null,notes:''};
+    const bp=b.pics||[],ap=a.pics||[];
+    const picsAdded=ap.filter(x=>!bp.includes(x)).length;
+    const picsRemoved=bp.filter(x=>!ap.includes(x)).length;
+    const reordered=!picsAdded&&!picsRemoved&&bp.some((x,i)=>x!==ap[i]);
+    const pics=picsAdded&&!picsRemoved?'added':picsRemoved&&!picsAdded?'removed'
+      :(picsAdded||picsRemoved||reordered)?'updated':null;
+    const hasPdf=p=>!!(p&&p.pages&&p.pages.length);
+    const pb=hasPdf(b.pdf)?b.pdf:null,pa=hasPdf(a.pdf)?a.pdf:null;
+    const pdf=!pb&&pa?'added':pb&&!pa?'removed'
+      :pb&&pa&&(pb.name!==pa.name||pb.pages.length!==pa.pages.length||pb.pages.some((x,i)=>x!==pa.pages[i]))?'replaced':null;
+    const nb=(b.notes||'').trim(),na=(a.notes||'').trim();
+    const note=!nb&&na?'added':nb&&!na?'removed':nb!==na?'updated':null;
+    const empty=!ap.length&&!pa&&!na;
+    return {first,pics,picsAdded,picsRemoved,pdf,note,empty,changed:first||!!(pics||pdf||note)};
+  },
+  lineupChangeMessage(ch,who,meet){
+    if(!ch||!ch.changed)return null;
+    const L=' the lineup for '+meet;
+    if(ch.first)return who+' posted'+L;
+    const n=x=>x===1?'a pic':x+' pics';
+    const join=l=>l.length===2?l.join(' and '):l.slice(0,-1).join(', ')+' and '+l[l.length-1];
+    const kinds=['pics','pdf','note'].filter(k=>ch[k]);
+    if(kinds.length>1){
+      // When every change is the same kind, say which: "removed the PDF
+      // and the note" is more use to an athlete than "updated" them.
+      const verbs=new Set(kinds.map(k=>ch[k]));
+      if(verbs.size===1&&verbs.has('removed'))
+        return who+' removed '+join(kinds.map(k=>k==='pics'?n(ch.picsRemoved):k==='pdf'?'the PDF':'the note'))+' from'+L;
+      if(verbs.size===1&&verbs.has('added'))
+        return who+' added '+join(kinds.map(k=>k==='pics'?n(ch.picsAdded):k==='pdf'?'a PDF':'a note'))+' to'+L;
+      return who+' updated '+join(kinds.map(k=>k==='pics'?'the pics':k==='pdf'?'the PDF':'the note'))+' on'+L;
+    }
+    const say={
+      pics:{added:'added '+n(ch.picsAdded)+' to',removed:'removed '+n(ch.picsRemoved)+' from',updated:'updated the pics on'},
+      pdf:{added:'added a PDF to',replaced:'replaced the PDF on',removed:'removed the PDF from'},
+      note:{added:'added a note to',updated:'updated the note on',removed:'removed the note from'},
+    };
+    for(const k of ['pics','pdf','note'])if(ch[k])return who+' '+say[k][ch[k]]+L;
+    return null;
+  },
   fmtAnnDate(ms){return new Date(ms).toLocaleDateString('en-US',{month:'short',day:'numeric'})},
   meetDateParts(startISO,endISO){
     const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];

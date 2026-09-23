@@ -2021,7 +2021,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-for list="{{ lineupPages }}" as="p" hint-placeholder-count="1">
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-              <div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:rgba(42,18,24,.45)">{{ p.label }}</div>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="font-size:9.5px;font-weight:800;letter-spacing:1.5px;color:rgba(42,18,24,.45)">{{ p.label }}</div>
+                <div style="font-size:9px;font-weight:800;letter-spacing:1px;border-radius:4px;padding:2px 6px;background:{{ p.srcBg }};color:{{ p.srcFg }}">{{ p.srcLabel }}</div>
+              </div>
               <div style="font-size:11px;font-weight:700;color:#1B7A78">Tap to zoom</div>
             </div>
             <img onClick="{{ p.onTap }}" src="{{ p.img }}" alt="Meet lineup page" style="width:100%;display:block;border-radius:8px;border:1px solid rgba(42,18,24,.12);background:#fff;cursor:zoom-in">
@@ -2082,72 +2085,104 @@ input::placeholder{color:rgba(245,233,220,.5)}
 <sc-if value="{{ showLineupCompose }}" hint-placeholder-val="{{ false }}">
   <div onClick="{{ closeLineupCompose }}" style="position:absolute;inset:0;background:rgba(42,18,24,.55);z-index:70"></div>
   <div style="position:absolute;left:0;right:0;bottom:0;max-height:92%;overflow-y:auto;background:#F2EDE5;border-radius:18px 18px 0 0;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease">
-    <div style="background:#2A1218;color:#F5E9DC;padding:14px 18px;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:2">
+    <div style="background:#2A1218;color:#F5E9DC;padding:15px 18px;border-radius:18px 18px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:2">
       <div style="flex:1;min-width:0">
-        <div style="font-size:9.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">POST MEET LINEUP</div>
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;line-height:1.2;margin-top:2px">{{ composeMeetName }}</div>
-        <div style="font-size:11px;color:rgba(245,233,220,.7);margin-top:1px">{{ composeMeetDate }} · the next meet</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">{{ composeKicker }}</div>
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:20px;line-height:1.15;margin-top:2px">{{ composeMeetName }}</div>
+        <div style="font-size:11.5px;color:rgba(245,233,220,.7);margin-top:1px">{{ composeMeetDate }} · the next meet</div>
       </div>
       <button onClick="{{ closeLineupCompose }}" style="border:none;background:rgba(245,233,220,.15);color:#F5E9DC;width:32px;height:32px;border-radius:50%;font-size:15px;cursor:pointer;flex:none">✕</button>
     </div>
-    <div style="padding:14px 16px 26px">
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LINEUP SOURCE</div>
-        <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:3px">Pick one — athletes see pages either way.</div>
-        <div style="display:flex;background:#F2EDE5;border-radius:999px;padding:4px;margin-top:12px;gap:3px">
-          <sc-for list="{{ srcTabs }}" as="s" hint-placeholder-count="2">
-            <button onClick="{{ s.onTap }}" style="flex:1;border:none;background:{{ s.bg }};color:{{ s.fg }};border-radius:999px;padding:8px 4px;font-size:11.5px;font-weight:700;font-family:'Barlow';cursor:pointer">{{ s.n }}</button>
+    <div style="padding:14px 16px 26px;display:flex;flex-direction:column;gap:12px">
+
+      <!-- PICS: the ＋ tile at the end of the row is the only add control,
+           so the new pic lands where the button was. -->
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;padding:15px 16px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px">PICS<span style="color:rgba(42,18,24,.4)">{{ picsCountLabel }}</span></div>
+        <sc-if value="{{ hasEditPics }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Photos of the lineup · drag to reorder · ✕ to remove</div>
+        </sc-if>
+        <sc-if value="{{ noEditPics }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Photos of the lineup</div>
+        </sc-if>
+        <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:12px">
+          <sc-for list="{{ editPics }}" as="p" hint-placeholder-count="2">
+            <div class="picthumb" onPointerDown="{{ p.dragDown }}" style="position:relative;width:78px;height:100px;border-radius:7px;overflow:hidden;border:{{ p.ring }};background:#fff;touch-action:none;cursor:grab">
+              <img src="{{ p.img }}" alt="Lineup pic" draggable="false" style="width:100%;height:100%;object-fit:cover;display:block;pointer-events:none">
+              <button class="picx" onClick="{{ p.remove }}" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border:none;border-radius:50%;background:rgba(42,18,24,.75);color:#fff;font-size:12px;cursor:pointer;padding:0;line-height:1">✕</button>
+              <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(42,18,24,.72);color:#fff;font-size:9.5px;font-weight:700;text-align:center;padding:2px">{{ p.n }}</div>
+            </div>
           </sc-for>
-        </div>
-
-        <sc-if value="{{ isPhotoSrc }}" hint-placeholder-val="{{ true }}">
-          <label style="display:block;border:1.5px dashed rgba(42,18,24,.25);border-radius:8px;padding:20px 14px;text-align:center;margin-top:12px;cursor:pointer">
+          <label style="width:78px;height:100px;border-radius:7px;border:1.5px dashed rgba(27,122,120,.55);background:rgba(27,122,120,.05);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#1B7A78;font-weight:700;gap:2px;cursor:pointer">
             <!-- multiple="multiple", not a bare `multiple`: the template
-                 parser drops valueless attributes, which silently left
-                 coaches able to add only one page at a time. -->
+                 parser drops valueless attributes. -->
             <input type="file" accept="image/*" multiple="multiple" onChange="{{ addLineupPhotos }}" style="display:none">
-            <div style="font-size:25px;opacity:.35">🖼</div>
-            <div style="font-size:13px;font-weight:700;margin-top:6px">Add photos of the lineup</div>
-            <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Pick as many pages as you need</div>
+            <div style="font-size:26px;line-height:1">＋</div>
+            <div style="font-size:11px">Add pics</div>
           </label>
-        </sc-if>
-        <sc-if value="{{ isPdfSrc }}" hint-placeholder-val="{{ false }}">
-          <label style="display:block;border:1.5px dashed rgba(42,18,24,.25);border-radius:8px;padding:20px 14px;text-align:center;margin-top:12px;cursor:pointer">
+        </div>
+      </div>
+
+      <!-- PDF: optional, instead of pics or as well. One per lineup. -->
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;padding:15px 16px">
+        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px">PDF</div>
+        <sc-if value="{{ noDraftPdf }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Optional — use it instead of pics, or as well</div>
+          <label style="margin-top:12px;border:1.5px dashed rgba(107,31,51,.4);border-radius:10px;padding:15px 14px;display:flex;align-items:center;gap:13px;background:rgba(107,31,51,.03);cursor:pointer">
             <input type="file" accept="application/pdf,.pdf" onChange="{{ addLineupPdf }}" style="display:none">
-            <div style="font-size:25px;opacity:.35">📄</div>
-            <div style="font-size:13px;font-weight:700;margin-top:6px">Choose a PDF</div>
-            <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Every page becomes an image athletes<br>can read without leaving the app</div>
+            <div style="width:40px;height:48px;border-radius:5px;background:rgba(107,31,51,.16);color:#6B1F33;font-size:10.5px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;flex:none">PDF</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#6B1F33">＋ Upload a PDF</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px;line-height:1.35">Every page is shown to athletes as a picture</div>
+            </div>
           </label>
-          <div style="display:flex;gap:9px;align-items:flex-start;background:rgba(107,31,51,.06);border-radius:6px;padding:10px 12px;margin-top:11px;font-size:11.5px;line-height:1.45;color:#6B1F33">
-            <div>ℹ</div><div>Word documents can't be shown as pages — save yours as a PDF, or photograph it.</div>
+        </sc-if>
+        <sc-if value="{{ hasDraftPdf }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:3px;line-height:1.4">Each page is shown to athletes as a picture</div>
+          <div style="margin-top:12px;border:1px solid rgba(42,18,24,.12);border-radius:10px;padding:12px 13px;display:flex;align-items:center;gap:13px;background:#fdfcfa">
+            <div style="width:40px;height:48px;border-radius:5px;background:#6B1F33;color:#fff;font-size:10.5px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;flex:none">PDF</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ draftPdfName }}</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">{{ draftPdfMeta }}</div>
+            </div>
           </div>
-        </sc-if>
-
-        <sc-if value="{{ lineupWorking }}" hint-placeholder-val="{{ false }}">
-          <div style="text-align:center;font-size:12px;font-weight:700;color:#1B7A78;margin-top:12px">{{ lineupBusy }}</div>
-        </sc-if>
-
-        <sc-if value="{{ draftHasPages }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-            <sc-for list="{{ draftPages }}" as="p" hint-placeholder-count="2">
-              <div style="position:relative;width:72px;height:92px;border-radius:6px;overflow:hidden;border:1px solid rgba(42,18,24,.15);background:#fff">
-                <img src="{{ p.img }}" alt="Lineup page" style="width:100%;height:100%;object-fit:cover;display:block">
-                <button onClick="{{ p.remove }}" style="position:absolute;top:3px;right:3px;width:19px;height:19px;border:none;border-radius:50%;background:rgba(42,18,24,.72);color:#fff;font-size:11px;cursor:pointer;padding:0;line-height:1">✕</button>
-                <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(42,18,24,.72);color:#fff;font-size:9px;font-weight:700;text-align:center;padding:2px">{{ p.n }}</div>
-              </div>
+          <div style="display:flex;gap:7px;margin-top:10px;align-items:center">
+            <sc-for list="{{ pdfThumbs }}" as="t" hint-placeholder-count="3">
+              <img src="{{ t.img }}" alt="PDF page" style="width:54px;height:70px;object-fit:cover;border-radius:5px;border:1px solid rgba(42,18,24,.15);background:#fff">
             </sc-for>
+            <sc-if value="{{ hasPdfMore }}" hint-placeholder-val="{{ false }}">
+              <div style="font-size:12px;font-weight:700;color:rgba(42,18,24,.5);padding-left:3px">{{ pdfMore }}</div>
+            </sc-if>
           </div>
-          <div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:7px">{{ draftPageCount }} · shown to athletes in this order</div>
-        </sc-if>
-
-        <textarea value="{{ draftNotes }}" onInput="{{ onDraftNotes }}" rows="3" placeholder="Notes for the team (optional) — e.g. bus leaves 2:15, warm-up 4:30" style="width:100%;border:1px solid rgba(42,18,24,.16);border-radius:6px;padding:9px 11px;font-family:'Barlow';font-size:12.5px;margin-top:12px;resize:none;color:#2A1218;outline:none"></textarea>
-
-        <button onClick="{{ doPostLineup }}" style="width:100%;margin-top:12px;border:none;background:#1B7A78;color:#fff;border-radius:999px;padding:12px;font-size:13px;font-weight:700;letter-spacing:.5px;font-family:'Barlow';cursor:pointer">POST LINEUP</button>
-        <div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:9px;text-align:center;line-height:1.45">Everyone gets a notification · you can replace it any time</div>
-        <sc-if value="{{ canDeleteLineup }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ doDeleteLineup }}" style="width:100%;margin-top:10px;border:none;background:none;color:rgba(42,18,24,.45);padding:6px;font-family:'Barlow';font-weight:600;font-size:11.5px;cursor:pointer">Remove this lineup</button>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <label style="border:1.5px solid rgba(42,18,24,.2);background:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;color:#2A1218;cursor:pointer">
+              <input type="file" accept="application/pdf,.pdf" onChange="{{ addLineupPdf }}" style="display:none">Replace PDF
+            </label>
+            <button onClick="{{ removeDraftPdf }}" style="border:1.5px solid rgba(178,59,59,.35);background:#fff;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700;color:#b23b3b;cursor:pointer;font-family:'Barlow',sans-serif">Remove PDF</button>
+          </div>
         </sc-if>
       </div>
+
+      <sc-if value="{{ lineupWorking }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;font-size:13px;font-weight:700;color:#1B7A78">{{ lineupBusy }}</div>
+      </sc-if>
+
+      <!-- NOTE -->
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;padding:15px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px">NOTE</div>
+          <button onClick="{{ clearDraftNote }}" style="border:none;background:none;color:rgba(42,18,24,.55);font-size:12.5px;font-weight:700;cursor:pointer;padding:2px 0;font-family:'Barlow',sans-serif">Clear</button>
+        </div>
+        <textarea value="{{ draftNotes }}" onInput="{{ onDraftNotes }}" rows="3" placeholder="Anything the team should know — bus time, warm-up…" style="width:100%;border:1.5px solid rgba(27,122,120,.5);border-radius:8px;padding:10px 12px;font-family:'Barlow',sans-serif;font-size:13.5px;line-height:1.5;margin-top:9px;resize:none;color:#2A1218;outline:none;background:#fff"></textarea>
+      </div>
+
+      <button onClick="{{ doPostLineup }}" style="width:100%;border:none;background:#1B7A78;color:#fff;border-radius:999px;padding:13px;font-size:14px;font-weight:800;letter-spacing:.6px;font-family:'Barlow',sans-serif;cursor:pointer">{{ composeDoneLabel }}</button>
+      <sc-if value="{{ composeIsNew }}" hint-placeholder-val="{{ true }}">
+        <div style="font-size:12px;color:rgba(42,18,24,.5);text-align:center;line-height:1.45;padding:0 10px">Add pics, a PDF, or both. Everyone gets a notification when it's posted.</div>
+      </sc-if>
+      <sc-if value="{{ composeIsEdit }}" hint-placeholder-val="{{ false }}">
+        <button onClick="{{ doDeleteLineup }}" style="border:none;background:none;color:#b23b3b;padding:6px;font-family:'Barlow',sans-serif;font-weight:700;font-size:13px;cursor:pointer">Remove this lineup</button>
+      </sc-if>
     </div>
   </div>
 </sc-if>
@@ -2289,7 +2324,7 @@ class Component extends DCLogic {
     super(p);
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
-      meetLineups:[],lineupCompose:null,lineupSrc:'photo',lineupDraft:{pages:[],notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
+      meetLineups:[],lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
       announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
@@ -3485,12 +3520,15 @@ class Component extends DCLogic {
   }
   // Every page of the PDF becomes a page image, rendered here on the
   // coach's phone. Athletes then never need a PDF reader, and never need
-  // a signal at the pool to read what was posted.
+  // a signal at the pool to read what was posted. A lineup holds at most
+  // one PDF: choosing another replaces it wholesale, which is what a
+  // coach wants when a corrected heat sheet comes out.
   readLineupPdf(file){
     if(!file)return;
+    if(!/pdf$/i.test(file.type||'')&&!/\.pdf$/i.test(file.name||'')){this.toastMsg('That file is not a PDF');return;}
     this.setState({lineupBusy:'Reading PDF…'});
     const reader=new FileReader();
-    reader.onerror=()=>this.setState({lineupBusy:''},()=>this.toastMsg("Couldn't read that file"));
+    reader.onerror=()=>{this.setState({lineupBusy:''});this.toastMsg("Couldn't read that file");};
     reader.onload=()=>{
       this.loadPdfLib().then(async lib=>{
         const pdf=await lib.getDocument({data:new Uint8Array(reader.result)}).promise;
@@ -3514,42 +3552,62 @@ class Component extends DCLogic {
           out.push(img);
         }
         const d=this.state.lineupDraft;
-        this.setState({lineupDraft:{...d,pages:[...d.pages,...out]},lineupBusy:''});
-        this.toastMsg(out.length+(out.length===1?' page added':' pages added'));
+        this.setState({lineupDraft:{...d,pdf:{name:file.name||'lineup.pdf',pages:out}},lineupBusy:''});
       }).catch(()=>{
         this.setState({lineupBusy:''});
-        this.toastMsg("Couldn't read that PDF — try photographing it instead");
+        this.toastMsg("Couldn't read that PDF — try adding it as pics instead");
       });
     };
     reader.readAsArrayBuffer(file);
   }
-  // Written page by page so one oversized page can't take the whole post
-  // down, and the old lineup's surplus pages are cleared afterwards —
-  // replacing a 4-page sheet with a 2-page one must not leave pages 3
-  // and 4 showing.
+  // The posted lineup for a meet, in the shape the editor works in:
+  // pics, then one PDF's pages, then the note. Pages posted before PDFs
+  // were told apart carry no src and count as pics.
+  lineupAsDraft(meetId){
+    const pages=this.lineupPagesFor(meetId);
+    const notesDoc=this.lineupNotesFor(meetId)||{};
+    const pdfPages=pages.filter(p=>p.src==='pdf').map(p=>p.img);
+    return {pics:pages.filter(p=>p.src!=='pdf').map(p=>p.img),
+      pdf:pdfPages.length?{name:notesDoc.pdfName||'lineup.pdf',pages:pdfPages}:null,
+      notes:notesDoc.notes||''};
+  }
+  // Done. Works out what actually changed first: nothing changed means
+  // nothing is written and nobody is notified; everything removed means
+  // the lineup is taken down; otherwise pages are written pics-first then
+  // the PDF's, surplus pages from a longer previous version are cleared,
+  // and the notification says what was done ("added 2 pics", "updated
+  // the note") rather than just that something was.
   postLineup(meetId,meetName){
-    const {pages,notes}=this.state.lineupDraft;
-    if(!this.fbReady||!this.isCoachRole())return;
-    if(!pages.length&&!notes.trim()){this.toastMsg('Add a page or a note first');return;}
-    this.setState({lineupBusy:'Posting…'});
+    if(!this.fbReady||!this.isCoachRole()||!meetId)return;
+    const d=this.state.lineupDraft||{};
+    const after={pics:d.pics||[],pdf:d.pdf||null,notes:d.notes||''};
+    const existed=this.hasLineupFor(meetId);
+    const ch=ScotSwimCore.lineupChange(existed?this.lineupAsDraft(meetId):null,after);
+    if(ch.empty){
+      if(existed){this.deleteLineup(meetId);return;}
+      this.toastMsg('Add pics, a PDF or a note first');return;
+    }
+    if(!ch.changed){this.setState({lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''}});return;}
+    this.setState({lineupBusy:existed?'Saving…':'Posting…'});
     const postedAt=Date.now();
-    const writes=pages.map((img,i)=>
+    const pages=[...after.pics.map(img=>({img,src:'pic'})),
+      ...((after.pdf&&after.pdf.pages)||[]).map((img,i)=>({img,src:'pdf',pdfPage:i+1}))];
+    const writes=pages.map((pg,i)=>
       this.db.collection('meetLineups').doc(this.lineupPageId(meetId,i))
-        .set({meetId,page:i,img,postedAt}));
+        .set({meetId,page:i,img:pg.img,src:pg.src,...(pg.pdfPage?{pdfPage:pg.pdfPage}:{}),postedAt}));
     writes.push(this.db.collection('meetLineups').doc(this.lineupNotesId(meetId))
-      .set({meetId,notes:notes.trim(),postedAt,author:this.state.userId||'',
-            authorName:this.coachDisplayName()}));
-    // Anything left over from a longer previous lineup.
-    const stale=this.lineupPagesFor(meetId).filter(p=>(p.page||0)>=pages.length);
-    stale.forEach(p=>writes.push(this.db.collection('meetLineups').doc(p.id).delete()));
+      .set({meetId,notes:after.notes.trim(),postedAt,author:this.state.userId||'',
+            authorName:this.coachDisplayName(),pdfName:after.pdf?after.pdf.name:''}));
+    this.lineupPagesFor(meetId).filter(p=>(p.page||0)>=pages.length)
+      .forEach(p=>writes.push(this.db.collection('meetLineups').doc(p.id).delete()));
+    const msg=ScotSwimCore.lineupChangeMessage(ch,this.coachDisplayName(),meetName);
     Promise.all(writes).then(()=>{
-      this.setState({lineupBusy:'',lineupCompose:null,lineupDraft:{pages:[],notes:''},lineupSrc:'photo'});
-      this.toastMsg('Lineup posted');
-      this.pushNotification({type:'lineup',target:'team',tab:'meets',ref:meetId,
-        msg:this.coachDisplayName()+' posted the lineup for '+meetName});
+      this.setState({lineupBusy:'',lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''}});
+      this.toastMsg(existed?'Lineup updated':'Lineup posted');
+      if(msg)this.pushNotification({type:'lineup',target:'team',tab:'meets',ref:meetId,msg});
     }).catch(()=>{
       this.setState({lineupBusy:''});
-      this.toastMsg('Lineup NOT posted — check your connection');
+      this.toastMsg('Lineup NOT saved — check your connection');
     });
   }
   deleteLineup(meetId){
@@ -3557,9 +3615,68 @@ class Component extends DCLogic {
     const docs=[...this.lineupPagesFor(meetId)];
     const n=this.lineupNotesFor(meetId);if(n)docs.push(n);
     Promise.all(docs.map(d=>this.db.collection('meetLineups').doc(d.id).delete()))
-      .then(()=>{this.setState({lineupCompose:null,lineupDraft:{pages:[],notes:''}});
+      .then(()=>{this.setState({lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''}});
+        this.markTargetDeleted('lineup',meetId);
         this.toastMsg('Lineup removed');})
       .catch(()=>this.toastMsg('Could not remove it — check your connection'));
+  }
+  // When a coach deletes something athletes were notified about, flag
+  // those notifications so every athlete's bell shows them as Deleted
+  // straight away — through the live notifications listener, with no
+  // tap needed. Only the flag is written; rules allow coaches nothing
+  // else on an existing notification.
+  markTargetDeleted(type,ref){
+    if(!this.fbReady||!ref)return;
+    this.db.collection('notifications').where('ref','==',ref).get()
+      .then(snap=>snap.docs.forEach(doc=>{
+        const n=doc.data()||{};
+        if(n.type!==type||n.targetDeleted)return;
+        this.db.collection('notifications').doc(doc.id).update({targetDeleted:true}).catch(()=>{});
+      }))
+      .catch(()=>{});
+  }
+  // Drag-to-reorder for the pics in the lineup editor. Same approach as
+  // the goals list — pointer events, nothing re-rendered mid-drag — but
+  // in two dimensions, since the thumbnails wrap onto several rows: the
+  // drop slot is whichever thumbnail's centre is nearest the finger, and
+  // it is outlined while dragging. A few pixels of movement are needed
+  // before it counts as a drag, so the ✕ and plain taps still work.
+  beginPicDrag(e,from){
+    if(this._picDrag)return;
+    if(e.target&&e.target.closest&&e.target.closest('.picx'))return;
+    const el=e.currentTarget||e.target.closest('.picthumb');
+    if(!el||!el.parentNode)return;
+    const all=Array.from(el.parentNode.querySelectorAll('.picthumb'));
+    if(all.length<2||all[from]!==el)return;
+    const rects=all.map(t=>t.getBoundingClientRect());
+    const sx=e.clientX,sy=e.clientY;let started=false,to=from;
+    this._picDrag=true;
+    const mark=i=>all.forEach((t,k)=>{t.style.outline=k===i&&i!==from?'2.5px dashed #1B7A78':'';t.style.outlineOffset='2px';});
+    const move=ev=>{
+      const dx=ev.clientX-sx,dy=ev.clientY-sy;
+      if(!started){if(Math.hypot(dx,dy)<6)return;started=true;
+        el.style.zIndex='5';el.style.boxShadow='0 8px 20px rgba(42,18,24,.28)';el.style.transition='none';}
+      if(ev.cancelable)ev.preventDefault();
+      el.style.transform='translate('+dx+'px,'+dy+'px) scale(1.05)';
+      let best=from,bd=Infinity;
+      rects.forEach((r,i)=>{const d=Math.hypot(ev.clientX-(r.left+r.width/2),ev.clientY-(r.top+r.height/2));if(d<bd){bd=d;best=i;}});
+      to=best;mark(to);
+    };
+    const end=()=>{
+      document.removeEventListener('pointermove',move);
+      document.removeEventListener('pointerup',end);
+      document.removeEventListener('pointercancel',end);
+      all.forEach(t=>{t.style.outline='';t.style.transform='';t.style.zIndex='';t.style.boxShadow='';t.style.transition='';});
+      this._picDrag=false;
+      if(started&&to!==from){
+        const dr=this.state.lineupDraft;const next=(dr.pics||[]).slice();
+        next.splice(to,0,next.splice(from,1)[0]);
+        this.setState({lineupDraft:{...dr,pics:next}});
+      }
+    };
+    document.addEventListener('pointermove',move,{passive:false});
+    document.addEventListener('pointerup',end);
+    document.addEventListener('pointercancel',end);
   }
   ymd(...a){return ScotSwimCore.ymd(...a);}
   // The training schedule is keyed by the Monday (YYYY-MM-DD) of the week
@@ -4224,7 +4341,7 @@ class Component extends DCLogic {
       selfGoals:{},selfOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
       notifications:[],notifOpen:false,notifSeenAt:0,
       meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',deadNotifs:{},
-      lineupDraft:{pages:[],notes:''},lineupZoom:null,
+      lineupDraft:{pics:[],pdf:null,notes:''},lineupZoom:null,
       announcements:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
   }
   signOutEverything(){
@@ -4462,7 +4579,12 @@ class Component extends DCLogic {
   async openNotificationTarget(n){
     n=n||{};
     const type=n.type||'',ref=n.ref||'';
-    const gone=await this.notificationTargetGone(n);
+    // Flagged by the coach's delete (see markTargetDeleted) — no need to
+    // look anything up.
+    const gone=n.targetDeleted
+      ?({announcement:'That announcement was deleted by your coach.',
+         lineup:'That lineup was taken down by your coach.'}[type]||'That was deleted by your coach.')
+      :await this.notificationTargetGone(n);
     if(gone){
       // Stay put — there's nowhere to take them — say why, and mark the
       // row so the list stops offering it as something to open. The rest
@@ -4784,7 +4906,8 @@ class Component extends DCLogic {
   }
   deleteAnnouncement(id){
     if(!this.fbReady)return;
-    this.db.collection('announcements').doc(id).delete().catch(()=>{});
+    this.db.collection('announcements').doc(id).delete()
+      .then(()=>this.markTargetDeleted('announcement',id)).catch(()=>{});
   }
   // Debounced whole-doc write, per week — a coach editing a field-by-field
   // weekly schedule shouldn't hit Firestore on every keystroke, same
@@ -5251,36 +5374,49 @@ class Component extends DCLogic {
     // own meet.
     const nextMeetId=nextMeet.id||null;
     const lineupNotesDoc=st.lineupMeet?this.lineupNotesFor(st.lineupMeet):null;
+    // Pics first, then the PDF's pages, each labelled with where it came
+    // from so athletes can tell a coach's photo from page 2 of the PDF.
     const lineupPages=st.lineupMeet?this.lineupPagesFor(st.lineupMeet).map((p,i,all)=>({
-      img:p.img,label:'PAGE '+(i+1)+' OF '+all.length,
+      img:p.img,label:(i+1)+' OF '+all.length,
+      srcLabel:p.src==='pdf'?'PDF · PAGE '+(p.pdfPage||1):'PIC',
+      srcBg:p.src==='pdf'?'rgba(107,31,51,.1)':'rgba(27,122,120,.12)',
+      srcFg:p.src==='pdf'?'#6B1F33':'#1B7A78',
       onTap:()=>this.setState({lineupZoom:p.img})})):[];
     const lineupMeetRow=st.lineupMeet
       ?(meetsList.find(m=>m.id===st.lineupMeet)||null):null;
     const lineupHead=lineupMeetRow?this.meetDateParts(lineupMeetRow.dateStart,lineupMeetRow.dateEnd):null;
-    const draft=st.lineupDraft||{pages:[],notes:''};
+    const draft=st.lineupDraft||{pics:[],pdf:null,notes:''};
+    const draftPics=draft.pics||[];
     const setDraft=patch=>this.setState({lineupDraft:{...this.state.lineupDraft,...patch}});
     const openLineupCompose=()=>{
       if(!nextMeetId)return;
-      // Opens with whatever is already posted, so "replace" is really an
-      // edit — a coach fixing one page doesn't have to re-add the rest.
-      this.setState({lineupCompose:nextMeetId,lineupSrc:'photo',
-        lineupDraft:{pages:this.lineupPagesFor(nextMeetId).map(p=>p.img),
-                     notes:(this.lineupNotesFor(nextMeetId)||{}).notes||''}});
+      // Opens with whatever is already posted, so editing starts from the
+      // lineup as it stands rather than a blank sheet.
+      this._draftOriginal=this.hasLineupFor(nextMeetId)?this.lineupAsDraft(nextMeetId):null;
+      this.setState({lineupCompose:nextMeetId,
+        lineupDraft:this._draftOriginal?{...this._draftOriginal,pics:[...this._draftOriginal.pics]}:{pics:[],pdf:null,notes:''}});
     };
     const addLineupPhotos=e=>{
       const files=[...(e.target.files||[])];
       e.target.value='';
       files.forEach(f=>this.readLineupImage(f,img=>{
         const d=this.state.lineupDraft;
-        this.setState({lineupDraft:{...d,pages:[...d.pages,img]}});
+        this.setState({lineupDraft:{...d,pics:[...(d.pics||[]),img]}});
       }));
     };
     const addLineupPdf=e=>{const f=(e.target.files||[])[0];e.target.value='';this.readLineupPdf(f);};
-    const draftPages=draft.pages.map((img,i)=>({img,n:String(i+1),
-      remove:()=>setDraft({pages:draft.pages.filter((_,k)=>k!==i)})}));
-    const srcTabs=[['photo','Photos'],['pdf','PDF']].map(([id,n])=>({n,
-      bg:st.lineupSrc===id?M:'transparent',fg:st.lineupSrc===id?C:'rgba(42,18,24,.5)',
-      onTap:()=>this.setState({lineupSrc:id})}));
+    // A pic added in this session is outlined and marked NEW, so a coach
+    // editing a long lineup can see what they've just put in.
+    const origPics=(this._draftOriginal&&this._draftOriginal.pics)||[];
+    const editPics=draftPics.map((img,i)=>{
+      const isNew=!!this._draftOriginal&&!origPics.includes(img);
+      return {img,n:String(i+1)+(isNew?' · NEW':''),
+        ring:isNew?'2px solid #1B7A78':'1px solid rgba(42,18,24,.15)',
+        dragDown:e=>this.beginPicDrag(e,i),
+        remove:()=>setDraft({pics:draftPics.filter((_,k)=>k!==i)})};
+    });
+    const draftPdf=draft.pdf&&draft.pdf.pages&&draft.pdf.pages.length?draft.pdf:null;
+    const pdfThumbs=draftPdf?draftPdf.pages.slice(0,5).map(img=>({img})):[];
     const composeMeet=st.lineupCompose?(meetsList.find(m=>m.id===st.lineupCompose)||null):null;
     const composeParts=composeMeet?this.meetDateParts(composeMeet.dateStart,composeMeet.dateEnd):null;
     // athlete home
@@ -5438,7 +5574,7 @@ class Component extends DCLogic {
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
       const isNew=n.createdAt>seenAt;
-      const gone=!!dead[n.id];
+      const gone=!!dead[n.id]||!!n.targetDeleted;
       return {id:n.id,msg:n.msg,ago:this.agoLabel(n.createdAt),
         icon:look.icon,iconBg:gone?'rgba(42,18,24,.28)':look.iconBg,cta:look.cta,isNew,
         // Unread rows are solid white with a maroon edge; read ones sit
@@ -6300,13 +6436,23 @@ class Component extends DCLogic {
       postLineupLabel:nextMeetId&&this.hasLineupFor(nextMeetId)?'✎ EDIT MEET LINEUP':'＋ POST MEET LINEUP',
       openLineupCompose,
       showLineupCompose:!!st.lineupCompose,
-      closeLineupCompose:()=>this.setState({lineupCompose:null,lineupDraft:{pages:[],notes:''}}),
+      closeLineupCompose:()=>this.setState({lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''}}),
       composeMeetName:composeMeet?composeMeet.n:'',
       composeMeetDate:composeParts?composeParts.d:'',
-      srcTabs,isPhotoSrc:st.lineupSrc==='photo',isPdfSrc:st.lineupSrc==='pdf',
+      composeIsEdit:!!(st.lineupCompose&&this.hasLineupFor(st.lineupCompose)),
+      composeIsNew:!(st.lineupCompose&&this.hasLineupFor(st.lineupCompose)),
+      composeKicker:st.lineupCompose&&this.hasLineupFor(st.lineupCompose)?'EDIT MEET LINEUP':'POST MEET LINEUP',
+      composeDoneLabel:st.lineupCompose&&this.hasLineupFor(st.lineupCompose)?'DONE':'POST LINEUP',
       addLineupPhotos,addLineupPdf,
-      draftPages,draftHasPages:draftPages.length>0,
-      draftPageCount:draftPages.length===1?'1 page':draftPages.length+' pages',
+      editPics,hasEditPics:editPics.length>0,noEditPics:editPics.length===0,
+      picsCountLabel:editPics.length?' · '+editPics.length:'',
+      hasDraftPdf:!!draftPdf,noDraftPdf:!draftPdf,
+      draftPdfName:draftPdf?draftPdf.name:'',
+      draftPdfMeta:draftPdf?(draftPdf.pages.length===1?'1 page':draftPdf.pages.length+' pages')+(editPics.length?' · shown after the pics':''):'',
+      pdfThumbs,pdfMore:draftPdf&&draftPdf.pages.length>5?'+'+(draftPdf.pages.length-5):'',
+      hasPdfMore:!!(draftPdf&&draftPdf.pages.length>5),
+      removeDraftPdf:()=>setDraft({pdf:null}),
+      clearDraftNote:()=>setDraft({notes:''}),
       draftNotes:draft.notes,
       onDraftNotes:e=>setDraft({notes:e.target.value}),
       lineupBusy:st.lineupBusy,lineupWorking:!!st.lineupBusy,lineupIdle:!st.lineupBusy,
