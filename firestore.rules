@@ -120,6 +120,18 @@ service cloud.firestore {
       allow write: if isCoach();
     }
 
+    // Which account a phone's push token currently belongs to — whoever
+    // signed in on it last. The id is the token itself, which only that
+    // phone knows. Anyone signed in may claim a token for themselves
+    // (that is what signing in on a phone does), never for someone else,
+    // and only the current owner may release it. Nothing reads these but
+    // the Cloud Function, which runs with admin rights.
+    match /pushTokens/{token} {
+      allow create, update: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow read: if false;
+    }
+
     // Posted meet lineups: one document per page image, plus one holding
     // the coach's notes. Read by the whole team, written by coaches. The
     // app only offers the closest meet, but that is a UI decision — these
