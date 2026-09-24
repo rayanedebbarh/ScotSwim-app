@@ -20,6 +20,20 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
         && profile().rosterId == rosterId;
     }
+    // An athlete telling the coaching staff about their own new PB, a
+    // coach-set goal they just hit, or that they've joined the team —
+    // the only notifications an athlete may ever write. Always
+    // self-attributed, always aimed at coaches only (never 'team' or
+    // another athlete's roster id, so it can never reach a teammate's
+    // bell), and always one of these three kinds.
+    function isAthleteNotification() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && profile().role == 'athlete'
+        && request.resource.data.author == profile().rosterId
+        && request.resource.data.target == 'coaches'
+        && request.resource.data.type in ['pb', 'goalHit', 'rosterJoin'];
+    }
 
     // ---- accounts ------------------------------------------------
     match /users/{uid} {
@@ -143,17 +157,24 @@ service cloud.firestore {
       allow create, update, delete: if isCoach();
     }
 
-    // What a coach did that athletes should hear about. Team-wide items
-    // target 'team'; a goal targets one athlete's roster id. Created by
-    // coaches, read by everyone — the Cloud Function that turns these into
-    // push notifications runs with admin rights and bypasses these rules.
+    // What a coach did that athletes should hear about, plus the handful
+    // of things an athlete's own action tells the coaching staff (see
+    // isAthleteNotification). Team-wide items target 'team'; a goal
+    // targets one athlete's roster id; a coach-only item (an athlete's PB,
+    // a goal hit, a roster join, an unexcused absence) targets 'coaches'.
+    // Read by everyone, same as every other target value here — the
+    // client filters what actually shows in a given bell by target and
+    // role. The Cloud Function that turns these into push notifications
+    // runs with admin rights and bypasses these rules.
     match /notifications/{notificationId} {
       allow read: if signedIn();
-      allow create, delete: if isCoach();
+      allow create: if isCoach() || isAthleteNotification();
+      allow delete: if isCoach();
       // When a coach deletes an announcement or lineup, its notifications
-      // are flagged so every athlete's bell shows them as Deleted. That
-      // one flag is the only thing a coach may change on a notification
-      // that already exists — never the message, target or author.
+      // are flagged so tapping one can say what happened instantly instead
+      // of needing a round trip to check. That one flag is the only thing
+      // a coach may change on a notification that already exists — never
+      // the message, target or author.
       allow update: if isCoach()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['targetDeleted'])
         && request.resource.data.targetDeleted == true;
