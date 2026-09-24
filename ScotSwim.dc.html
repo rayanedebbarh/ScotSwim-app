@@ -1363,7 +1363,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 </div>
                 <div style="flex:1;min-width:0">
                   <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">TIME</div>
-                  <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+                  <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" onFocus="{{ r.onTimeFocus }}" onBlur="{{ r.onTimeBlur }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
                 </div>
                 <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
               </div>
@@ -1705,7 +1705,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
     <div style="background:#F2EDE5;border-radius:20px 20px 0 0;max-height:86%;overflow-y:auto;animation:fadeUp .3s ease">
       <div style="background:#6B1F33;color:#F5E9DC;padding:17px 20px;border-radius:20px 20px 0 0;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:1">
         <div style="flex:1">
-          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">FROM YOUR COACHES</div>
+          <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:#7fd0cd">{{ notifKicker }}</div>
           <div style="display:flex;align-items:center;gap:10px;margin-top:2px">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:25px;line-height:1.1">Notifications</div>
             <sc-if value="{{ hasNotifNew }}" hint-placeholder-val="{{ true }}">
@@ -1719,7 +1719,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-if value="{{ notifEmpty }}" hint-placeholder-val="{{ true }}">
           <div style="text-align:center;padding:38px 14px 28px">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:2px;color:rgba(42,18,24,.45)">ALL CAUGHT UP</div>
-            <div style="font-size:14px;color:rgba(42,18,24,.55);margin-top:8px;line-height:1.5">Announcements, lineups, schedule changes and new goals will show up here.</div>
+            <div style="font-size:14px;color:rgba(42,18,24,.55);margin-top:8px;line-height:1.5">{{ notifEmptyMsg }}</div>
           </div>
         </sc-if>
         <!-- New first, then earlier: the headings show where unread stops. -->
@@ -3296,6 +3296,8 @@ class Component extends DCLogic {
         timeValue:entry.time||'',dateValue:entry.date||'',
         timePlaceholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
         onTimeChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,time:e2.target.value}}),
+        onTimeFocus:()=>this.beginTimeEdit(s.id,entry.eventId),
+        onTimeBlur:()=>this.checkTimeEditResult(s.id,entry.eventId),
         onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
     });
@@ -3953,6 +3955,16 @@ class Component extends DCLogic {
     const dayRec={...(this.state.attendance[day]||{}),[id]:val};
     const attendance={...this.state.attendance,[day]:dayRec};
     this.setState({attendance});this.saveAttendance(attendance);this.syncAttendanceDay(day,dayRec);
+    // Tells the OTHER coach, not the one who just marked it — pushNotification
+    // already skips a coach's own posts from their own bell (myNotifications
+    // filters out n.author===me). Only firing the moment it becomes
+    // unexcused, not every tap of the cycle, so correcting a mis-tap back
+    // to present right after doesn't also send one.
+    if(val==='unexcused'){
+      const dayLabel=new Date(day+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      this.pushNotification({type:'absence',target:'coaches',tab:'attendance',ref:id,
+        msg:id+' was marked unexcused for practice on '+dayLabel});
+    }
   }
   markAllPresent(day,roster){
     const dayRec={...(this.state.attendance[day]||{})};
@@ -4616,6 +4628,22 @@ class Component extends DCLogic {
       createdAt:Date.now()
     }).catch(()=>{});
   }
+  // Same shape as pushNotification, but for the few things an ATHLETE's
+  // own action should tell the coaching staff about — a new PB, a
+  // coach-set goal reached, joining the roster. Always target:'coaches'
+  // (never reaches a teammate's bell) and always self-attributed, matching
+  // exactly what firestore.rules' isAthleteNotification allows an athlete
+  // to write. `author` is only ever passed explicitly at signup, where
+  // this.state.userId hasn't caught up to the just-created account yet.
+  pushAthleteNotification(n){
+    if(!this.fbReady)return;
+    const author=n.author||this.state.userId||'';
+    this.db.collection('notifications').add({
+      type:n.type,msg:n.msg,target:'coaches',tab:n.tab||'home',ref:n.ref||'',
+      author,authorName:author,
+      createdAt:Date.now()
+    }).catch(()=>{});
+  }
   // Coalesces a run of taps on one athlete+event into a single "new goal"
   // notification, sent once the coach has settled on a number.
   announceGoalSoon(rosterId,athleteName,eventName){
@@ -4627,6 +4655,52 @@ class Component extends DCLogic {
       this.pushNotification({type:'goal',target:rosterId,tab:'goals',ref:eventName,
         msg:this.coachDisplayName()+' set a new goal for you in '+eventName});
     },6000);
+  }
+  goalTarget(...a){return ScotSwimCore.goalTarget(...a);}
+  goalReached(...a){return ScotSwimCore.goalReached(...a);}
+  isNewPB(...a){return ScotSwimCore.isNewPB(...a);}
+  // Snapshots the pre-edit personal best and goal state when a My Events
+  // time field is focused, so checkTimeEditResult (on blur) can tell
+  // whether whatever was just typed newly crossed either one. Never
+  // checked mid-keystroke: a half-typed time ("1:0") fails to parse and
+  // simply drops out of the athlete's history until it's complete, so
+  // comparing on every change would catch transient, not-yet-finished
+  // values and could easily misfire.
+  beginTimeEdit(rosterId,evId){
+    const s=this.byId[rosterId];
+    const prevBest=(s&&s.pbs)?s.pbs[evId]:null;
+    const delta=this.state.goalDelta[rosterId+'|'+evId];
+    const dive=this.evMap[evId].dive;
+    this._timeEditSnapshot={rosterId,evId,prevBest,hadGoal:delta!==undefined,
+      prevGoalMet:(prevBest!=null&&delta!==undefined)
+        ?this.goalReached(prevBest,this.goalTarget(prevBest,delta,dive),dive):false};
+  }
+  // A new PB tells the coaching staff outright. A newly-hit goal only
+  // counts when a coach actually set one for this event (goalDelta has a
+  // real entry, not just the default baseline every event gets) — hitting
+  // an untouched auto-generated target isn't something a coach asked to
+  // hear about.
+  checkTimeEditResult(rosterId,evId){
+    const snap=this._timeEditSnapshot;
+    this._timeEditSnapshot=null;
+    if(!snap||snap.rosterId!==rosterId||snap.evId!==evId)return;
+    const s=this.byId[rosterId];
+    const newBest=s&&s.pbs?s.pbs[evId]:null;
+    if(newBest==null)return;
+    const dive=this.evMap[evId].dive;
+    const evName=this.evMap[evId].n;
+    if(this.isNewPB(snap.prevBest,newBest,dive)){
+      this.pushAthleteNotification({type:'pb',tab:'team',ref:rosterId,
+        msg:rosterId+' set a new PB in '+evName+' — '+this.fmtEv(evId,newBest)});
+    }
+    if(snap.hadGoal&&!snap.prevGoalMet){
+      const delta=this.state.goalDelta[rosterId+'|'+evId];
+      const target=this.goalTarget(newBest,delta,dive);
+      if(this.goalReached(newBest,target,dive)){
+        this.pushAthleteNotification({type:'goalHit',tab:'team',ref:rosterId,
+          msg:rosterId+' hit their goal in '+evName});
+      }
+    }
   }
   // ---- where a notification leads ----------------------------------
   // The one place that knows where each kind of notification lives.
@@ -4719,6 +4793,14 @@ class Component extends DCLogic {
     if(type==='schedule'){
       this.setState({...base,tab:'meets',focusKey:''});
       this.scrollToFocus('schedule');
+      return;
+    }
+    if(type==='pb'||type==='goalHit'||type==='rosterJoin'){
+      this.setState({...base,tab:'team',sel:ref,meEvent:null});
+      return;
+    }
+    if(type==='absence'){
+      this.setState({...base,tab:'attendance'});
       return;
     }
     // Announcements, and anything of a kind this build doesn't know.
@@ -4888,11 +4970,14 @@ class Component extends DCLogic {
     if(this.fbReady&&u)this.db.collection('users').doc(u.uid).set({notifSeenAt:now},{merge:true}).catch(()=>{});
   }
   // Only what this person should see, newest first, and never an echo of
-  // something they did themselves.
+  // something they did themselves. 'coaches' is the one target that isn't
+  // a plain string match — it's a role, not a person, so it's whichever
+  // coach happens to be looking rather than one fixed id.
   myNotifications(){
     const me=this.state.userId;
+    const forCoaches=this.isCoachRole();
     return (this.state.notifications||[])
-      .filter(n=>n.author!==me&&(n.target==='team'||n.target===me))
+      .filter(n=>n.author!==me&&(n.target==='team'||n.target===me||(n.target==='coaches'&&forCoaches)))
       .slice(0,30);
   }
   // "just now" / "3h ago" / "Tue" — short enough for a one-line row.
@@ -5355,6 +5440,11 @@ class Component extends DCLogic {
             this.setState({authBusy:false,authUser:cred.user,screen:'app',role:info.role,userId:info.rosterId,tab:'home',sel:null,menuOpen:false,goalSeg,teamSeg,attSeg,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:''});
             if(info.role==='athlete'){this.startMyEventsSync(info.rosterId);this.startTrainingLogSync(info.rosterId);this.startGoalWorkoutsSync(info.rosterId);}
             this.startTeamContentSync();this.startNotificationsSync();this.startLineupsSync();this.setupPush();
+            // this.state.userId hasn't caught up to the setState above yet
+            // (it's still async), so the roster id is passed explicitly
+            // rather than read off state.
+            if(info.role==='athlete')this.pushAthleteNotification({type:'rosterJoin',tab:'team',ref:info.rosterId,
+              author:info.rosterId,msg:info.rosterId+' joined the team'});
           })
       ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
     };
@@ -5694,7 +5784,11 @@ class Component extends DCLogic {
       announcement:{icon:'\ud83d\udce3',iconBg:'#6B1F33',cta:'Read it'},
       schedule:{icon:'\ud83d\udcc5',iconBg:'#1B7A78',cta:'See the schedule'},
       goal:{icon:'\ud83c\udfaf',iconBg:'#2A1218',cta:'See your goal'},
-      lineup:{icon:'\ud83d\udccb',iconBg:'#1B7A78',cta:'See the lineup'}
+      lineup:{icon:'\ud83d\udccb',iconBg:'#1B7A78',cta:'See the lineup'},
+      pb:{icon:'\ud83c\udfc6',iconBg:'#1B7A78',cta:'See their progress'},
+      goalHit:{icon:'\ud83c\udfaf',iconBg:'#6B1F33',cta:'See their goal'},
+      rosterJoin:{icon:'\ud83d\udc4b',iconBg:'#1B7A78',cta:'View profile'},
+      absence:{icon:'\u26a0\ufe0f',iconBg:'#6B1F33',cta:'See attendance'}
     };
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
@@ -5718,9 +5812,18 @@ class Component extends DCLogic {
     // which ones were new.
     const openNotifs=()=>this.setState({notifOpen:true});
     const closeNotifs=()=>{this.markNotificationsSeen();this.setState({notifOpen:false});};
+    // A coach doesn't have coaches notifying them — "From your coaches"
+    // only makes sense read by an athlete. Coaches are peers, not a
+    // hierarchy, so the same reframed panel serves swim and diving coach
+    // alike; only the content each of them actually gets (myNotifications)
+    // differs, same as it always has.
+    const notifKicker=this.isCoachRole()?'TEAM ACTIVITY':'FROM YOUR COACHES';
+    const notifEmptyMsg=this.isCoachRole()
+      ?'Announcements, lineups, schedule changes, PBs, goals hit and new teammates will show up here.'
+      :'Announcements, lineups, schedule changes and new goals will show up here.';
     const notifVals={
       notifOpen:!!st.notifOpen,closeNotifs,
-      openNotifs,notifRows,notifEmpty:notifRows.length===0,
+      openNotifs,notifRows,notifEmpty:notifRows.length===0,notifKicker,notifEmptyMsg,
       notifNew,notifEarlier,hasNotifNew:notifNew.length>0,hasNotifEarlier:notifEarlier.length>0,
       notifNewLabel:notifNew.length===1?'1 new':notifNew.length+' new',
       hasUnread:unread>0,unreadLabel:unread>9?'9+':String(unread)
