@@ -100,6 +100,28 @@
     const time=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
     return day+', '+date+' · '+time;
   },
+  // The coach's target time/height for an event, from the athlete's
+  // current personal best plus whatever adjustment ("delta") the coach
+  // dialed in — the same formula the goal-progress bar uses (mkGoals +
+  // goalOf in the app), factored out here so a before/after comparison
+  // (did this edit just cross the goal?) can call it with an explicit pb
+  // rather than the live, already-mutated roster object.
+  goalTarget(pb,delta,isDive){
+    const baseline=isDive?Math.round(pb*1.05*10)/10:Math.round(pb*(pb<60?0.988:0.991)*100)/100;
+    return Math.round(baseline*2)/2+(delta||0);
+  },
+  // Whether a personal best of `pb` meets a `target` — lower is better for
+  // swimming, higher for diving.
+  goalReached(pb,target,isDive){
+    return isDive?pb>=target:pb<=target;
+  },
+  // Whether `newBest` is a genuine improvement on `prevBest` — null/undefined
+  // on either side means there was nothing to compare (a brand new event
+  // with no prior record isn't "beating" anything).
+  isNewPB(prevBest,newBest,isDive){
+    if(prevBest==null||newBest==null)return false;
+    return isDive?newBest>prevBest:newBest<prevBest;
+  },
   meetDateParts(startISO,endISO){
     const MON=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const WD=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];

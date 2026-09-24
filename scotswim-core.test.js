@@ -122,4 +122,28 @@ check('an unnamed untagged session is not a lift', C.isLiftSession({}), false);
   check('has a time', /\d{1,2}:\d{2}\s?[AP]M/i.test(s), true);
 }
 
+// --- goalTarget / goalReached / isNewPB: the coach-goal-hit and new-PB math ---
+{
+  // Swimmer: 0.988 under 60s, 0.991 at/over 60s, then rounded to the
+  // nearest .5, plus the coach's adjustment.
+  check('swim baseline under 60s', C.goalTarget(30, 0, false), 29.5);
+  check('swim baseline at/over 60s', C.goalTarget(65, 0, false), 64.5);
+  check('swim baseline plus a coach delta', C.goalTarget(30, -0.5, false), 29);
+  // Diver: 1.05x, rounded to nearest .1, plus delta.
+  check('dive baseline', C.goalTarget(200, 0, true), 210);
+  check('dive baseline plus a coach delta', C.goalTarget(200, 2, true), 212);
+
+  check('swim: faster than target reaches it', C.goalReached(29.4, 29.5, false), true);
+  check('swim: slower than target misses it', C.goalReached(29.7, 29.5, false), false);
+  check('dive: higher than target reaches it', C.goalReached(211, 210, true), true);
+  check('dive: lower than target misses it', C.goalReached(209, 210, true), false);
+
+  check('swim: a faster time is a new PB', C.isNewPB(30.0, 29.5, false), true);
+  check('swim: a slower time is not a new PB', C.isNewPB(30.0, 30.5, false), false);
+  check('dive: a higher score is a new PB', C.isNewPB(200, 205, true), true);
+  check('dive: a lower score is not a new PB', C.isNewPB(200, 195, true), false);
+  check('no prior best means nothing to beat', C.isNewPB(null, 29.5, false), false);
+  check('no new value means no comparison', C.isNewPB(30.0, undefined, false), false);
+}
+
 console.log(`✓ ${passed} assertions passed`);
