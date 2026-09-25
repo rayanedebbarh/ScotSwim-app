@@ -171,7 +171,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ hasAuthMsg }}" hint-placeholder-val="{{ false }}">
         <div style="font-size:12.5px;color:#7fd0cd;font-weight:600">{{ authMsg }}</div>
       </sc-if>
-      <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:none;background:#6B1F33;color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
+      <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:1.5px solid #7fd0cd;background:rgba(127,208,205,.12);color:#7fd0cd;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
       <button onClick="{{ doForgotPassword }}" style="background:none;border:none;color:rgba(245,233,220,.7);font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0;text-align:center;text-decoration:underline">Forgot password?</button>
     </div>
   </div>
