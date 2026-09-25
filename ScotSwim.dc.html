@@ -733,6 +733,34 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <button onClick="{{ openNextLineup }}" style="border:1px solid rgba(127,208,205,.5);background:rgba(127,208,205,.12);color:#7fd0cd;border-radius:8px;padding:10px 14px;font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;cursor:pointer;flex:none;white-space:nowrap">LINEUP</button>
       </div>
+      <!-- General communication about the closest meet — bus time,
+           warm-up, what to wear — separate from the lineup's own note,
+           which is about the heat sheet, not the team. Athletes see the
+           same card read-only; only a coach gets the compose box and the
+           per-row ✕. -->
+      <sc-if value="{{ hasNextMeet }}" hint-placeholder-val="{{ false }}">
+        <div data-focus="meet-updates" style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px;scroll-margin-top:12px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">MEET UPDATES</div>
+          <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <input value="{{ meetUpdatePost }}" onChange="{{ meetUpdatePostChange }}" placeholder="Bus time, warm-up, what to wear…" style="flex:1;padding:9px 10px;border:1.5px solid rgba(42,18,24,.2);border-radius:8px;font-family:'Barlow';font-size:13px;outline:none;box-sizing:border-box">
+              <button onClick="{{ meetUpdatePostSubmit }}" style="border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:0 16px;font-family:'Barlow Condensed';font-weight:700;font-size:13px;letter-spacing:1px;cursor:pointer">POST</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ meetUpdatesEmpty }}" hint-placeholder-val="{{ true }}">
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">{{ meetUpdatesEmptyMsg }}</div>
+          </sc-if>
+          <sc-for list="{{ meetUpdateRows }}" as="u" hint-placeholder-count="2">
+            <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 8px;margin:0 -8px;border-top:1px solid rgba(42,18,24,.07);background:{{ u.hlBg }};border-radius:6px;transition:background .6s ease">
+              <div style="width:7px;height:7px;border-radius:50%;background:#1B7A78;margin-top:5px;flex:none"></div>
+              <div style="flex:1;font-size:13.5px;line-height:1.4">{{ u.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ u.authorName }} · {{ u.d }}</div></div>
+              <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ u.remove }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:13px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
       <!-- Coaches post a lineup for the closest meet only, from the banner
            that names it — so there is never a question of which meet a
            lineup is being posted against. -->
@@ -2325,7 +2353,7 @@ class Component extends DCLogic {
     this.state={screen:null,role:null,userId:'Rayane Debbarh',tab:'home',uname:'',pass:'',teamSeg:'M',teamView:'roster',attSeg:'M',sel:null,
       simOpp:'Hope',simMode:'auto',simGender:'M',oppGroup:'MIAA',pickerEv:null,lineup:{},goalSeg:'M',goalSel:null,goalDelta:{},selfGoals:{},selfOrder:{},coachGoalOrder:{},rivalId:null,showAllSelf:false,showAllCoach:false,swimEv:'ALL',swimSort:'date',teamSort:'rand',rivalEv:null,meEvent:null,toast:'',menuOpen:false,bios:{},bioEdit:null,stats:{},statsEdit:null,myEvents:{},attendance:{},myPhotos:{},photoSheet:null,notifications:[],notifSeenAt:0,notifOpen:false,diveTimesEv:'1M',diveTimesDives:'6',lineupMeet:null,
       meetLineups:[],lineupCompose:null,lineupDraft:{pics:[],pdf:null,notes:''},lineupBusy:'',lineupZoom:null,rosterLoaded:false,focusKey:'',
-      announcements:[],annPost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
+      announcements:[],annPost:'',meetUpdates:[],meetUpdatePost:'',trainWeeks:{},trainEditing:false,trainSeg:'schedule',trainWeekKey:null,
       workoutSheets:[],libComposeCat:null,libDraft:{day:'',time:'',text:'',photo:''},trainingLog:{},soloLifts:{},myEventsExpanded:{},progressSeg:'times',goalWorkouts:{},goalWorkoutSaveState:{},
       authChecking:true,authUser:null,authErr:'',authMsg:'',authBusy:false,inviteToken:null,inviteInfo:undefined,signupPass:'',signupPass2:'',
       showInvitePanel:false,inviteRosterId:'',inviteEmail:'',inviteBusy:false,inviteErr:'',inviteResult:'',
@@ -4450,7 +4478,7 @@ class Component extends DCLogic {
       notifications:[],notifOpen:false,notifSeenAt:0,
       meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',
       lineupDraft:{pics:[],pdf:null,notes:''},lineupZoom:null,
-      announcements:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
+      announcements:[],meetUpdates:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
   }
   signOutEverything(){
     this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();
@@ -4746,6 +4774,12 @@ class Component extends DCLogic {
         const names=u.primary.map(ev=>this.evMap[ev]&&this.evMap[ev].n);
         return names.includes(ref)?null:'That goal was removed by your coach.';
       }
+      if(type==='meetUpdate'){
+        if((this.state.meetUpdates||[]).some(u=>u.id===ref))return null;
+        if(!this.fbReady)return null;
+        const d=await this.db.collection('meetUpdates').doc(ref).get();
+        return d.exists?null:'That update was removed by your coach.';
+      }
     }catch(e){}
     return null;
   }
@@ -4756,7 +4790,8 @@ class Component extends DCLogic {
     // look anything up.
     const gone=n.targetDeleted
       ?({announcement:'That announcement was deleted by your coach.',
-         lineup:'That lineup was taken down by your coach.'}[type]||'That was deleted by your coach.')
+         lineup:'That lineup was taken down by your coach.',
+         meetUpdate:'That update was removed by your coach.'}[type]||'That was deleted by your coach.')
       :await this.notificationTargetGone(n);
     if(gone){
       // Stay put — there's nowhere to take them — and just say why. The
@@ -4801,6 +4836,11 @@ class Component extends DCLogic {
     }
     if(type==='absence'){
       this.setState({...base,tab:'attendance'});
+      return;
+    }
+    if(type==='meetUpdate'){
+      this.setState({...base,tab:'meets',focusKey:'meetupdate:'+ref});
+      this.scrollToFocus('meet-updates');
       return;
     }
     // Announcements, and anything of a kind this build doesn't know.
@@ -4996,6 +5036,18 @@ class Component extends DCLogic {
       .onSnapshot(snap=>{
         this.setState({announcements:snap.docs.map(d=>({id:d.id,...d.data()}))});
       },()=>{});
+    // What a coach wants the team to know about a specific meet — bus
+    // time, warm-up, what to wear — separate from the lineup's own note,
+    // which is about the heat sheet, not general communication. One
+    // listener across every meet (like workoutSheets below), filtered to
+    // the closest meet client-side in renderVals: a season has too few
+    // meets, each with too few updates, for that to ever miss anything
+    // the 30-item cap would actually cut off.
+    if(this._meetUpdatesUnsub)this._meetUpdatesUnsub();
+    this._meetUpdatesUnsub=this.db.collection('meetUpdates').orderBy('postedAt','desc').limit(30)
+      .onSnapshot(snap=>{
+        this.setState({meetUpdates:snap.docs.map(d=>({id:d.id,...d.data()}))});
+      },()=>{});
     // Weekly training schedule — keyed by the Monday of the week it
     // belongs to (see mondayKey), so any week is just a different doc id
     // rather than one repeating template. Two listeners run at once: a
@@ -5069,6 +5121,7 @@ class Component extends DCLogic {
   }
   stopTeamContentSync(){
     if(this._annUnsub){this._annUnsub();this._annUnsub=null;}
+    if(this._meetUpdatesUnsub){this._meetUpdatesUnsub();this._meetUpdatesUnsub=null;}
     if(this._trainThisUnsub){this._trainThisUnsub();this._trainThisUnsub=null;}
     if(this._trainSelUnsub){this._trainSelUnsub();this._trainSelUnsub=null;}
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
@@ -5092,6 +5145,24 @@ class Component extends DCLogic {
     if(!this.fbReady)return;
     this.db.collection('announcements').doc(id).delete()
       .then(()=>this.markTargetDeleted('announcement',id)).catch(()=>{});
+  }
+  // meetName is passed in rather than looked up here — the caller already
+  // has it from the same nextMeet it read meetId off, and by the time this
+  // runs asynchronously the closest meet could in principle have changed.
+  postMeetUpdate(meetId,meetName){
+    const text=(this.state.meetUpdatePost||'').trim();
+    if(!text||!this.fbReady||!meetId)return;
+    const authorName=this.state.role==='dcoach'?'Coach Stone':'Coach Hamstra';
+    this.setState({meetUpdatePost:''});
+    const id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'mu-'+Date.now()+'-'+Math.random().toString(36).slice(2,8);
+    this.db.collection('meetUpdates').doc(id).set({meetId,text,postedAt:Date.now(),authorName}).catch(()=>{});
+    this.pushNotification({type:'meetUpdate',target:'team',tab:'meets',ref:id,
+      msg:authorName+' posted an update for '+(meetName||'the meet')});
+  }
+  deleteMeetUpdate(id){
+    if(!this.fbReady)return;
+    this.db.collection('meetUpdates').doc(id).delete()
+      .then(()=>this.markTargetDeleted('meetUpdate',id)).catch(()=>{});
   }
   // Debounced whole-doc write, per week — a coach editing a field-by-field
   // weekly schedule shouldn't hit Firestore on every keystroke, same
@@ -5562,6 +5633,22 @@ class Component extends DCLogic {
     // one that can be posted to, and the old lineup stays readable on its
     // own meet.
     const nextMeetId=nextMeet.id||null;
+    // General communication about the closest meet — bus time, warm-up,
+    // what to wear — kept separate from the lineup's own note, which is
+    // specifically about the heat sheet, not the team. Same live list for
+    // every role; only which meet it's filtered to changes as the season
+    // moves on.
+    const hasNextMeet=!!nextMeetId;
+    const meetUpdatesForNext=(st.meetUpdates||[]).filter(u=>u.meetId===nextMeetId);
+    const meetUpdateRows=meetUpdatesForNext.map(u=>({id:u.id,t:u.text,d:this.fmtAnnDate(u.postedAt),authorName:u.authorName,
+      hlBg:st.focusKey==='meetupdate:'+u.id?'rgba(27,122,120,.13)':'transparent',
+      remove:()=>this.deleteMeetUpdate(u.id)}));
+    const meetUpdatesEmpty=meetUpdateRows.length===0;
+    const meetUpdatePostChange=e=>this.setState({meetUpdatePost:e.target.value});
+    const meetUpdatePostSubmit=()=>this.postMeetUpdate(nextMeetId,nextMeet.n);
+    const meetUpdatesEmptyMsg=isCoach
+      ?'Nothing posted yet — bus time, warm-up, what to wear… it shows up here and in everyone’s notifications.'
+      :'No updates yet for this meet — check back closer to the day.';
     const lineupNotesDoc=st.lineupMeet?this.lineupNotesFor(st.lineupMeet):null;
     // Pics first, then the PDF's pages, each labelled with where it came
     // from so athletes can tell a coach's photo from page 2 of the PDF.
@@ -5788,7 +5875,8 @@ class Component extends DCLogic {
       pb:{icon:'\ud83c\udfc6',iconBg:'#1B7A78',cta:'See their progress'},
       goalHit:{icon:'\ud83c\udfaf',iconBg:'#6B1F33',cta:'See their goal'},
       rosterJoin:{icon:'\ud83d\udc4b',iconBg:'#1B7A78',cta:'View profile'},
-      absence:{icon:'\u26a0\ufe0f',iconBg:'#6B1F33',cta:'See attendance'}
+      absence:{icon:'\u26a0\ufe0f',iconBg:'#6B1F33',cta:'See attendance'},
+      meetUpdate:{icon:'\ud83d\udccc',iconBg:'#1B7A78',cta:'See the update'}
     };
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
@@ -6655,6 +6743,8 @@ class Component extends DCLogic {
       lineupLoc:lineupMeetRow?lineupMeetRow.loc:'',
       lineupZoom:st.lineupZoom,hasLineupZoom:!!st.lineupZoom,
       closeLineupZoom:()=>this.setState({lineupZoom:null}),
+      hasNextMeet,meetUpdateRows,meetUpdatesEmpty,meetUpdatesEmptyMsg,
+      meetUpdatePost:st.meetUpdatePost,meetUpdatePostChange,meetUpdatePostSubmit,
       // posted lineup — coach compose
       canPostLineup:isCoach&&!!nextMeetId,
       nextMeetHasLineup:!!(nextMeetId&&this.hasLineupFor(nextMeetId)),
