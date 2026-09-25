@@ -102,6 +102,14 @@ service cloud.firestore {
       allow create, delete: if isCoach();
     }
 
+    // General communication about a specific meet (bus time, warm-up,
+    // what to wear) — separate from meetLineups, which is the heat sheet
+    // itself. Same read/write shape as announcements.
+    match /meetUpdates/{updateId} {
+      allow read: if signedIn();
+      allow create, delete: if isCoach();
+    }
+
     // Weekly practice schedule, one document per week.
     match /training/{weekId} {
       allow read: if signedIn();
