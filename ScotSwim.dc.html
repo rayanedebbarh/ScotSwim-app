@@ -5640,7 +5640,11 @@ class Component extends DCLogic {
     // moves on.
     const hasNextMeet=!!nextMeetId;
     const meetUpdatesForNext=(st.meetUpdates||[]).filter(u=>u.meetId===nextMeetId);
-    const meetUpdateRows=meetUpdatesForNext.map(u=>({id:u.id,t:u.text,d:this.fmtAnnDate(u.postedAt),authorName:u.authorName,
+    // Same "You" treatment as team announcements: a coach reading their
+    // own post sees "You", everyone else (athletes, and the other coach)
+    // sees who actually posted it.
+    const meetUpdateRows=meetUpdatesForNext.map(u=>({id:u.id,t:u.text,d:this.fmtAnnDate(u.postedAt),
+      authorName:(isCoach&&u.authorName===this.coachDisplayName())?'You':(u.authorName||'Your coach'),
       hlBg:st.focusKey==='meetupdate:'+u.id?'rgba(27,122,120,.13)':'transparent',
       remove:()=>this.deleteMeetUpdate(u.id)}));
     const meetUpdatesEmpty=meetUpdateRows.length===0;
