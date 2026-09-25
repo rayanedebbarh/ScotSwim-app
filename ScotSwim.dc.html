@@ -488,7 +488,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
           <div style="display:flex;gap:10px;padding:10px 8px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07);background:{{ a.hlBg }};border-radius:6px;transition:background .6s ease">
             <div style="width:7px;height:7px;border-radius:50%;background:#1B7A78;margin-top:5px;flex:none"></div>
-            <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ a.d }}</div></div>
+            <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ a.by }} · {{ a.d }}</div></div>
           </div>
         </sc-for>
       </div>
@@ -593,7 +593,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
           <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 8px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07);background:{{ a.hlBg }};border-radius:6px;transition:background .6s ease">
             <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
-            <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">Posted {{ a.d }}</div></div>
+            <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ a.by }} · {{ a.d }}</div></div>
             <button onClick="{{ a.remove }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:13px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
           </div>
         </sc-for>
@@ -6126,7 +6126,11 @@ class Component extends DCLogic {
     const annFocus=(st.focusKey||'').startsWith('ann:')?st.focusKey.slice(4):null;
     const anns=st.announcements.map((a,i)=>{
       const hl=annFocus!==null&&(annFocus?a.id===annFocus:i===0);
-      return {id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),
+      // A coach reading their own post sees "You", never their own formal
+      // name — everyone else (athletes, and the OTHER coach) sees who
+      // actually posted it.
+      const by=(isCoach&&a.authorName===this.coachDisplayName())?'You':(a.authorName||'Your coach');
+      return {id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),by,
         hlBg:hl?'rgba(27,122,120,.13)':'transparent',
         remove:()=>this.deleteAnnouncement(a.id)};
     });
