@@ -1,0 +1,25 @@
+node_modules/
+www/
+# The repo root's .gitignore blanket-excludes package-lock.json (added
+# for an unrelated earlier npm experiment at the repo root) — this one
+# is needed so CI's `npm ci` gets a real, reproducible lockfile.
+!package-lock.json
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/captures/
+android/.idea/
+# The release signing keystore — CI decodes it from a secret at build time
+# (see .github/workflows/android-release.yml); it must never be committed.
+# Matched anywhere under mobile-app/, not just android/app/ — a keystore
+# generated per the README's instructions lands directly in mobile-app/
+# (its `keytool` command has no destination path), and a rule scoped only
+# to android/app/ silently misses it.
+*.keystore
+*.jks
+ios/App/Pods/
+ios/App/build/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcodeproj/xcuserdata/
+ios/App/App/public/
