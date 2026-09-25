@@ -118,6 +118,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
    show the same translucent white on every row, active or not. */
 .menuItemBtn{transition:background .12s ease}
 .menuItemBtn:hover,.menuItemBtn:active{background:rgba(245,233,220,.14) !important}
+.hl-b{border-left:3px solid transparent;border-radius:6px;transition:background .6s ease,border-left-color .6s ease,box-shadow .6s ease}
+.hl-b.hl-on{background:rgba(27,122,120,.11);border-left-color:#1B7A78;box-shadow:0 0 12px rgba(27,122,120,.28)}
+.hl-b.hl-b-dk.hl-on{background:rgba(127,208,205,.09);border-left-color:#7fd0cd;box-shadow:0 0 10px rgba(127,208,205,.18)}
 /* Vertical zoom slider (profile-photo framing): a plain horizontal
    range rotated -90deg puts min at the bottom and max at the top,
    matching "zoom in on top, zoom out on bottom" without any reversed
@@ -171,9 +174,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ hasAuthMsg }}" hint-placeholder-val="{{ false }}">
         <div style="font-size:12.5px;color:#7fd0cd;font-weight:600">{{ authMsg }}</div>
       </sc-if>
-      <div style="display:flex;justify-content:center">
-        <button onClick="{{ doLogin }}" style="padding:13px 48px;border-radius:10px;border:1.5px solid rgba(245,233,220,.75);background:rgba(245,233,220,.08);color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
-      </div>
+      <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:1.5px solid #7fd0cd;background:rgba(127,208,205,.12);color:#7fd0cd;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
       <button onClick="{{ doForgotPassword }}" style="background:none;border:none;color:rgba(245,233,220,.7);font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0;text-align:center;text-decoration:underline">Forgot password?</button>
     </div>
   </div>
@@ -437,7 +438,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">Log a time in My Events to see goal progress here.</div>
         </sc-if>
         <sc-for list="{{ myGoals }}" as="g" hint-placeholder-count="2">
-          <div class="goalrow" style="display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:6px 8px;margin-left:-8px;margin-right:-8px;border-radius:6px;background:{{ g.hlBg }};transition:background .6s ease">
+          <div class="goalrow hl-b {{ g.hlClass }}" style="display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:6px 8px 6px 5px;margin-left:-8px;margin-right:-8px">
             <sc-if value="{{ g.canDrag }}" hint-placeholder-val="{{ true }}">
               <div onPointerDown="{{ g.gripDown }}" title="Drag to reorder" style="flex:none;display:flex;flex-direction:column;gap:3px;padding:8px 4px;margin:-2px 0 -8px -4px;cursor:grab;touch-action:none">
                 <div style="width:14px;height:2px;border-radius:1px;background:rgba(42,18,24,.3)"></div>
@@ -488,7 +489,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
-          <div style="display:flex;gap:10px;padding:10px 8px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07);background:{{ a.hlBg }};border-radius:6px;transition:background .6s ease">
+          <div class="hl-b {{ a.hlClass }}" style="display:flex;gap:10px;padding:10px 8px 10px 5px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#1B7A78;margin-top:5px;flex:none"></div>
             <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ a.by }} · {{ a.d }}</div></div>
           </div>
@@ -593,7 +594,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-if>
         <sc-for list="{{ anns }}" as="a" hint-placeholder-count="3">
-          <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 8px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07);background:{{ a.hlBg }};border-radius:6px;transition:background .6s ease">
+          <div class="hl-b {{ a.hlClass }}" style="display:flex;gap:10px;align-items:flex-start;padding:10px 8px 10px 5px;margin:0 -8px;border-bottom:1px solid rgba(42,18,24,.07)">
             <div style="width:7px;height:7px;border-radius:50%;background:#6B1F33;margin-top:5px;flex:none"></div>
             <div style="flex:1;font-size:13.5px;line-height:1.4">{{ a.t }}<div style="font-size:11px;color:rgba(42,18,24,.45);margin-top:2px">{{ a.by }} · {{ a.d }}</div></div>
             <button onClick="{{ a.remove }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:13px;cursor:pointer;padding:2px;flex:none;line-height:1">✕</button>
@@ -757,7 +758,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </sc-if>
           <div style="background:rgba(245,233,220,.06);border-radius:8px;margin-top:12px;padding:2px 10px">
             <sc-for list="{{ meetUpdateRows }}" as="u" hint-placeholder-count="2">
-              <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid rgba(245,233,220,.08);background:{{ u.hlBg }};border-radius:6px;transition:background .6s ease">
+              <div class="hl-b hl-b-dk {{ u.hlClass }}" style="display:flex;gap:10px;align-items:flex-start;padding:10px 0 10px 3px;border-top:1px solid rgba(245,233,220,.08)">
                 <div style="width:7px;height:7px;border-radius:50%;background:#7fd0cd;margin-top:5px;flex:none"></div>
                 <div style="flex:1;font-size:13.5px;line-height:1.4">{{ u.t }}<div style="font-size:11px;color:rgba(245,233,220,.5);margin-top:2px">{{ u.authorName }} · {{ u.d }}</div></div>
                 <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
@@ -4087,13 +4088,13 @@ class Component extends DCLogic {
     this.db.collection('trainingLog').doc(rosterId).set({soloLifts:mine},{merge:true})
       .catch(()=>this.toastMsg('Couldn’t save that — check your connection'));
   }
-  // Average present-rate across the last 30 days that actually have a
+  // Average present-rate across the last 7 days that actually have a
   // recorded attendance entry (skips days nobody took attendance on).
   attendancePct(roster){
     const attendance=this.state.attendance;
     let sum=0,days=0;
     const d=new Date();
-    for(let i=0;i<30;i++){
+    for(let i=0;i<7;i++){
       const rec=attendance[this.ymd(d)];
       if(rec&&roster.length){
         // Same "missing = present" default the roster rows use, so a day
@@ -5099,8 +5100,7 @@ class Component extends DCLogic {
     // roster, and every athlete's practice streak and the dashboard's
     // attendance % read back from it, so a record living only on the
     // phone that took it would show each person something different.
-    // The last 60 days covers the 30-day window attendancePct uses and
-    // leaves room for streaks running back past it.
+    // 60 docs is plenty for the 7-day attendance-% window and long streaks.
     // Who's actually on the team — the coaches' additions and removals on
     // top of the seed roster. Rebuilt before the setState so the render it
     // triggers already sees the new roster (see buildRoster).
@@ -5652,13 +5652,13 @@ class Component extends DCLogic {
     // sees who actually posted it.
     const meetUpdateRows=meetUpdatesForNext.map(u=>({id:u.id,t:u.text,d:this.fmtAnnDate(u.postedAt),
       authorName:(isCoach&&u.authorName===this.coachDisplayName())?'You':(u.authorName||'Your coach'),
-      hlBg:st.focusKey==='meetupdate:'+u.id?'rgba(27,122,120,.13)':'transparent',
+      hlClass:st.focusKey==='meetupdate:'+u.id?'hl-on':'',
       remove:()=>this.deleteMeetUpdate(u.id)}));
     const meetUpdatesEmpty=meetUpdateRows.length===0;
     const meetUpdatePostChange=e=>this.setState({meetUpdatePost:e.target.value});
     const meetUpdatePostSubmit=()=>this.postMeetUpdate(nextMeetId,nextMeet.n);
     const meetUpdatesEmptyMsg=isCoach
-      ?'Nothing posted yet — bus time, warm-up, what to wear… it shows up here and in everyone’s notifications.'
+      ?’Nothing posted yet — bus time, warm-up, what to wear… posts show up here for the whole team.’
       :'No updates yet for this meet — check back closer to the day.';
     const lineupNotesDoc=st.lineupMeet?this.lineupNotesFor(st.lineupMeet):null;
     // Pics first, then the PDF's pages, each labelled with where it came
@@ -5835,7 +5835,7 @@ class Component extends DCLogic {
       const hl=st.focusKey==='goal:'+this.evMap[ev].n;
       const canDrag=canDragCoach,gripDown=ev2=>this.beginGoalDrag(ev2,user.id,coachGoalEvents,idx,'coach');
       return {ev:this.evMap[ev].n,pb:this.fmtEv(ev,pb),goal:this.fmtEv(ev,goal),pct:pct.toFixed(0),workout,hasWorkout:!!workout,
-        hlBg:hl?'rgba(27,122,120,.13)':'transparent',canDrag,gripDown};
+        hlClass:hl?'hl-on':'',canDrag,gripDown};
     });
     const myGoalsEmpty=myGoals.length===0;
     // The count on the Home tile and "All goals ›" toggle count the full
@@ -6142,7 +6142,7 @@ class Component extends DCLogic {
       // actually posted it.
       const by=(isCoach&&a.authorName===this.coachDisplayName())?'You':(a.authorName||'Your coach');
       return {id:a.id,t:a.text,d:this.fmtAnnDate(a.postedAt),by,
-        hlBg:hl?'rgba(27,122,120,.13)':'transparent',
+        hlClass:hl?'hl-on':'',
         remove:()=>this.deleteAnnouncement(a.id)};
     });
     const annsEmpty=anns.length===0;
@@ -6701,7 +6701,7 @@ class Component extends DCLogic {
       reloadLiftLogs:()=>this.loadLiftLogs(),
       liftLogRefreshLabel:st.liftLogsLoading?'Refreshing…':'Refresh',
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
-      attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
+      attStatSubtitle:SEASON_STARTED?'last week':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'None yet')(this.streakFor(user.id)),
       // Every lift is self-logged, so this counts the athlete's own ticks
       // against the lifts the week holds — attendance says nothing about
