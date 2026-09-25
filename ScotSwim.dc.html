@@ -5658,7 +5658,7 @@ class Component extends DCLogic {
     const meetUpdatePostChange=e=>this.setState({meetUpdatePost:e.target.value});
     const meetUpdatePostSubmit=()=>this.postMeetUpdate(nextMeetId,nextMeet.n);
     const meetUpdatesEmptyMsg=isCoach
-      ?’Nothing posted yet — bus time, warm-up, what to wear… posts show up here for the whole team.’
+      ?'Nothing posted yet — bus time, warm-up, what to wear… posts show up here for the whole team.'
       :'No updates yet for this meet — check back closer to the day.';
     const lineupNotesDoc=st.lineupMeet?this.lineupNotesFor(st.lineupMeet):null;
     // Pics first, then the PDF's pages, each labelled with where it came
