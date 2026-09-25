@@ -171,9 +171,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ hasAuthMsg }}" hint-placeholder-val="{{ false }}">
         <div style="font-size:12.5px;color:#7fd0cd;font-weight:600">{{ authMsg }}</div>
       </sc-if>
-      <div style="display:flex;justify-content:center">
-        <button onClick="{{ doLogin }}" style="padding:13px 48px;border-radius:10px;border:1.5px solid rgba(245,233,220,.75);background:rgba(245,233,220,.08);color:#F5E9DC;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
-      </div>
+      <button onClick="{{ doLogin }}" style="width:100%;padding:14px;border-radius:10px;border:1.5px solid #7fd0cd;background:rgba(127,208,205,.12);color:#7fd0cd;font-family:'Barlow Condensed';font-weight:700;font-size:20px;letter-spacing:2px;cursor:pointer">{{ loginBtnLabel }}</button>
       <button onClick="{{ doForgotPassword }}" style="background:none;border:none;color:rgba(245,233,220,.7);font-size:12.5px;font-weight:600;cursor:pointer;padding:2px 0;text-align:center;text-decoration:underline">Forgot password?</button>
     </div>
   </div>
@@ -4087,13 +4085,13 @@ class Component extends DCLogic {
     this.db.collection('trainingLog').doc(rosterId).set({soloLifts:mine},{merge:true})
       .catch(()=>this.toastMsg('Couldn’t save that — check your connection'));
   }
-  // Average present-rate across the last 30 days that actually have a
+  // Average present-rate across the last 7 days that actually have a
   // recorded attendance entry (skips days nobody took attendance on).
   attendancePct(roster){
     const attendance=this.state.attendance;
     let sum=0,days=0;
     const d=new Date();
-    for(let i=0;i<30;i++){
+    for(let i=0;i<7;i++){
       const rec=attendance[this.ymd(d)];
       if(rec&&roster.length){
         // Same "missing = present" default the roster rows use, so a day
@@ -5099,8 +5097,7 @@ class Component extends DCLogic {
     // roster, and every athlete's practice streak and the dashboard's
     // attendance % read back from it, so a record living only on the
     // phone that took it would show each person something different.
-    // The last 60 days covers the 30-day window attendancePct uses and
-    // leaves room for streaks running back past it.
+    // 60 docs is plenty for the 7-day attendance-% window and long streaks.
     // Who's actually on the team — the coaches' additions and removals on
     // top of the seed roster. Rebuilt before the setState so the render it
     // triggers already sees the new roster (see buildRoster).
@@ -5658,7 +5655,7 @@ class Component extends DCLogic {
     const meetUpdatePostChange=e=>this.setState({meetUpdatePost:e.target.value});
     const meetUpdatePostSubmit=()=>this.postMeetUpdate(nextMeetId,nextMeet.n);
     const meetUpdatesEmptyMsg=isCoach
-      ?'Nothing posted yet — bus time, warm-up, what to wear… it shows up here and in everyone’s notifications.'
+      ?’Nothing posted yet — bus time, warm-up, what to wear… posts show up here for the whole team.’
       :'No updates yet for this meet — check back closer to the day.';
     const lineupNotesDoc=st.lineupMeet?this.lineupNotesFor(st.lineupMeet):null;
     // Pics first, then the PDF's pages, each labelled with where it came
@@ -6701,7 +6698,7 @@ class Component extends DCLogic {
       reloadLiftLogs:()=>this.loadLiftLogs(),
       liftLogRefreshLabel:st.liftLogsLoading?'Refreshing…':'Refresh',
       attRosterEmpty:attRoster.length===0,attRosterHasAthletes:attRoster.length>0,attRosterEmptyLabel:attRosterEmptyLabel,
-      attStatSubtitle:SEASON_STARTED?'last 30 days':'season starts soon',
+      attStatSubtitle:SEASON_STARTED?'last week':'season starts soon',
       practiceStreak:(streakVal=>streakVal>0?streakVal+' in a row':'None yet')(this.streakFor(user.id)),
       // Every lift is self-logged, so this counts the athlete's own ticks
       // against the lifts the week holds — attendance says nothing about
