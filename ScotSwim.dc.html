@@ -698,11 +698,14 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
           <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attNotDone }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:10px;align-items:center">
-              <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all</button>
+              <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
               <button onClick="{{ onAttDone }}" style="border:none;background:#1B7A78;color:#fff;font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;border-radius:6px;padding:6px 12px;cursor:pointer">Done ›</button>
             </div>
           </sc-if></sc-if></sc-if></sc-if>
         </div>
+        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12px;color:rgba(42,18,24,.45);margin-top:8px;font-style:italic">Tap a name to mark — first tap marks Present, tap again for Unexcused, again for Excused, once more to clear.</div>
+        </sc-if></sc-if></sc-if>
         <sc-if value="{{ attDayCanceled }}" hint-placeholder-val="{{ false }}">
           <div style="background:rgba(200,60,60,.12);border:1.5px solid rgba(200,60,60,.4);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;gap:8px">
             <div style="font-size:15px;flex:none">🚫</div>
@@ -723,9 +726,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-if>
         <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}">
-          <sc-if value="{{ attNotTakenYet }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:12px;color:rgba(42,18,24,.45);margin-top:8px;font-style:italic">Tap a name to mark absent or excused — everyone else counts as present when you hit Done.</div>
-          </sc-if>
           <sc-if value="{{ attShowSummary }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:8px">{{ attSummary }}</div>
           </sc-if>
@@ -3935,7 +3935,8 @@ class Component extends DCLogic {
   // as everyone else having shown up.
   attStateOf(...a){return ScotSwimCore.attStateOf(...a);}
   setAttendance(day,id,val){
-    const dayRec={...(this.state.attendance[day]||{}),[id]:val};
+    const dayRec={...(this.state.attendance[day]||{})};
+    if(val===null){delete dayRec[id];}else{dayRec[id]=val;}
     const attendance={...this.state.attendance,[day]:dayRec};
     this.setState({attendance});this.saveAttendance(attendance);this.syncAttendanceDay(day,dayRec);
     // Tells the OTHER coach, not the one who just marked it — pushNotification
@@ -6218,6 +6219,7 @@ class Component extends DCLogic {
     const attDayChipBg=attDayCanceled?'rgba(200,60,60,.35)':attDayPostponed?'rgba(201,162,39,.3)':'transparent';
     const attDayChipFg=attDayCanceled?'#F5DC9A':attDayPostponed?'#F5DC9A':'rgba(245,233,220,.4)';
     const attDayChipBd=attDayCanceled?'rgba(200,60,60,.6)':attDayPostponed?'rgba(201,162,39,.6)':'rgba(245,233,220,.2)';
+    const attStatusPickerOpen=!!this.state.attStatusPickerOpen;
     const attToggleStatusPicker=()=>this.setState({attStatusPickerOpen:!this.state.attStatusPickerOpen});
     const onAttStatusNormal=()=>this.setDayStatus(attDateKey,'normal');
     const onAttStatusCanceled=()=>this.setDayStatus(attDateKey,'canceled');
@@ -6250,34 +6252,32 @@ class Component extends DCLogic {
     // attendance needs migrating.
     const attRows=attRoster.map(s=>{
       const stored=attDateRec[s.id];
-      // Only count as "explicitly marked" when the coach actually set someone
-      // as non-present. Stored `true` (from an old "mark all present" click)
-      // is treated the same as an absent entry — gray — so the default view is
-      // always "no marks taken yet" until someone is marked absent/excused.
-      const explicit=s.id in attDateRec&&stored!==true;
+      const inRec=s.id in attDateRec;
       const stt=this.attStateOf(stored);
-      const unmarked=!explicit&&attDayNormal;
+      // Truly unmarked = no entry in the record at all
+      const unmarked=!inRec&&attDayNormal;
       const excusedByDay=!attDayNormal;
+      // Cycle: — → Present(true) → Unexcused → Excused → — (delete)
+      const nextVal=!inRec?true:stored===true?'unexcused':stored==='unexcused'?'excused':null;
       const look=unmarked
         ?{bg:'transparent',fg:'rgba(42,18,24,.38)',bd:'rgba(42,18,24,.18)',label:'—',dashed:true}
         :excusedByDay
         ?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
+        :stored===true?{bg:'#1B7A78',fg:'#fff',bd:'#1B7A78',label:'Present',dashed:false}
         :stt==='excused'?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
         :{bg:'transparent',fg:'#8E2C3B',bd:'#C46070',label:'Unexcused',dashed:false};
       return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
         present:!excusedByDay&&stt==='present',
-        excused:excusedByDay||(!unmarked&&stt==='excused'),
-        unexcused:!unmarked&&!excusedByDay&&stt==='unexcused',
+        excused:excusedByDay||(inRec&&stt==='excused'),
+        unexcused:inRec&&!excusedByDay&&stt==='unexcused',
         pillBg:look.bg,pillFg:look.fg,pillBd:look.bd,pillLabel:look.label,pillBdStyle:look.dashed?'dashed':'solid',
-        onToggle:SEASON_STARTED&&attDayNormal?()=>this.setAttendance(attDateKey,s.id,this.ATT_NEXT[stt]):null};
+        onToggle:SEASON_STARTED&&attDayNormal?()=>this.setAttendance(attDateKey,s.id,nextVal):null};
     });
     const attPresentCount=attRows.filter(r=>r.present).length;
     const attExcusedCount=attRows.filter(r=>r.excused).length;
     const attUnexcusedCount=attRows.filter(r=>r.unexcused).length;
-    // "any marked" means at least one athlete has been explicitly set to a
-    // non-present state; stored `true` values don't count as "marking taken"
-    const attAnyMarked=Object.values(attDateRec).some(v=>v!==true);
+    const attAnyMarked=Object.keys(attDateRec).length>0;
     const attIsDone=!!(this.state.doneDays||{})[attDateKey]&&attDayNormal;
     const attNotDone=!attIsDone;
     const attNotTakenYet=SEASON_STARTED&&attDayNormal&&!attAnyMarked&&!attIsDone;
@@ -6673,7 +6673,7 @@ class Component extends DCLogic {
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),attSummary,attDoneSummary,onMarkAllPresent,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attDayNormal,attDayCanceled,attDayPostponed,
-      attDayChipLabel,attDayChipBg,attDayChipFg,attDayChipBd,attToggleStatusPicker,
+      attStatusPickerOpen,attDayChipLabel,attDayChipBg,attDayChipFg,attDayChipBd,attToggleStatusPicker,
       attStatusNormalCheck,attStatusCanceledCheck,attStatusPostponedCheck,
       onAttStatusNormal,onAttStatusCanceled,onAttStatusPostponed,
       attIsDone,attNotDone,attNotTakenYet,attShowSummary,onAttDone,onAttUndone,
