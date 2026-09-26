@@ -698,7 +698,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
           <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attNotDone }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:10px;align-items:center">
-              <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Mark all present</button>
+              <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ markAllPresentLabel }}</button>
               <button onClick="{{ onAttDone }}" style="border:none;background:#1B7A78;color:#fff;font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;border-radius:6px;padding:6px 12px;cursor:pointer">Done ›</button>
             </div>
           </sc-if></sc-if></sc-if></sc-if>
@@ -6333,6 +6333,7 @@ class Component extends DCLogic {
     const attPct=SEASON_STARTED?this.attendancePct(attRosterRole):null;
     const attPctDisplay=attPct==null?'—':attPct+'%';
     const attAllExplicitPresent=attRoster.length>0&&attRoster.every(s=>attDateRec[s.id]===true);
+    const markAllPresentLabel=attAllExplicitPresent?'Return to default':'Mark all present';
     const onMarkAllPresent=SEASON_STARTED&&attDayNormal
       ?(attAllExplicitPresent
         ?()=>this.clearAllAttendance(attDateKey,attRoster)
@@ -6681,7 +6682,7 @@ class Component extends DCLogic {
       nAll:String(homeMen.length+homeWomen.length),nMen:String(homeMen.length),nWomen:String(homeWomen.length),
       totalTileLabel,nBreakdown,
       seasonPbCount:String(seasonPbCount),improvers,improversEmpty,
-      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),attSummary,attDoneSummary,onMarkAllPresent,
+      attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),attSummary,attDoneSummary,onMarkAllPresent,markAllPresentLabel,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
       attDayNormal,attDayCanceled,attDayPostponed,
       attStatusPickerOpen,attDayChipLabel,attDayChipBg,attDayChipFg,attDayChipBd,attToggleStatusPicker,
