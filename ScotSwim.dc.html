@@ -6249,20 +6249,24 @@ class Component extends DCLogic {
     // excused existed, so it still reads as unexcused and no past
     // attendance needs migrating.
     const attRows=attRoster.map(s=>{
-      const explicit=s.id in attDateRec;
-      const stt=this.attStateOf(attDateRec[s.id]);
+      const stored=attDateRec[s.id];
+      // Only count as "explicitly marked" when the coach actually set someone
+      // as non-present. Stored `true` (from an old "mark all present" click)
+      // is treated the same as an absent entry — gray — so the default view is
+      // always "no marks taken yet" until someone is marked absent/excused.
+      const explicit=s.id in attDateRec&&stored!==true;
+      const stt=this.attStateOf(stored);
       const unmarked=!explicit&&attDayNormal;
       const excusedByDay=!attDayNormal;
       const look=unmarked
         ?{bg:'transparent',fg:'rgba(42,18,24,.38)',bd:'rgba(42,18,24,.18)',label:'—',dashed:true}
         :excusedByDay
         ?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
-        :stt==='present'?{bg:'#1B7A78',fg:C,bd:'#1B7A78',label:'Present',dashed:false}
         :stt==='excused'?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
         :{bg:'transparent',fg:'#8E2C3B',bd:'#C46070',label:'Unexcused',dashed:false};
       return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        present:!unmarked&&!excusedByDay&&stt==='present',
+        present:!excusedByDay&&stt==='present',
         excused:excusedByDay||(!unmarked&&stt==='excused'),
         unexcused:!unmarked&&!excusedByDay&&stt==='unexcused',
         pillBg:look.bg,pillFg:look.fg,pillBd:look.bd,pillLabel:look.label,pillBdStyle:look.dashed?'dashed':'solid',
@@ -6271,7 +6275,9 @@ class Component extends DCLogic {
     const attPresentCount=attRows.filter(r=>r.present).length;
     const attExcusedCount=attRows.filter(r=>r.excused).length;
     const attUnexcusedCount=attRows.filter(r=>r.unexcused).length;
-    const attAnyMarked=Object.keys(attDateRec).length>0;
+    // "any marked" means at least one athlete has been explicitly set to a
+    // non-present state; stored `true` values don't count as "marking taken"
+    const attAnyMarked=Object.values(attDateRec).some(v=>v!==true);
     const attIsDone=!!(this.state.doneDays||{})[attDateKey]&&attDayNormal;
     const attNotDone=!attIsDone;
     const attNotTakenYet=SEASON_STARTED&&attDayNormal&&!attAnyMarked&&!attIsDone;
