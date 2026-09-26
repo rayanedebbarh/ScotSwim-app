@@ -3952,7 +3952,7 @@ class Component extends DCLogic {
   }
   markAllPresent(day,roster){
     const dayRec={...(this.state.attendance[day]||{})};
-    roster.forEach(s=>{dayRec[s.id]=true;});
+    roster.forEach(s=>{dayRec[s.id]='present';});
     const attendance={...this.state.attendance,[day]:dayRec};
     this.setState({attendance});this.saveAttendance(attendance);this.syncAttendanceDay(day,dayRec);
   }
@@ -6260,16 +6260,16 @@ class Component extends DCLogic {
       const stored=attDateRec[s.id];
       const inRec=s.id in attDateRec;
       const stt=this.attStateOf(stored);
-      // Truly unmarked = no entry in the record at all
-      const unmarked=!inRec&&attDayNormal;
+      // Unmarked = no entry OR legacy boolean true (old "mark all present" data)
+      const unmarked=(!inRec||stored===true)&&attDayNormal;
       const excusedByDay=!attDayNormal;
-      // Cycle: — → Present(true) → Unexcused → Excused → — (delete)
-      const nextVal=!inRec?true:stored===true?'unexcused':stored==='unexcused'?'excused':null;
+      // Cycle: — → Present('present') → Unexcused → Excused → — (delete)
+      const nextVal=(!inRec||stored===true)?'present':stored==='present'?'unexcused':stored==='unexcused'?'excused':null;
       const look=unmarked
         ?{bg:'transparent',fg:'rgba(42,18,24,.38)',bd:'rgba(42,18,24,.18)',label:'—',dashed:true}
         :excusedByDay
         ?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
-        :stored===true?{bg:'#1B7A78',fg:'#fff',bd:'#1B7A78',label:'Present',dashed:false}
+        :stored==='present'?{bg:'#1B7A78',fg:'#fff',bd:'#1B7A78',label:'Present',dashed:false}
         :stt==='excused'?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
         :{bg:'transparent',fg:'#8E2C3B',bd:'#C46070',label:'Unexcused',dashed:false};
       return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
@@ -6283,7 +6283,7 @@ class Component extends DCLogic {
     const attPresentCount=attRows.filter(r=>r.present).length;
     const attExcusedCount=attRows.filter(r=>r.excused).length;
     const attUnexcusedCount=attRows.filter(r=>r.unexcused).length;
-    const attAnyMarked=Object.keys(attDateRec).length>0;
+    const attAnyMarked=Object.values(attDateRec).some(v=>v!==true);
     const attDoneKey=attDateKey+'-'+attSegActive;
     const attIsDone=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal;
     const attNotDone=!attIsDone;
@@ -6333,7 +6333,7 @@ class Component extends DCLogic {
     const liftAtLast=liftWeekKey>=liftThisMon;
     const attPct=SEASON_STARTED?this.attendancePct(attRosterRole):null;
     const attPctDisplay=attPct==null?'—':attPct+'%';
-    const attAllExplicitPresent=attRoster.length>0&&attRoster.every(s=>attDateRec[s.id]===true);
+    const attAllExplicitPresent=attRoster.length>0&&attRoster.every(s=>attDateRec[s.id]==='present');
     const markAllPresentLabel=attAllExplicitPresent?'Return to default':'Mark all present';
     const onMarkAllPresent=SEASON_STARTED&&attDayNormal
       ?(attAllExplicitPresent
