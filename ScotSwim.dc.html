@@ -111,8 +111,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
    the cream color is nearly invisible there. Muted enough to still
    read as a hint, not as already-typed content. */
 .darkPh::placeholder{color:rgba(42,18,24,.4)}
-.simCtaBtn{flex:1;border:1.5px solid #6B1F33;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer;transition:background .15s ease,color .15s ease}
-.simCtaBtn:hover,.simCtaBtn:active{background:none;color:#6B1F33}
 /* Menu drawer rows: bg is set inline per-row (translucent white while it's
    the active tab) — !important wins over that inline style so hover/press
    show the same translucent white on every row, active or not. */
@@ -536,8 +534,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
       </div>
       <div style="display:flex;gap:10px">
-        <button onClick="{{ goSim }}" class="simCtaBtn">RUN MEET SIM</button>
-        <button onClick="{{ goGoals }}" class="simCtaBtn">SET GOALS</button>
+        <button onClick="{{ goGoals }}" style="flex:1;border:1.5px solid #6B1F33;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:13px 10px;font-family:'Barlow Condensed';font-weight:700;font-size:16px;letter-spacing:1.5px;cursor:pointer">SET GOALS</button>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
@@ -1509,128 +1506,6 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </sc-for>
       </div>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px;font-size:12.5px;line-height:1.5;color:rgba(42,18,24,.7)">Dual meets score 1M and 3M like swim events — six dives per board. Tap a diver to see score progression and board goals.</div>
-    </div>
-  </sc-if>
-
-  <!-- ============ SIMULATOR (coach) ============ -->
-  <sc-if value="{{ vSim }}" hint-placeholder-val="{{ false }}">
-    <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <sc-if value="{{ simShowGenderToggle }}" hint-placeholder-val="{{ true }}">
-        <div style="display:flex;gap:8px">
-          <sc-for list="{{ simGenders }}" as="g" hint-placeholder-count="2">
-            <button onClick="{{ g.onTap }}" style="flex:1;border:1.5px solid #6B1F33;background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:9px 0;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer">{{ g.n }}</button>
-          </sc-for>
-        </div>
-      </sc-if>
-      <div style="position:relative;border-radius:10px;overflow:hidden;height:130px">
-        <sc-if value="{{ simIsMen }}" hint-placeholder-val="{{ true }}">
-          <image-slot id="sim-hero-men" shape="rect" fit="cover" src="uploads/men.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
-        </sc-if>
-        <sc-if value="{{ simIsSwimWomen }}" hint-placeholder-val="{{ false }}">
-          <image-slot id="sim-hero-women" shape="rect" fit="cover" src="uploads/women.png" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
-        </sc-if>
-        <sc-if value="{{ simIsDivingWomen }}" hint-placeholder-val="{{ false }}">
-          <img src="uploads/women-dive.png" draggable="false" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:43% 42%;user-select:none">
-        </sc-if>
-        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(42,18,24,.05),rgba(42,18,24,.4));pointer-events:none"></div>
-        <div style="position:absolute;left:14px;bottom:10px;font-family:'Barlow Condensed';font-weight:800;font-size:16px;letter-spacing:1.5px;color:#F5E9DC;text-shadow:0 2px 6px rgba(0,0,0,.7)">{{ simGLabel }}</div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <sc-for list="{{ oppGroups }}" as="g" hint-placeholder-count="2">
-          <button onClick="{{ g.onTap }}" style="flex:1;border:1px solid rgba(42,18,24,.25);background:{{ g.bg }};color:{{ g.fg }};border-radius:8px;padding:8px 0;font-size:11px;font-weight:800;letter-spacing:1.5px;cursor:pointer">{{ g.n }}</button>
-        </sc-for>
-      </div>
-      <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
-        <sc-for list="{{ simOpps }}" as="o" hint-placeholder-count="6">
-          <button onClick="{{ o.onTap }}" style="border:1px solid rgba(42,18,24,.25);background:{{ o.bg }};color:{{ o.fg }};border-radius:999px;padding:8px 14px;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap;flex:none">{{ o.n }}</button>
-        </sc-for>
-      </div>
-      <div style="display:flex;background:#fff;border:1px solid rgba(42,18,24,.08);border-radius:999px;padding:4px">
-        <sc-for list="{{ simModes }}" as="m" hint-placeholder-count="3">
-          <button onClick="{{ m.onTap }}" style="flex:1;border:none;border-radius:999px;padding:9px 0;background:{{ m.bg }};color:{{ m.fg }};font-family:'Barlow Condensed';font-weight:700;font-size:14.5px;letter-spacing:1px;cursor:pointer">{{ m.n }}</button>
-        </sc-for>
-      </div>
-      <div style="font-size:11px;color:rgba(42,18,24,.5);line-height:1.4">{{ simHintText }}</div>
-      <sc-if value="{{ simIsEstimate }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#FFF4E5;border:1px solid rgba(180,120,20,.35);border-radius:8px;padding:10px 12px;font-size:11.5px;line-height:1.45;color:#7a5210">
-          <strong>Uncalibrated opponent.</strong> This team's projected times aren't based on real results yet, so treat the score as a rough placeholder. Their actual times are shown at the bottom for comparison.
-        </div>
-      </sc-if>
-      <sc-if value="{{ simShowScore }}" hint-placeholder-val="{{ true }}">
-        <div style="background:#2A1218;color:#F5E9DC;border-radius:8px;padding:18px;text-align:center">
-          <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#7fd0cd">PROJECTED SCORE · {{ simGLabel }}</div>
-          <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-top:8px">
-            <div style="flex:1;text-align:right">
-              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:42px;line-height:1;color:{{ simACol }}">{{ simScoreA }}</div>
-              <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(245,233,220,.7)">ALMA</div>
-            </div>
-            <div style="font-family:'Barlow Condensed';font-size:20px;color:rgba(245,233,220,.4)">—</div>
-            <div style="flex:1;text-align:left">
-              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:42px;line-height:1;color:{{ simOCol }}">{{ simScoreO }}</div>
-              <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(245,233,220,.7)">{{ simOppUp }}</div>
-            </div>
-          </div>
-          <div style="margin-top:10px;font-family:'Barlow Condensed';font-weight:700;font-size:15px;letter-spacing:2px;color:{{ simVerdictCol }}">{{ simVerdict }}</div>
-        </div>
-      </sc-if>
-      <sc-if value="{{ simShowEvents }}" hint-placeholder-val="{{ true }}">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 16px">
-          <sc-for list="{{ simRows }}" as="e" hint-placeholder-count="10">
-            <div style="padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <div style="font-weight:700;font-size:13.5px">{{ e.n }}</div>
-                <div style="display:flex;gap:10px;align-items:center">
-                  <span style="font-size:12px;font-weight:800;color:#6B1F33;font-variant-numeric:tabular-nums">{{ e.aPts }}</span>
-                  <span style="font-size:11px;color:rgba(42,18,24,.4)">–</span>
-                  <span style="font-size:12px;font-weight:800;color:rgba(42,18,24,.55);font-variant-numeric:tabular-nums">{{ e.oPts }}</span>
-                  <sc-if value="{{ e.editable }}" hint-placeholder-val="{{ false }}">
-                    <button onClick="{{ e.onEdit }}" style="border:1px solid #1B7A78;background:none;color:#1B7A78;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;cursor:pointer">EDIT</button>
-                  </sc-if>
-                </div>
-              </div>
-              <div style="font-size:12px;color:rgba(42,18,24,.6);margin-top:3px">{{ e.detail }}</div>
-            </div>
-          </sc-for>
-        </div>
-      </sc-if>
-      <sc-if value="{{ simShowLineup }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">LINEUP</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin-top:2px">Divers entered for {{ simOppUp }} · 1M &amp; 3M personal bests</div>
-          <sc-for list="{{ simLineupRows }}" as="p" hint-placeholder-count="2">
-            <div onClick="{{ p.onTap }}" style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
-              <div style="width:42px;height:42px;border-radius:50%;overflow:hidden;background:{{ p.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ p.slotId }}" src="{{ p.photo }}" minimal="true" shape="circle" placeholder="{{ p.ini }}"></image-slot></div>
-              <div style="flex:1"><div style="font-weight:600;font-size:14.5px">{{ p.name }}</div><div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ p.cls }} · {{ p.home }}</div></div>
-              <div style="text-align:right;font-variant-numeric:tabular-nums">
-                <div style="font-size:12.5px;font-weight:700;color:#6B1F33">1M · {{ p.dv1 }}</div>
-                <div style="font-size:12.5px;font-weight:700;color:#1B7A78">3M · {{ p.dv3 }}</div>
-              </div>
-            </div>
-          </sc-for>
-        </div>
-      </sc-if>
-      <sc-if value="{{ simShowCompare }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:6px 16px">
-          <div style="display:flex;font-size:10px;font-weight:800;letter-spacing:1px;color:rgba(42,18,24,.5);padding:10px 0 4px">
-            <div style="flex:1.2">EVENT</div><div style="flex:1.4">ALMA BEST</div><div style="flex:1;text-align:right">{{ simOppUp }}</div><div style="width:58px;text-align:right">EDGE</div>
-          </div>
-          <sc-for list="{{ cmpRows }}" as="c" hint-placeholder-count="12">
-            <div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);font-size:12.5px">
-              <div style="flex:1.2;font-weight:700">{{ c.ev }}</div>
-              <div style="flex:1.4"><span style="font-variant-numeric:tabular-nums;font-weight:700;color:#6B1F33">{{ c.aT }}</span><div style="font-size:10.5px;color:rgba(42,18,24,.5)">{{ c.aN }}</div></div>
-              <div style="flex:1;text-align:right;font-variant-numeric:tabular-nums;color:rgba(42,18,24,.7)">{{ c.oT }}</div>
-              <div style="width:58px;text-align:right;font-weight:800;font-variant-numeric:tabular-nums;color:{{ c.col }}">{{ c.diff }}</div>
-            </div>
-          </sc-for>
-        </div>
-      </sc-if>
-      <sc-if value="{{ simShowRealTimes }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px 10px;overflow:hidden">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ simOppUp }} · REAL TIMES</div>
-          <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 0">{{ simRealTimesNote }}</div>
-          <a href="{{ simTimesUrl }}" target="_blank" rel="noopener" class="scOpen">VIEW {{ simOppUp }} TIMES ↗</a>
-        </div>
-      </sc-if>
     </div>
   </sc-if>
 
@@ -5548,9 +5423,9 @@ class Component extends DCLogic {
       this.toastMsg('Link copied');
     };
     const navDef=isDivingCoach
-      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
+      ?[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :isCoach
-      ?[['home','HOME'],['sim','SIM'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
+      ?[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['attendance','ATTEND'],['team','TEAM'],['goals','GOALS']]
       :[['home','HOME'],['meets','MEETS'],['train','TRAIN'],['progress','PROGRESS'],['team','TEAM'],['me','ME']];
     // Bottom-nav X-position nudge, per tab id, in px. Positive = right,
     // negative = left, 0 = untouched. Shifts the whole tab (bar + label
@@ -5568,7 +5443,7 @@ class Component extends DCLogic {
     // anchors, the 5 tabs between them solved together) — measured via
     // real rendered getBoundingClientRect(), not eyeballed.
     const NAV_X_OFFSET={train:-4,progress:8,team:15};
-    const NAV_X_OFFSET_COACH={sim:-10.66,meets:-18.23,train:-14.96,attendance:-6.81,team:-0.94};
+    const NAV_X_OFFSET_COACH={meets:-10,train:-7,attendance:2,team:5};
     // The offsets above were solved against 14px labels. The labels are
     // bigger now (see .navlabel), and since they correct for differences
     // in rendered label width — which scale with the type — they're
@@ -6583,7 +6458,6 @@ class Component extends DCLogic {
       vMe:isApp&&!isCoach&&tab==='me',
       vProgress:isApp&&!isCoach&&tab==='progress',
       vAttendance:isApp&&isCoach&&tab==='attendance',
-      vSim:isApp&&isCoach&&tab==='sim',
       vGoals:isApp&&isCoach&&tab==='goals',
       vDive:isApp&&tab==='dive',
       vSwims:isApp&&tab==='swims',
@@ -6624,9 +6498,9 @@ class Component extends DCLogic {
       deleteBusy:st.deleteBusy,deleteBtnLabel:st.deleteBusy?'Deleting…':'Permanently Delete My Account',
       confirmDeleteAccount:()=>this.deleteAccount(st.deletePassword),
       menuItems:(isDivingCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
+        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
         :isCoach
-        ?[['home','Dashboard'],['sim','Meet Simulator'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
+        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
         :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
@@ -6663,7 +6537,6 @@ class Component extends DCLogic {
       goMeets:()=>this.setState({tab:'meets'}),
       goMe:()=>this.setState({tab:'me'}),
       goTrain:()=>this.setState({tab:'train'}),
-      goSim:()=>this.setState({tab:'sim'}),
       goGoals:()=>this.setState({tab:'goals'}),
       // The dashboard rows swap their HOME/AWAY chip for a Lineup button
       // once a coach has posted one, so there is never a button that
