@@ -3956,6 +3956,12 @@ class Component extends DCLogic {
     const attendance={...this.state.attendance,[day]:dayRec};
     this.setState({attendance});this.saveAttendance(attendance);this.syncAttendanceDay(day,dayRec);
   }
+  clearAllAttendance(day,roster){
+    const dayRec={...(this.state.attendance[day]||{})};
+    roster.forEach(s=>{delete dayRec[s.id];});
+    const attendance={...this.state.attendance,[day]:dayRec};
+    this.setState({attendance});this.saveAttendance(attendance);this.syncAttendanceDay(day,dayRec);
+  }
   // Current streak = consecutive present days walking back from today.
   // An unmarked today doesn't break the streak (the coach just hasn't
   // taken attendance yet) — it starts counting from yesterday instead;
@@ -6326,7 +6332,12 @@ class Component extends DCLogic {
     const liftAtLast=liftWeekKey>=liftThisMon;
     const attPct=SEASON_STARTED?this.attendancePct(attRosterRole):null;
     const attPctDisplay=attPct==null?'—':attPct+'%';
-    const onMarkAllPresent=SEASON_STARTED?()=>this.markAllPresent(attDateKey,attRoster):null;
+    const attAllExplicitPresent=attRoster.length>0&&attRoster.every(s=>attDateRec[s.id]===true);
+    const onMarkAllPresent=SEASON_STARTED&&attDayNormal
+      ?(attAllExplicitPresent
+        ?()=>this.clearAllAttendance(attDateKey,attRoster)
+        :()=>this.markAllPresent(attDateKey,attRoster))
+      :null;
     const sim=this.simCalc();
     // Diving coach: sim is forced to Women (no male divers yet) regardless
     // of the stale simGender/simMode state a swim coach view might leave
