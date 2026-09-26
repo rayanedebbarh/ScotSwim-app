@@ -6291,7 +6291,9 @@ class Component extends DCLogic {
     const attShowSummary=SEASON_STARTED&&attDayNormal&&attAnyMarked&&!attIsDone;
     const onAttDone=SEASON_STARTED&&attDayNormal?()=>this.setAttDone(attDoneKey):null;
     const onAttUndone=()=>this.unsetAttDone(attDoneKey);
-    const attDoneSummary=[attPresentCount?attPresentCount+' present':'',attUnexcusedCount?attUnexcusedCount+' unexcused':'',attExcusedCount?attExcusedCount+' excused':''].filter(Boolean).join(' · ')||'No marks yet';
+    const attDoneSummary=!attAnyMarked
+      ?'No absences recorded'
+      :[attPresentCount?attPresentCount+' present':'',attUnexcusedCount?attUnexcusedCount+' unexcused':'',attExcusedCount?attExcusedCount+' excused':''].filter(Boolean).join(' · ')||'No marks yet';
     const attSummary=attPresentCount+' of '+attRoster.length+' present'+(attExcusedCount?' · '+attExcusedCount+' excused':'');
     // Lift view — what athletes have logged for whichever day is picked.
     // Read-only by nature: the rules let an athlete write only their own
