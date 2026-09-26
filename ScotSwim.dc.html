@@ -6287,7 +6287,7 @@ class Component extends DCLogic {
     // Any entry in the record for this gender's roster counts as a mark
     const attAnyMarked=attRoster.some(s=>s.id in attDateRec);
     const attDoneKey=attDateKey+'-'+attSegActive;
-    const attIsDone=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal;
+    const attIsDone=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal&&attAnyMarked;
     const attNotDone=!attIsDone;
     const attNotTakenYet=SEASON_STARTED&&attDayNormal&&!attAnyMarked&&!attIsDone;
     const attShowSummary=SEASON_STARTED&&attDayNormal&&attAnyMarked&&!attIsDone;
