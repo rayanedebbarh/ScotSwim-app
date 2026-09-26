@@ -6283,7 +6283,7 @@ class Component extends DCLogic {
     const attPresentCount=attRows.filter(r=>r.present).length;
     const attExcusedCount=attRows.filter(r=>r.excused).length;
     const attUnexcusedCount=attRows.filter(r=>r.unexcused).length;
-    const attAnyMarked=Object.values(attDateRec).some(v=>v!==true);
+    const attAnyMarked=attRoster.some(s=>{const v=attDateRec[s.id];return v!==undefined&&v!==true;});
     const attDoneKey=attDateKey+'-'+attSegActive;
     const attIsDone=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal;
     const attNotDone=!attIsDone;
