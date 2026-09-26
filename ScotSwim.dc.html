@@ -734,10 +734,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:8px">{{ attSummary }}<span style="color:rgba(42,18,24,.35)"> · tap Done to save</span></div>
           </sc-if>
           <sc-for list="{{ attRows }}" as="a" hint-placeholder-count="5">
-            <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:pointer">
+            <div onClick="{{ a.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:{{ a.pillCursor }}">
               <div style="width:34px;height:34px;border-radius:50%;overflow:hidden;background:{{ a.avc }};color:#F5E9DC;flex:none"><image-slot id="{{ a.slotId }}" src="{{ a.photo }}" minimal="true" shape="circle" placeholder="{{ a.ini }}"></image-slot></div>
               <div style="flex:1;font-size:13.5px;font-weight:600">{{ a.name }}</div>
-              <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border-width:1.5px;border-style:{{ a.pillBdStyle }};border-color:{{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none">{{ a.pillLabel }}</div>
+              <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border-width:1.5px;border-style:{{ a.pillBdStyle }};border-color:{{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none;opacity:{{ a.pillOpacity }}">{{ a.pillLabel }}</div>
             </div>
           </sc-for>
         </sc-if></sc-if>
@@ -6260,6 +6260,8 @@ class Component extends DCLogic {
     const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
     const attRosterEmptyLabel='athletes on the '+(attSegActive==='M'?"men's":"women's")+' roster';
     const attDateRec=this.state.attendance[attDateKey]||{};
+    const attDoneKey=attDateKey+'-'+attSegActive;
+    const attLocked=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal;
     // Pill display + tap cycle. `true` (legacy boolean) and `'present'` (string)
     // both mean "explicitly marked present" and show as green. Only a missing
     // entry (never tapped) shows the gray — default.
@@ -6285,7 +6287,8 @@ class Component extends DCLogic {
         excused:excusedByDay||(inRec&&stt==='excused'),
         unexcused:inRec&&!excusedByDay&&stt==='unexcused',
         pillBg:look.bg,pillFg:look.fg,pillBd:look.bd,pillLabel:look.label,pillBdStyle:look.dashed?'dashed':'solid',
-        onToggle:SEASON_STARTED&&attDayNormal?()=>this.setAttendance(attDateKey,s.id,nextVal):null};
+        pillOpacity:attLocked?'0.42':'1',pillCursor:attLocked?'default':'pointer',
+        onToggle:SEASON_STARTED&&attDayNormal&&!attLocked?()=>this.setAttendance(attDateKey,s.id,nextVal):null};
     });
     const attExcusedCount=attRows.filter(r=>r.excused).length;
     const attUnexcusedCount=attRows.filter(r=>r.unexcused).length;
@@ -6296,8 +6299,7 @@ class Component extends DCLogic {
     const attPresentCount=attEffectivePresentCount;
     // Any entry in the record for this gender's roster counts as a mark
     const attAnyMarked=attRoster.some(s=>s.id in attDateRec);
-    const attDoneKey=attDateKey+'-'+attSegActive;
-    const attIsDone=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal&&attAnyMarked;
+    const attIsDone=attLocked&&attAnyMarked;
     const attNotDone=!attIsDone;
     const attNotTakenYet=SEASON_STARTED&&attDayNormal&&!attAnyMarked&&!attIsDone;
     const attShowSummary=SEASON_STARTED&&attDayNormal&&attAnyMarked&&!attIsDone;
