@@ -6284,12 +6284,13 @@ class Component extends DCLogic {
     const attExcusedCount=attRows.filter(r=>r.excused).length;
     const attUnexcusedCount=attRows.filter(r=>r.unexcused).length;
     const attAnyMarked=Object.keys(attDateRec).length>0;
-    const attIsDone=!!(this.state.doneDays||{})[attDateKey]&&attDayNormal;
+    const attDoneKey=attDateKey+'-'+attSegActive;
+    const attIsDone=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal;
     const attNotDone=!attIsDone;
     const attNotTakenYet=SEASON_STARTED&&attDayNormal&&!attAnyMarked&&!attIsDone;
     const attShowSummary=SEASON_STARTED&&attDayNormal&&attAnyMarked&&!attIsDone;
-    const onAttDone=SEASON_STARTED&&attDayNormal?()=>this.setAttDone(attDateKey):null;
-    const onAttUndone=()=>this.unsetAttDone(attDateKey);
+    const onAttDone=SEASON_STARTED&&attDayNormal?()=>this.setAttDone(attDoneKey):null;
+    const onAttUndone=()=>this.unsetAttDone(attDoneKey);
     const attDoneSummary=[attPresentCount?attPresentCount+' present':'',attUnexcusedCount?attUnexcusedCount+' unexcused':'',attExcusedCount?attExcusedCount+' excused':''].filter(Boolean).join(' · ')||'No marks yet';
     const attSummary=attPresentCount+' of '+attRoster.length+' present'+(attExcusedCount?' · '+attExcusedCount+' excused':'');
     // Lift view — what athletes have logged for whichever day is picked.
