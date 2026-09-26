@@ -6252,38 +6252,40 @@ class Component extends DCLogic {
     const attRoster=attRosterRole.filter(s=>s.gender===attSegActive);
     const attRosterEmptyLabel='athletes on the '+(attSegActive==='M'?"men's":"women's")+' roster';
     const attDateRec=this.state.attendance[attDateKey]||{};
-    // Three states, cycled by tapping a row: present -> unexcused ->
-    // excused -> present. `false` is what "absent" was stored as before
-    // excused existed, so it still reads as unexcused and no past
-    // attendance needs migrating.
+    // Pill display + tap cycle. `true` (legacy boolean) and `'present'` (string)
+    // both mean "explicitly marked present" and show as green. Only a missing
+    // entry (never tapped) shows the gray — default.
     const attRows=attRoster.map(s=>{
       const stored=attDateRec[s.id];
       const inRec=s.id in attDateRec;
+      const explicitPresent=stored===true||stored==='present';
       const stt=this.attStateOf(stored);
-      // Unmarked = no entry OR legacy boolean true (old "mark all present" data)
-      const unmarked=(!inRec||stored===true)&&attDayNormal;
+      const unmarked=!inRec&&attDayNormal;
       const excusedByDay=!attDayNormal;
-      // Cycle: — → Present('present') → Unexcused → Excused → — (delete)
-      const nextVal=(!inRec||stored===true)?'present':stored==='present'?'unexcused':stored==='unexcused'?'excused':null;
+      // Cycle: — → Present → Unexcused → Excused → —
+      const nextVal=!inRec?'present':explicitPresent?'unexcused':stored==='unexcused'?'excused':null;
       const look=unmarked
         ?{bg:'transparent',fg:'rgba(42,18,24,.38)',bd:'rgba(42,18,24,.18)',label:'—',dashed:true}
         :excusedByDay
         ?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
-        :stored==='present'?{bg:'#1B7A78',fg:'#fff',bd:'#1B7A78',label:'Present',dashed:false}
+        :explicitPresent?{bg:'#1B7A78',fg:'#fff',bd:'#1B7A78',label:'Present',dashed:false}
         :stt==='excused'?{bg:'transparent',fg:'#8A6A1F',bd:'#C9A227',label:'Excused',dashed:false}
         :{bg:'transparent',fg:'#8E2C3B',bd:'#C46070',label:'Unexcused',dashed:false};
       return {id:s.id,name:s.name,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
-        present:!excusedByDay&&stt==='present',
+        present:!excusedByDay&&explicitPresent,
         excused:excusedByDay||(inRec&&stt==='excused'),
         unexcused:inRec&&!excusedByDay&&stt==='unexcused',
         pillBg:look.bg,pillFg:look.fg,pillBd:look.bd,pillLabel:look.label,pillBdStyle:look.dashed?'dashed':'solid',
         onToggle:SEASON_STARTED&&attDayNormal?()=>this.setAttendance(attDateKey,s.id,nextVal):null};
     });
-    const attPresentCount=attRows.filter(r=>r.present).length;
     const attExcusedCount=attRows.filter(r=>r.excused).length;
     const attUnexcusedCount=attRows.filter(r=>r.unexcused).length;
-    const attAnyMarked=attRoster.some(s=>{const v=attDateRec[s.id];return v!==undefined&&v!==true;});
+    // "Effective present" = everyone not explicitly absent (unmarked counts as present)
+    const attEffectivePresentCount=attRoster.length-attUnexcusedCount-attExcusedCount;
+    const attPresentCount=attEffectivePresentCount;
+    // Any entry in the record for this gender's roster counts as a mark
+    const attAnyMarked=attRoster.some(s=>s.id in attDateRec);
     const attDoneKey=attDateKey+'-'+attSegActive;
     const attIsDone=!!(this.state.doneDays||{})[attDoneKey]&&attDayNormal;
     const attNotDone=!attIsDone;
@@ -6293,8 +6295,8 @@ class Component extends DCLogic {
     const onAttUndone=()=>this.unsetAttDone(attDoneKey);
     const attDoneSummary=!attAnyMarked
       ?'No absences recorded'
-      :[attPresentCount?attPresentCount+' present':'',attUnexcusedCount?attUnexcusedCount+' unexcused':'',attExcusedCount?attExcusedCount+' excused':''].filter(Boolean).join(' · ')||'No marks yet';
-    const attSummary=attPresentCount+' of '+attRoster.length+' present'+(attExcusedCount?' · '+attExcusedCount+' excused':'');
+      :[attEffectivePresentCount?attEffectivePresentCount+' present':'',attUnexcusedCount?attUnexcusedCount+' unexcused':'',attExcusedCount?attExcusedCount+' excused':''].filter(Boolean).join(' · ')||'No marks yet';
+    const attSummary=attEffectivePresentCount+' of '+attRoster.length+' present'+(attExcusedCount?' · '+attExcusedCount+' excused':'');
     // Lift view — what athletes have logged for whichever day is picked.
     // Read-only by nature: the rules let an athlete write only their own
     // trainingLog, so a coach sees the report rather than editing it.
@@ -6335,7 +6337,7 @@ class Component extends DCLogic {
     const liftAtLast=liftWeekKey>=liftThisMon;
     const attPct=SEASON_STARTED?this.attendancePct(attRosterRole):null;
     const attPctDisplay=attPct==null?'—':attPct+'%';
-    const attAllExplicitPresent=attRoster.length>0&&attRoster.every(s=>attDateRec[s.id]==='present');
+    const attAllExplicitPresent=attRoster.length>0&&attRoster.every(s=>attDateRec[s.id]===true||attDateRec[s.id]==='present');
     const markAllPresentLabel=attAllExplicitPresent?'Return to default':'Mark all present';
     const onMarkAllPresent=SEASON_STARTED&&attDayNormal
       ?(attAllExplicitPresent
