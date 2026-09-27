@@ -700,7 +700,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
-          <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attNotDone }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attNotDone }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:10px;align-items:center">
               <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ markAllPresentLabel }}</button>
               <sc-if value="{{ attHasCancel }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onAttCancel }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:12.5px;font-weight:700;cursor:pointer">Cancel</button></sc-if>
@@ -708,7 +708,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </div>
           </sc-if></sc-if></sc-if></sc-if></sc-if>
         </div>
-        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ false }}">
           <div style="font-size:12px;color:rgba(42,18,24,.45);margin-top:8px;font-style:italic">Tap a name to mark — first tap marks Present, tap again for Excused, again for Unexcused, once more to clear.</div>
         </sc-if></sc-if></sc-if></sc-if>
         <sc-if value="{{ attIsNoPractice }}" hint-placeholder-val="{{ false }}">
@@ -736,7 +736,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <button onClick="{{ onAttUndone }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:12px;font-weight:700;cursor:pointer;flex:none">Edit</button>
           </div>
         </sc-if>
-        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ false }}">
           <sc-if value="{{ attShowSummary }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:8px">{{ attSummary }}<span style="color:rgba(42,18,24,.35)"> · tap Done to save</span></div>
           </sc-if>
@@ -6401,7 +6401,7 @@ class Component extends DCLogic {
     // swimDaysFor already calls weekDataFor which merges both sources, so
     // this correctly handles weeks where no Firestore doc exists yet.
     const attIsSwimPractice=!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
-    const attIsNoPractice=!attIsSwimPractice;
+    const attIsNoPractice=SEASON_STARTED&&!attIsSwimPractice;
     const attDayCanceled=attDayStatusVal==='canceled';
     const attDayPostponed=attDayStatusVal==='postponed';
     const attDayChipLabel=attDayCanceled?'Canceled':attDayPostponed?'Postponed':'Set status';
