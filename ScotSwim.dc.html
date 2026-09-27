@@ -3931,25 +3931,7 @@ class Component extends DCLogic {
       this.db.collection('attendance').doc(dateKey)
         .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
     }
-    if(notifMsg)this.pushNotification({type:'attendance',target:'coaches',tab:'attendance',ref:day,msg:notifMsg});
-    const otherSeg=seg==='M'?'W':'M';
-    if(doneDays[dateKey+'-'+otherSeg])this._fireAllTeamAttendanceNotif(dateKey);
-  }
-  _fireAllTeamAttendanceNotif(dateKey){
-    if(!this.isCoachRole())return;
-    const dateObj=new Date(dateKey+'T00:00:00');
-    const dLabel=dateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    const rec=this.state.attendance[dateKey]||{};
-    const mainMsg='Attendance recorded · '+dLabel;
-    this.all.forEach(s=>{
-      const inRec=s.id in rec;
-      const stt=inRec?this.attStateOf(rec[s.id]):null;
-      const sub=!inRec?'Your attendance wasn’t recorded'
-        :stt==='unexcused'?'You were marked unexcused'
-        :stt==='excused'?'You were marked excused'
-        :'';
-      this.pushNotification({type:'attendance',target:s.id,tab:'attendance',ref:dateKey,msg:mainMsg,sub});
-    });
+    if(notifMsg)this.pushNotification({type:’attendance’,target:’coaches’,tab:’attendance’,ref:day,msg:notifMsg});
   }
   unsetAttDone(day){
     // Snapshot before unlocking so Cancel can re-lock with the original marks.
@@ -5160,10 +5142,11 @@ class Component extends DCLogic {
     this._attUnsub=this.db.collection('attendance')
       .orderBy(window.firebase.firestore.FieldPath.documentId(),'desc').limit(60)
       .onSnapshot(snap=>{
-        const attendance={};
+        const attendance={...this.state.attendance};
         const dayStatus={...this.state.dayStatus};
         const doneDays={...this.state.doneDays};
         snap.docs.forEach(d=>{
+          if(this._attPendingWrite&&this._attPendingWrite[d.id])return;
           attendance[d.id]=d.data().marks||{};
           const ds=d.data().dayStatus;
           if(ds==='canceled'||ds==='postponed')dayStatus[d.id]=ds;
