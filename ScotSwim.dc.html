@@ -5181,6 +5181,8 @@ class Component extends DCLogic {
     if(this._libUnsub){this._libUnsub();this._libUnsub=null;}
     if(this._schedUnsub){this._schedUnsub();this._schedUnsub=null;}
     if(this._attUnsub){this._attUnsub();this._attUnsub=null;}
+    if(this._attDocUnsub){this._attDocUnsub();this._attDocUnsub=null;}
+    clearTimeout(this._attDocRetry);this._attDocKey=null;
     if(this._rosterUnsub){this._rosterUnsub();this._rosterUnsub=null;}
   }
   postAnnouncement(){
@@ -5276,6 +5278,38 @@ class Component extends DCLogic {
       const trainWeeks={...this.state.trainWeeks,[weekKey]:{days:(data&&data.days)||{},notes:(data&&data.notes)||{}}};
       this.setState({trainWeeks});
     },()=>{});
+  }
+  // Per-document listener for the specific attendance date a coach is
+  // currently viewing — targeted and reliable where the collection-level
+  // listener can silently error out on native webviews. Retries on failure.
+  watchAttDoc(dateKey){
+    if(this._attDocKey===dateKey)return;
+    this._attDocKey=dateKey;
+    clearTimeout(this._attDocRetry);
+    if(this._attDocUnsub){this._attDocUnsub();this._attDocUnsub=null;}
+    if(!this.fbReady)return;
+    const setup=()=>{
+      this._attDocUnsub=this.db.collection('attendance').doc(dateKey).onSnapshot(doc=>{
+        if(this._attDocKey!==dateKey)return;
+        const data=doc.exists?doc.data():null;
+        const marks=(data&&data.marks)||{};
+        const attendance={...this.state.attendance,[dateKey]:marks};
+        const dayStatus={...this.state.dayStatus};
+        const ds=data&&data.dayStatus;
+        if(ds==='canceled'||ds==='postponed')dayStatus[dateKey]=ds;else delete dayStatus[dateKey];
+        const doneDays={...this.state.doneDays};
+        Object.entries((data&&data.doneSegs)||{}).forEach(([seg,done])=>{
+          const k=dateKey+'-'+seg;
+          if(done)doneDays[k]=true;else delete doneDays[k];
+        });
+        this.setState({attendance,dayStatus,doneDays});
+        this.saveAttendance(attendance);this.saveDayStatus(dayStatus);this.saveDoneDays(doneDays);
+      },()=>{
+        clearTimeout(this._attDocRetry);
+        this._attDocRetry=setTimeout(()=>{if(this._attDocKey===dateKey)setup();},5000);
+      });
+    };
+    setup();
   }
   // Reverts all unsaved attendance marks to the state captured when editing
   // began (either an unlock or the first tap). Re-locks the record if it had
@@ -6370,6 +6404,7 @@ class Component extends DCLogic {
     const attDayNormal=attDayStatusVal==='normal';
     const attWeekKey=this.mondayKey(attDateObj);
     this.watchAttWeek(attWeekKey);
+    if(isCoach)this.watchAttDoc(attDateKey);
     const attDayOfWeek=this.DAYS[(attDateObj.getDay()+6)%7];
     // Only gate attendance on schedule when the week actually has sessions
     // stored; an unloaded (blank) week should not block the Done button.
