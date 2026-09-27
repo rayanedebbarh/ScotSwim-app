@@ -3931,7 +3931,7 @@ class Component extends DCLogic {
       this.db.collection('attendance').doc(dateKey)
         .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
     }
-    if(notifMsg)this.pushNotification({type:’attendance’,target:’coaches’,tab:’attendance’,ref:day,msg:notifMsg});
+    if(notifMsg)this.pushNotification({type:'attendance',target:'coaches',tab:'attendance',ref:day,msg:notifMsg});
   }
   unsetAttDone(day){
     // Snapshot before unlocking so Cancel can re-lock with the original marks.
