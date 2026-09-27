@@ -3980,16 +3980,23 @@ class Component extends DCLogic {
   }
   // Writes just the one day that changed, debounced per day, so two
   // coaches marking different days never overwrite each other's doc.
+  // _attPendingWrite[day] is set true from the first tap until the Firestore
+  // write resolves, so watchAttDoc's snapshot callback skips overwriting local
+  // state while the write is in-flight (fixes the tap-revert race condition).
   syncAttendanceDay(day,dayRec){
     if(!this.fbReady)return;
     if(!this._attSaveTimers)this._attSaveTimers={};
+    if(!this._attPendingWrite)this._attPendingWrite={};
     clearTimeout(this._attSaveTimers[day]);
+    this._attPendingWrite[day]=true;
     this._attSaveTimers[day]=setTimeout(()=>{
+      this._attSaveTimers[day]=null;
       this.db.collection('attendance').doc(day).set({marks:dayRec,updatedAt:Date.now()},{merge:true})
-        // Reported rather than swallowed for the same reason as the
-        // roster: a whole season of attendance that never left the phone
-        // it was taken on is worse than being told once that it didn't.
-        .catch(()=>this.toastMsg('Attendance NOT saved — check your connection'));
+        .then(()=>{if(this._attPendingWrite)delete this._attPendingWrite[day];})
+        .catch(()=>{
+          if(this._attPendingWrite)delete this._attPendingWrite[day];
+          this.toastMsg('Attendance NOT saved — check your connection');
+        });
     },400);
   }
   // Normalises a stored attendance value to one of the three states.
@@ -5291,6 +5298,7 @@ class Component extends DCLogic {
     const setup=()=>{
       this._attDocUnsub=this.db.collection('attendance').doc(dateKey).onSnapshot(doc=>{
         if(this._attDocKey!==dateKey)return;
+        if(this._attPendingWrite&&this._attPendingWrite[dateKey])return;
         const data=doc.exists?doc.data():null;
         const marks=(data&&data.marks)||{};
         const attendance={...this.state.attendance,[dateKey]:marks};
