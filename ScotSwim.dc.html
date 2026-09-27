@@ -3931,25 +3931,7 @@ class Component extends DCLogic {
       this.db.collection('attendance').doc(dateKey)
         .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
     }
-    if(notifMsg)this.pushNotification({type:'attendance',target:'coaches',tab:'attendance',ref:day,msg:notifMsg});
-    const otherSeg=seg==='M'?'W':'M';
-    if(doneDays[dateKey+'-'+otherSeg])this._fireAllTeamAttendanceNotif(dateKey);
-  }
-  _fireAllTeamAttendanceNotif(dateKey){
-    if(!this.isCoachRole())return;
-    const dateObj=new Date(dateKey+'T00:00:00');
-    const dLabel=dateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    const rec=this.state.attendance[dateKey]||{};
-    const mainMsg='Attendance recorded · '+dLabel;
-    this.all.forEach(s=>{
-      const inRec=s.id in rec;
-      const stt=inRec?this.attStateOf(rec[s.id]):null;
-      const sub=!inRec?'Your attendance wasn’t recorded'
-        :stt==='unexcused'?'You were marked unexcused'
-        :stt==='excused'?'You were marked excused'
-        :'';
-      this.pushNotification({type:'attendance',target:s.id,tab:'attendance',ref:dateKey,msg:mainMsg,sub});
-    });
+    if(notifMsg)this.pushNotification({type:’attendance’,target:’coaches’,tab:’attendance’,ref:day,msg:notifMsg});
   }
   unsetAttDone(day){
     // Snapshot before unlocking so Cancel can re-lock with the original marks.
@@ -3980,16 +3962,23 @@ class Component extends DCLogic {
   }
   // Writes just the one day that changed, debounced per day, so two
   // coaches marking different days never overwrite each other's doc.
+  // _attPendingWrite[day] is set true from the first tap until the Firestore
+  // write resolves, so watchAttDoc's snapshot callback skips overwriting local
+  // state while the write is in-flight (fixes the tap-revert race condition).
   syncAttendanceDay(day,dayRec){
     if(!this.fbReady)return;
     if(!this._attSaveTimers)this._attSaveTimers={};
+    if(!this._attPendingWrite)this._attPendingWrite={};
     clearTimeout(this._attSaveTimers[day]);
+    this._attPendingWrite[day]=true;
     this._attSaveTimers[day]=setTimeout(()=>{
+      this._attSaveTimers[day]=null;
       this.db.collection('attendance').doc(day).set({marks:dayRec,updatedAt:Date.now()},{merge:true})
-        // Reported rather than swallowed for the same reason as the
-        // roster: a whole season of attendance that never left the phone
-        // it was taken on is worse than being told once that it didn't.
-        .catch(()=>this.toastMsg('Attendance NOT saved — check your connection'));
+        .then(()=>{if(this._attPendingWrite)delete this._attPendingWrite[day];})
+        .catch(()=>{
+          if(this._attPendingWrite)delete this._attPendingWrite[day];
+          this.toastMsg('Attendance NOT saved — check your connection');
+        });
     },400);
   }
   // Normalises a stored attendance value to one of the three states.
@@ -5153,10 +5142,11 @@ class Component extends DCLogic {
     this._attUnsub=this.db.collection('attendance')
       .orderBy(window.firebase.firestore.FieldPath.documentId(),'desc').limit(60)
       .onSnapshot(snap=>{
-        const attendance={};
+        const attendance={...this.state.attendance};
         const dayStatus={...this.state.dayStatus};
         const doneDays={...this.state.doneDays};
         snap.docs.forEach(d=>{
+          if(this._attPendingWrite&&this._attPendingWrite[d.id])return;
           attendance[d.id]=d.data().marks||{};
           const ds=d.data().dayStatus;
           if(ds==='canceled'||ds==='postponed')dayStatus[d.id]=ds;
@@ -5291,6 +5281,7 @@ class Component extends DCLogic {
     const setup=()=>{
       this._attDocUnsub=this.db.collection('attendance').doc(dateKey).onSnapshot(doc=>{
         if(this._attDocKey!==dateKey)return;
+        if(this._attPendingWrite&&this._attPendingWrite[dateKey])return;
         const data=doc.exists?doc.data():null;
         const marks=(data&&data.marks)||{};
         const attendance={...this.state.attendance,[dateKey]:marks};
