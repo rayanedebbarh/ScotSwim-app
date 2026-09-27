@@ -3900,13 +3900,26 @@ class Component extends DCLogic {
   saveAttendance(attendance){try{localStorage.setItem('scotswim.attendance.v3',JSON.stringify(attendance))}catch(e){}}
   saveDoneDays(d){try{localStorage.setItem('scotswim.doneDays.v1',JSON.stringify(d))}catch(e){}}
   saveDayStatus(d){try{localStorage.setItem('scotswim.dayStatus.v1',JSON.stringify(d))}catch(e){}}
-  setAttDone(day){
+  setAttDone(day,notifMsg){
     const doneDays={...this.state.doneDays,[day]:true};
     this.setState({doneDays});this.saveDoneDays(doneDays);
+    if(this.fbReady){
+      const lastDash=day.lastIndexOf('-');
+      const dateKey=day.slice(0,lastDash);const seg=day.slice(lastDash+1);
+      this.db.collection('attendance').doc(dateKey)
+        .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
+    }
+    if(notifMsg)this.pushNotification({type:'attendance',target:'coaches',tab:'attendance',ref:day,msg:notifMsg});
   }
   unsetAttDone(day){
     const doneDays={...this.state.doneDays};delete doneDays[day];
     this.setState({doneDays});this.saveDoneDays(doneDays);
+    if(this.fbReady){
+      const lastDash=day.lastIndexOf('-');
+      const dateKey=day.slice(0,lastDash);const seg=day.slice(lastDash+1);
+      this.db.collection('attendance').doc(dateKey)
+        .set({doneSegs:{[seg]:false},updatedAt:Date.now()},{merge:true}).catch(()=>{});
+    }
   }
   flashAttSaved(){
     this.setState({attSavedFlash:true});
@@ -5084,15 +5097,22 @@ class Component extends DCLogic {
       .onSnapshot(snap=>{
         const attendance={};
         const dayStatus={...this.state.dayStatus};
+        const doneDays={...this.state.doneDays};
         snap.docs.forEach(d=>{
           attendance[d.id]=d.data().marks||{};
           const ds=d.data().dayStatus;
           if(ds==='canceled'||ds==='postponed')dayStatus[d.id]=ds;
           else delete dayStatus[d.id];
+          const doneSegs=d.data().doneSegs||{};
+          Object.entries(doneSegs).forEach(([seg,done])=>{
+            const k=d.id+'-'+seg;
+            if(done)doneDays[k]=true;else delete doneDays[k];
+          });
         });
-        this.setState({attendance,dayStatus});
+        this.setState({attendance,dayStatus,doneDays});
         this.saveAttendance(attendance);
         this.saveDayStatus(dayStatus);
+        this.saveDoneDays(doneDays);
       },()=>{});
   }
   stopTeamContentSync(){
@@ -6303,7 +6323,12 @@ class Component extends DCLogic {
     const attNotDone=!attIsDone;
     const attNotTakenYet=SEASON_STARTED&&attDayNormal&&!attAnyMarked&&!attIsDone;
     const attShowSummary=SEASON_STARTED&&attDayNormal&&attAnyMarked&&!attIsDone;
-    const onAttDone=SEASON_STARTED&&attDayNormal?(attAnyMarked?()=>this.setAttDone(attDoneKey):()=>this.flashAttSaved()):null;
+    const onAttDone=SEASON_STARTED&&attDayNormal?(attAnyMarked?()=>{
+      const gLabel=attSegActive==='M'?"Men's":"Women's";
+      const dLabel=new Date(attDateKey+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      const parts=[attExplicitPresentCount?attExplicitPresentCount+' present':'',attUnmarkedCount?attUnmarkedCount+' unmarked':'',attUnexcusedCount?attUnexcusedCount+' unexcused':'',attExcusedCount?attExcusedCount+' excused':''].filter(Boolean).join(' · ');
+      this.setAttDone(attDoneKey,this.coachDisplayName()+' saved '+gLabel+' attendance for '+dLabel+' — '+parts);
+    }:()=>this.flashAttSaved()):null;
     const onAttUndone=()=>this.unsetAttDone(attDoneKey);
     const attSavedFlash=!!this.state.attSavedFlash;
     const attNotSavedFlash=!attSavedFlash;
