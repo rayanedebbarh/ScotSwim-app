@@ -6272,8 +6272,8 @@ class Component extends DCLogic {
       const stt=this.attStateOf(stored);
       const unmarked=!inRec&&attDayNormal;
       const excusedByDay=!attDayNormal;
-      // Cycle: — → Present → Unexcused → Excused → —
-      const nextVal=!inRec?'present':explicitPresent?'unexcused':stored==='unexcused'?'excused':null;
+      // Cycle: — → Present → Excused → Unexcused → —
+      const nextVal=!inRec?'present':explicitPresent?'excused':stored==='excused'?'unexcused':null;
       const look=unmarked
         ?{bg:'transparent',fg:'rgba(42,18,24,.38)',bd:'rgba(42,18,24,.18)',label:'—',dashed:true}
         :excusedByDay
