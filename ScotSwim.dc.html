@@ -6397,12 +6397,11 @@ class Component extends DCLogic {
     this.watchAttWeek(attWeekKey);
     if(isCoach)this.watchAttDoc(attDateKey);
     const attDayOfWeek=this.DAYS[(attDateObj.getDay()+6)%7];
-    // Only gate attendance on schedule when the week actually has sessions
-    // stored; an unloaded (blank) week should not block the Done button.
-    const attWeekData=this.state.trainWeeks[attWeekKey]||{days:{}};
-    const attWeekHasSessions=Object.values(attWeekData.days||{}).some(s=>s&&s.length>0);
-    const attIsSwimPractice=!attWeekHasSessions||!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
-    const attIsNoPractice=attWeekHasSessions&&!attIsSwimPractice;
+    // Gate attendance on the merged schedule (template + any coach edits).
+    // swimDaysFor already calls weekDataFor which merges both sources, so
+    // this correctly handles weeks where no Firestore doc exists yet.
+    const attIsSwimPractice=!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
+    const attIsNoPractice=!attIsSwimPractice;
     const attDayCanceled=attDayStatusVal==='canceled';
     const attDayPostponed=attDayStatusVal==='postponed';
     const attDayChipLabel=attDayCanceled?'Canceled':attDayPostponed?'Postponed':'Set status';
