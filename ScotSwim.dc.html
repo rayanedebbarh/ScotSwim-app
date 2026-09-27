@@ -6401,7 +6401,6 @@ class Component extends DCLogic {
     // swimDaysFor already calls weekDataFor which merges both sources, so
     // this correctly handles weeks where no Firestore doc exists yet.
     const attIsSwimPractice=!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
-    const attIsNoPractice=SEASON_STARTED&&!attIsSwimPractice;
     const attDayCanceled=attDayStatusVal==='canceled';
     const attDayPostponed=attDayStatusVal==='postponed';
     const attDayChipLabel=attDayCanceled?'Canceled':attDayPostponed?'Postponed':'Set status';
@@ -6421,6 +6420,7 @@ class Component extends DCLogic {
     // calculated, and season PBs count. Flip back to false only if the app
     // is ever reset for an off-season gap.
     const SEASON_STARTED=true;
+    const attIsNoPractice=SEASON_STARTED&&!attIsSwimPractice;
     // Both coaches take attendance for the whole team — swimmers and
     // divers together — same reasoning as the Team roster above: the
     // diving coach may need to run the full team's practice, not just
