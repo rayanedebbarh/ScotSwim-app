@@ -700,16 +700,22 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">ATTENDANCE</div>
-          <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attNotDone }}" hint-placeholder-val="{{ true }}">
+          <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attNotDone }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:10px;align-items:center">
               <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ markAllPresentLabel }}</button>
               <sc-if value="{{ attNotSavedFlash }}" hint-placeholder-val="{{ true }}"><button onClick="{{ onAttDone }}" style="border:none;background:#1B7A78;color:#fff;font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;border-radius:6px;padding:6px 12px;cursor:pointer">Done ›</button></sc-if><sc-if value="{{ attSavedFlash }}" hint-placeholder-val="{{ false }}"><div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;color:#1B7A78;border:1.5px solid rgba(27,122,120,.3);background:rgba(27,122,120,.1);border-radius:6px;padding:6px 12px">✓ Saved</div></sc-if>
             </div>
-          </sc-if></sc-if></sc-if></sc-if>
+          </sc-if></sc-if></sc-if></sc-if></sc-if>
         </div>
-        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ true }}">
           <div style="font-size:12px;color:rgba(42,18,24,.45);margin-top:8px;font-style:italic">Tap a name to mark — first tap marks Present, tap again for Excused, again for Unexcused, once more to clear.</div>
-        </sc-if></sc-if></sc-if>
+        </sc-if></sc-if></sc-if></sc-if>
+        <sc-if value="{{ attIsNoPractice }}" hint-placeholder-val="{{ false }}">
+          <div style="background:rgba(42,18,24,.04);border:1px solid rgba(42,18,24,.08);border-radius:8px;padding:14px 16px;margin-top:10px;text-align:center">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1.5px;color:rgba(42,18,24,.38)">NO SWIM PRACTICE</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.42);margin-top:3px">This day has no swim practice in the schedule.</div>
+          </div>
+        </sc-if>
         <sc-if value="{{ attDayCanceled }}" hint-placeholder-val="{{ false }}">
           <div style="background:rgba(200,60,60,.12);border:1.5px solid rgba(200,60,60,.4);border-radius:8px;padding:10px 14px;margin-top:10px;display:flex;align-items:center;gap:8px">
             <div style="font-size:15px;flex:none">🚫</div>
@@ -729,7 +735,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <button onClick="{{ onAttUndone }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:12px;font-weight:700;cursor:pointer;flex:none">Edit</button>
           </div>
         </sc-if>
-        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ true }}">
           <sc-if value="{{ attShowSummary }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:8px">{{ attSummary }}<span style="color:rgba(42,18,24,.35)"> · tap Done to save</span></div>
           </sc-if>
@@ -740,7 +746,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:11.5px;font-weight:700;letter-spacing:.5px;color:{{ a.pillFg }};background:{{ a.pillBg }};border-width:1.5px;border-style:{{ a.pillBdStyle }};border-color:{{ a.pillBd }};border-radius:999px;padding:5px 12px;flex:none;opacity:{{ a.pillOpacity }}">{{ a.pillLabel }}</div>
             </div>
           </sc-for>
-        </sc-if></sc-if>
+        </sc-if></sc-if></sc-if>
         <sc-if value="{{ attRosterEmpty }}" hint-placeholder-val="{{ false }}">
           <div style="text-align:center;padding:22px 8px 6px">
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:rgba(42,18,24,.4)">NONE</div>
@@ -1689,7 +1695,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="width:40px;height:40px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px">{{ n.icon }}</div>
             <div style="flex:1;min-width:0">
               <div style="display:flex;gap:8px;align-items:flex-start">
-                <div style="flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.38;color:#2A1218">{{ n.msg }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:15px;font-weight:600;line-height:1.38;color:#2A1218">{{ n.msg }}</div>
+                  <sc-if value="{{ n.sub }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:rgba(42,18,24,.55);margin-top:3px">{{ n.sub }}</div></sc-if>
+                </div>
                 <sc-if value="{{ n.isNew }}" hint-placeholder-val="{{ true }}">
                   <div style="width:9px;height:9px;border-radius:50%;background:#6B1F33;flex:none;margin-top:6px"></div>
                 </sc-if>
@@ -1709,7 +1718,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="width:40px;height:40px;border-radius:50%;background:{{ n.iconBg }};color:#F5E9DC;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px">{{ n.icon }}</div>
             <div style="flex:1;min-width:0">
               <div style="display:flex;gap:8px;align-items:flex-start">
-                <div style="flex:1;min-width:0;font-size:15px;font-weight:600;line-height:1.38;color:#2A1218">{{ n.msg }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:15px;font-weight:600;line-height:1.38;color:#2A1218">{{ n.msg }}</div>
+                  <sc-if value="{{ n.sub }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:rgba(42,18,24,.55);margin-top:3px">{{ n.sub }}</div></sc-if>
+                </div>
                 <sc-if value="{{ n.isNew }}" hint-placeholder-val="{{ true }}">
                   <div style="width:9px;height:9px;border-radius:50%;background:#6B1F33;flex:none;margin-top:6px"></div>
                 </sc-if>
@@ -3903,13 +3915,32 @@ class Component extends DCLogic {
   setAttDone(day,notifMsg){
     const doneDays={...this.state.doneDays,[day]:true};
     this.setState({doneDays});this.saveDoneDays(doneDays);
+    const lastDash=day.lastIndexOf('-');
+    const dateKey=day.slice(0,lastDash);
+    const seg=day.slice(lastDash+1);
     if(this.fbReady){
-      const lastDash=day.lastIndexOf('-');
-      const dateKey=day.slice(0,lastDash);const seg=day.slice(lastDash+1);
       this.db.collection('attendance').doc(dateKey)
         .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
     }
     if(notifMsg)this.pushNotification({type:'attendance',target:'coaches',tab:'attendance',ref:day,msg:notifMsg});
+    const otherSeg=seg==='M'?'W':'M';
+    if(doneDays[dateKey+'-'+otherSeg])this._fireAllTeamAttendanceNotif(dateKey);
+  }
+  _fireAllTeamAttendanceNotif(dateKey){
+    if(!this.isCoachRole())return;
+    const dateObj=new Date(dateKey+'T00:00:00');
+    const dLabel=dateObj.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const rec=this.state.attendance[dateKey]||{};
+    const mainMsg='Attendance recorded · '+dLabel;
+    this.all.forEach(s=>{
+      const inRec=s.id in rec;
+      const stt=inRec?this.attStateOf(rec[s.id]):null;
+      const sub=!inRec?'Your attendance wasn’t recorded'
+        :stt==='unexcused'?'You were marked unexcused'
+        :stt==='excused'?'You were marked excused'
+        :'';
+      this.pushNotification({type:'attendance',target:s.id,tab:'attendance',ref:dateKey,msg:mainMsg,sub});
+    });
   }
   unsetAttDone(day){
     const doneDays={...this.state.doneDays};delete doneDays[day];
@@ -4004,16 +4035,24 @@ class Component extends DCLogic {
   // way the attendance percentage skips it, and so are lift-only days.
   streakFor(id){
     const attendance=this.state.attendance;
+    const doneDays=this.state.doneDays||{};
+    const s=this.byId[id];
+    const seg=s&&s.gender==='W'?'W':'M';
     const isSwimDay=d=>!!this.swimDaysFor(this.mondayKey(d))[this.DAYS[(d.getDay()+6)%7]];
     const stateOn=d=>{
-      const rec=attendance[this.ymd(d)];
-      return rec?this.attStateOf(rec[id]):null;   // null = not taken
+      const dk=this.ymd(d);
+      const attTaken=!!doneDays[dk+'-'+seg];
+      const rec=attendance[dk];
+      if(!rec||!(id in rec)){
+        // Attendance was finalized but athlete has no entry → absent
+        return attTaken?'absent':null;
+      }
+      return this.attStateOf(rec[id]);
     };
     const d=new Date();
     if(isSwimDay(d)){
       const today=stateOn(d);
       if(today&&today!=='present')return 0;
-      // Not taken yet today — start counting from yesterday instead.
       if(!today)d.setDate(d.getDate()-1);
     }else d.setDate(d.getDate()-1);
     let count=0;
@@ -4633,11 +4672,13 @@ class Component extends DCLogic {
   }
   pushNotification(n){
     if(!this.fbReady||!this.isCoachRole())return;
-    this.db.collection('notifications').add({
+    const doc={
       type:n.type,msg:n.msg,target:n.target||'team',tab:n.tab||'home',ref:n.ref||'',
       author:this.state.userId||'',authorName:this.coachDisplayName(),
       createdAt:Date.now()
-    }).catch(()=>{});
+    };
+    if(n.sub)doc.sub=n.sub;
+    this.db.collection('notifications').add(doc).catch(()=>{});
   }
   // Same shape as pushNotification, but for the few things an ATHLETE's
   // own action should tell the coaching staff about — a new PB, a
@@ -5875,13 +5916,18 @@ class Component extends DCLogic {
       goalHit:{icon:'\ud83c\udfaf',iconBg:'#6B1F33',cta:'See their goal'},
       rosterJoin:{icon:'\ud83d\udc4b',iconBg:'#1B7A78',cta:'View profile'},
       absence:{icon:'\u26a0\ufe0f',iconBg:'#6B1F33',cta:'See attendance'},
-      meetUpdate:{icon:'\ud83d\udccc',iconBg:'#1B7A78',cta:'See the update'}
+      meetUpdate:{icon:'\ud83d\udccc',iconBg:'#1B7A78',cta:'See the update'},
+      attendance:{icon:'\u2705',iconBg:'#1B7A78',cta:'See attendance'}
     };
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
       const isNew=n.createdAt>seenAt;
-      return {id:n.id,msg:n.msg,ago:this.agoLabel(n.createdAt),
-        icon:look.icon,iconBg:look.iconBg,cta:look.cta,isNew,
+      const sub=n.sub||'';
+      const iconBg=(sub&&sub.includes('unexcused'))?'#C0152A'
+        :(sub&&sub.includes('excused'))?'#C07800'
+        :look.iconBg;
+      return {id:n.id,msg:n.msg,sub,ago:this.agoLabel(n.createdAt),
+        icon:look.icon,iconBg,cta:look.cta,isNew,
         // Unread rows are solid white with a maroon edge; read ones sit
         // back. Tapping a row whose post has since been deleted just says
         // so in a toast — the row itself never changes.
@@ -6247,6 +6293,10 @@ class Component extends DCLogic {
     const attNextDay=()=>{if(attIsToday)return;const d=new Date(attDateObj);d.setDate(d.getDate()+1);this.setState({attDate:this.ymd(d)});};
     const attDayStatusVal=(this.state.dayStatus||{})[attDateKey]||'normal';
     const attDayNormal=attDayStatusVal==='normal';
+    const attWeekKey=this.mondayKey(attDateObj);
+    const attDayOfWeek=this.DAYS[(attDateObj.getDay()+6)%7];
+    const attIsSwimPractice=!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
+    const attIsNoPractice=!attIsSwimPractice;
     const attDayCanceled=attDayStatusVal==='canceled';
     const attDayPostponed=attDayStatusVal==='postponed';
     const attDayChipLabel=attDayCanceled?'Canceled':attDayPostponed?'Postponed':'Set status';
@@ -6323,11 +6373,10 @@ class Component extends DCLogic {
     const attNotDone=!attIsDone;
     const attNotTakenYet=SEASON_STARTED&&attDayNormal&&!attAnyMarked&&!attIsDone;
     const attShowSummary=SEASON_STARTED&&attDayNormal&&attAnyMarked&&!attIsDone;
-    const onAttDone=SEASON_STARTED&&attDayNormal?(attAnyMarked?()=>{
+    const onAttDone=SEASON_STARTED&&attDayNormal&&attIsSwimPractice?(attAnyMarked?()=>{
       const gLabel=attSegActive==='M'?"Men's":"Women's";
       const dLabel=new Date(attDateKey+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-      const parts=[attExplicitPresentCount?attExplicitPresentCount+' present':'',attUnmarkedCount?attUnmarkedCount+' unmarked':'',attUnexcusedCount?attUnexcusedCount+' unexcused':'',attExcusedCount?attExcusedCount+' excused':''].filter(Boolean).join(' · ');
-      this.setAttDone(attDoneKey,this.coachDisplayName()+' saved '+gLabel+' attendance for '+dLabel+' — '+parts);
+      this.setAttDone(attDoneKey,this.coachDisplayName()+' saved '+gLabel+' attendance · '+dLabel);
     }:()=>this.flashAttSaved()):null;
     const onAttUndone=()=>this.unsetAttDone(attDoneKey);
     const attSavedFlash=!!this.state.attSavedFlash;
@@ -6728,7 +6777,7 @@ class Component extends DCLogic {
       seasonPbCount:String(seasonPbCount),improvers,improversEmpty,
       attPctDisplay,attRows,attPresentCount:String(attPresentCount),attTotalCount:String(attRoster.length),attSummary,attDoneSummary,onMarkAllPresent,markAllPresentLabel,
       attDateLabel,attIsToday,attNotToday:!attIsToday,attPrevDay,attNextDay,
-      attDayNormal,attDayCanceled,attDayPostponed,
+      attDayNormal,attDayCanceled,attDayPostponed,attIsSwimPractice,attIsNoPractice,
       attStatusPickerOpen,attDayChipLabel,attDayChipBg,attDayChipFg,attDayChipBd,attToggleStatusPicker,
       attStatusNormalCheck,attStatusCanceledCheck,attStatusPostponedCheck,
       onAttStatusNormal,onAttStatusCanceled,onAttStatusPostponed,
