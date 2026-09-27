@@ -703,6 +703,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <sc-if value="{{ attSeasonStarted }}" hint-placeholder-val="{{ false }}"><sc-if value="{{ attRosterHasAthletes }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attDayNormal }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attIsSwimPractice }}" hint-placeholder-val="{{ true }}"><sc-if value="{{ attNotDone }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;gap:10px;align-items:center">
               <button onClick="{{ onMarkAllPresent }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ markAllPresentLabel }}</button>
+              <sc-if value="{{ attHasCancel }}" hint-placeholder-val="{{ false }}"><button onClick="{{ onAttCancel }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:12.5px;font-weight:700;cursor:pointer">Cancel</button></sc-if>
               <sc-if value="{{ attNotSavedFlash }}" hint-placeholder-val="{{ true }}"><button onClick="{{ onAttDone }}" style="border:none;background:#1B7A78;color:#fff;font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;border-radius:6px;padding:6px 12px;cursor:pointer">Done ›</button></sc-if><sc-if value="{{ attSavedFlash }}" hint-placeholder-val="{{ false }}"><div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:1px;color:#1B7A78;border:1.5px solid rgba(27,122,120,.3);background:rgba(27,122,120,.1);border-radius:6px;padding:6px 12px">✓ Saved</div></sc-if>
             </div>
           </sc-if></sc-if></sc-if></sc-if></sc-if>
@@ -995,7 +996,15 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:rgba(42,18,24,.55)">WEEKLY SCHEDULE</div>
         <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
-          <button onClick="{{ toggleTrainEdit }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ trainEditLabel }}</button>
+          <sc-if value="{{ trainEditing }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:10px;align-items:center">
+              <button onClick="{{ onTrainCancel }}" style="border:none;background:none;color:rgba(42,18,24,.45);font-size:12.5px;font-weight:700;cursor:pointer">Cancel</button>
+              <button onClick="{{ toggleTrainEdit }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Done ✓</button>
+            </div>
+          </sc-if>
+          <sc-if value="{{ trainNotEditing }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ toggleTrainEdit }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">Edit schedule ✎</button>
+          </sc-if>
         </sc-if>
       </div>
       <div style="background:#2A1218;border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">
@@ -2303,7 +2312,7 @@ class Component extends DCLogic {
       showPass:false,showSignupPass:false,showSignupPass2:false,showDeletePass:false,
       rosterEdits:{removed:[],added:[]},teamEditing:false,rosterErr:'',
       rosterDraft:{name:'',cls:'',pos:'',home:'',gender:'M'},
-      attView:'swim',liftLogsLoading:false,liftLogsLoaded:false,liftWeekKey:null,attStatusPickerOpen:false,attSavedFlash:false,doneDays:{},dayStatus:{}};
+      attView:'swim',liftLogsLoading:false,liftLogsLoaded:false,liftWeekKey:null,attStatusPickerOpen:false,attSavedFlash:false,doneDays:{},dayStatus:{},attEditSnap:null,trainEditSnap:null};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -3914,7 +3923,7 @@ class Component extends DCLogic {
   saveDayStatus(d){try{localStorage.setItem('scotswim.dayStatus.v1',JSON.stringify(d))}catch(e){}}
   setAttDone(day,notifMsg){
     const doneDays={...this.state.doneDays,[day]:true};
-    this.setState({doneDays});this.saveDoneDays(doneDays);
+    this.setState({doneDays,attEditSnap:null});this.saveDoneDays(doneDays);
     const lastDash=day.lastIndexOf('-');
     const dateKey=day.slice(0,lastDash);
     const seg=day.slice(lastDash+1);
@@ -3943,11 +3952,13 @@ class Component extends DCLogic {
     });
   }
   unsetAttDone(day){
+    // Snapshot before unlocking so Cancel can re-lock with the original marks.
+    const lastDash=day.lastIndexOf('-');
+    const dateKey=day.slice(0,lastDash);const seg=day.slice(lastDash+1);
+    this.setState({attEditSnap:{dateKey,marks:{...(this.state.attendance[dateKey]||{})},wasDone:true,doneKey:day,seg}});
     const doneDays={...this.state.doneDays};delete doneDays[day];
     this.setState({doneDays});this.saveDoneDays(doneDays);
     if(this.fbReady){
-      const lastDash=day.lastIndexOf('-');
-      const dateKey=day.slice(0,lastDash);const seg=day.slice(lastDash+1);
       this.db.collection('attendance').doc(dateKey)
         .set({doneSegs:{[seg]:false},updatedAt:Date.now()},{merge:true}).catch(()=>{});
     }
@@ -3964,7 +3975,7 @@ class Component extends DCLogic {
     if(!this.fbReady)return;
     const marks=this.state.attendance[day]||{};
     this.db.collection('attendance').doc(day)
-      .set({marks,dayStatus:status==='normal'?null:status,updatedAt:Date.now()})
+      .set({marks,dayStatus:status==='normal'?null:status,updatedAt:Date.now()},{merge:true})
       .catch(()=>this.toastMsg('Status NOT saved — check your connection'));
   }
   // Writes just the one day that changed, debounced per day, so two
@@ -3974,7 +3985,7 @@ class Component extends DCLogic {
     if(!this._attSaveTimers)this._attSaveTimers={};
     clearTimeout(this._attSaveTimers[day]);
     this._attSaveTimers[day]=setTimeout(()=>{
-      this.db.collection('attendance').doc(day).set({marks:dayRec,updatedAt:Date.now()})
+      this.db.collection('attendance').doc(day).set({marks:dayRec,updatedAt:Date.now()},{merge:true})
         // Reported rather than swallowed for the same reason as the
         // roster: a whole season of attendance that never left the phone
         // it was taken on is worse than being told once that it didn't.
@@ -3987,6 +3998,12 @@ class Component extends DCLogic {
   // as everyone else having shown up.
   attStateOf(...a){return ScotSwimCore.attStateOf(...a);}
   setAttendance(day,id,val){
+    // Snapshot on first tap for this day (before any change) so Cancel can
+    // revert to the state before the coach started marking this session.
+    const snap=this.state.attEditSnap;
+    if(!snap||snap.dateKey!==day){
+      this.setState({attEditSnap:{dateKey:day,marks:{...(this.state.attendance[day]||{})},wasDone:false,doneKey:null,seg:null}});
+    }
     const dayRec={...(this.state.attendance[day]||{})};
     if(val===null){delete dayRec[id];}else{dayRec[id]=val;}
     const attendance={...this.state.attendance,[day]:dayRec};
@@ -5218,6 +5235,21 @@ class Component extends DCLogic {
       this.db.collection('training').doc(weekKey).set({days,notes}).catch(()=>{});
     },700);
   }
+  // Reverts all unsaved train-schedule edits to the state captured when editing
+  // began. Clears debounce timers so nothing lands in Firestore after Cancel,
+  // then re-writes the original data for every snapshotted week.
+  cancelTrainEdit(){
+    const snap=this.state.trainEditSnap;
+    if(!snap)return;
+    if(this._trainSaveTimers){Object.keys(this._trainSaveTimers).forEach(k=>{clearTimeout(this._trainSaveTimers[k]);delete this._trainSaveTimers[k];});}
+    const trainWeeks={...this.state.trainWeeks,...snap.weeks};
+    this.setState({trainWeeks,trainEditing:false,trainEditSnap:null});
+    if(this.fbReady){
+      Object.entries(snap.weeks).forEach(([weekKey,data])=>{
+        this.db.collection('training').doc(weekKey).set({days:data.days,notes:data.notes}).catch(()=>{});
+      });
+    }
+  }
   // Swaps the one "roving" training-week listener over to a new week —
   // called every time a coach/athlete pages ‹ › to a different week in
   // the Train tab (see gotoWeek in renderVals), so browsing to any week,
@@ -5230,6 +5262,40 @@ class Component extends DCLogic {
       const trainWeeks={...this.state.trainWeeks,[weekKey]:{days:(data&&data.days)||{},notes:(data&&data.notes)||{}}};
       this.setState({trainWeeks});
     },()=>{});
+  }
+  // Separate listener for the training week of whichever date the coach is
+  // viewing in the Attendance tab — distinct from the Train tab's roving
+  // listener so paging attendance dates doesn't disrupt Train, and vice versa.
+  watchAttWeek(weekKey){
+    if(this._attTrainWeekKey===weekKey)return;
+    this._attTrainWeekKey=weekKey;
+    if(this._trainAttUnsub)this._trainAttUnsub();
+    if(!this.fbReady)return;
+    this._trainAttUnsub=this.db.collection('training').doc(weekKey).onSnapshot(doc=>{
+      const data=doc.exists?doc.data():null;
+      const trainWeeks={...this.state.trainWeeks,[weekKey]:{days:(data&&data.days)||{},notes:(data&&data.notes)||{}}};
+      this.setState({trainWeeks});
+    },()=>{});
+  }
+  // Reverts all unsaved attendance marks to the state captured when editing
+  // began (either an unlock or the first tap). Re-locks the record if it had
+  // been locked before the coach hit Edit.
+  cancelAttEdit(){
+    const snap=this.state.attEditSnap;
+    if(!snap)return;
+    const{dateKey,marks,wasDone,doneKey,seg}=snap;
+    const attendance={...this.state.attendance,[dateKey]:marks};
+    this.setState({attendance,attEditSnap:null});
+    this.saveAttendance(attendance);
+    this.syncAttendanceDay(dateKey,marks);
+    if(wasDone&&doneKey){
+      const doneDays={...this.state.doneDays,[doneKey]:true};
+      this.setState({doneDays});this.saveDoneDays(doneDays);
+      if(this.fbReady&&seg){
+        this.db.collection('attendance').doc(dateKey)
+          .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
+      }
+    }
   }
   // Debounced whole-array write for the season meet schedule — same
   // reasoning as syncTrainingToCloud: local state updates instantly as a
@@ -5982,7 +6048,16 @@ class Component extends DCLogic {
     // used to render a fixed "set in TeamBuildr" placeholder no matter
     // what was stored, which left no way to show a real lift time.
     const trainEditing=isCoach&&st.trainEditing;
-    const toggleTrainEdit=()=>this.setState({trainEditing:!st.trainEditing});
+    const toggleTrainEdit=()=>{
+      if(!st.trainEditing){
+        const weeks={};
+        Object.entries(this.state.trainWeeks).forEach(([k,v])=>{weeks[k]={days:{...(v.days||{})},notes:{...(v.notes||{})}};});
+        this.setState({trainEditing:true,trainEditSnap:{weeks}});
+      }else{
+        this.setState({trainEditing:false,trainEditSnap:null});
+      }
+    };
+    const onTrainCancel=()=>this.cancelTrainEdit();
     const trainEditLabel=trainEditing?'Done ✓':'Edit schedule ✎';
     const thisMon=this.mondayKey(new Date());
     const nextMonDate=new Date();nextMonDate.setDate(nextMonDate.getDate()+7);
@@ -6294,9 +6369,14 @@ class Component extends DCLogic {
     const attDayStatusVal=(this.state.dayStatus||{})[attDateKey]||'normal';
     const attDayNormal=attDayStatusVal==='normal';
     const attWeekKey=this.mondayKey(attDateObj);
+    this.watchAttWeek(attWeekKey);
     const attDayOfWeek=this.DAYS[(attDateObj.getDay()+6)%7];
-    const attIsSwimPractice=!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
-    const attIsNoPractice=!attIsSwimPractice;
+    // Only gate attendance on schedule when the week actually has sessions
+    // stored; an unloaded (blank) week should not block the Done button.
+    const attWeekData=this.state.trainWeeks[attWeekKey]||{days:{}};
+    const attWeekHasSessions=Object.values(attWeekData.days||{}).some(s=>s&&s.length>0);
+    const attIsSwimPractice=!attWeekHasSessions||!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
+    const attIsNoPractice=attWeekHasSessions&&!attIsSwimPractice;
     const attDayCanceled=attDayStatusVal==='canceled';
     const attDayPostponed=attDayStatusVal==='postponed';
     const attDayChipLabel=attDayCanceled?'Canceled':attDayPostponed?'Postponed':'Set status';
@@ -6379,6 +6459,8 @@ class Component extends DCLogic {
       this.setAttDone(attDoneKey,this.coachDisplayName()+' saved '+gLabel+' attendance · '+dLabel);
     }:()=>this.flashAttSaved()):null;
     const onAttUndone=()=>this.unsetAttDone(attDoneKey);
+    const attHasCancel=isCoach&&!!st.attEditSnap;
+    const onAttCancel=()=>this.cancelAttEdit();
     const attSavedFlash=!!this.state.attSavedFlash;
     const attNotSavedFlash=!attSavedFlash;
     const attDoneSummary=!attAnyMarked
@@ -6771,7 +6853,7 @@ class Component extends DCLogic {
       allLabel:user.diver?'All dives':'All swims',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
       todayName:weekThis[dayIdx].day,todaySessions:weekThis[dayIdx].s,todaySessionsEmpty:weekThis[dayIdx].sEmpty,
-      anns,annsEmpty,annPost:st.annPost,annPostChange,annPostSubmit,week,trainEditing,toggleTrainEdit,trainEditLabel,
+      anns,annsEmpty,annPost:st.annPost,annPostChange,annPostSubmit,week,trainEditing,trainNotEditing:!trainEditing,toggleTrainEdit,trainEditLabel,onTrainCancel,
       nAll:String(homeMen.length+homeWomen.length),nMen:String(homeMen.length),nWomen:String(homeWomen.length),
       totalTileLabel,nBreakdown,
       seasonPbCount:String(seasonPbCount),improvers,improversEmpty,
@@ -6781,7 +6863,7 @@ class Component extends DCLogic {
       attStatusPickerOpen,attDayChipLabel,attDayChipBg,attDayChipFg,attDayChipBd,attToggleStatusPicker,
       attStatusNormalCheck,attStatusCanceledCheck,attStatusPostponedCheck,
       onAttStatusNormal,onAttStatusCanceled,onAttStatusPostponed,
-      attIsDone,attNotDone,attNotTakenYet,attShowSummary,onAttDone,onAttUndone,attSavedFlash,attNotSavedFlash,
+      attIsDone,attNotDone,attNotTakenYet,attShowSummary,onAttDone,onAttUndone,attHasCancel,onAttCancel,attSavedFlash,attNotSavedFlash,
       attSegs,attSeasonStarted:SEASON_STARTED,attSeasonNotStarted:!SEASON_STARTED,
       attViews,attSwimView:attView==='swim',attLiftView:attView==='lift',
       liftCols,liftGridRows,liftHasDays:liftCols.length>0,liftNoDays:liftCols.length===0,
