@@ -4923,7 +4923,10 @@ class Component extends DCLogic {
       // SIGNED_OUT_STATE zeros these out, which caused a flash of 0 → real.
       let cachedGoals={};
       try{const g=JSON.parse(localStorage.getItem('scotswim.goals')||'null');if(g){cachedGoals=g;}}catch(e){}
+      let cachedMyPhotos={};
+      try{const p=JSON.parse(localStorage.getItem('scotswim.myPhotos')||'null');if(p){cachedMyPhotos=p;}}catch(e){}
       this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,notifOpen:false,notifSeenAt:seen,goalSeg,teamSeg,attSeg,
+        myPhotos:cachedMyPhotos,
         ...(cachedGoals.goalDelta?{goalDelta:cachedGoals.goalDelta}:{}),
         ...(cachedGoals.selfGoals?{selfGoals:cachedGoals.selfGoals}:{}),
         ...(cachedGoals.selfOrder?{selfOrder:cachedGoals.selfOrder}:{}),
