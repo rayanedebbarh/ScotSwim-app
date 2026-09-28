@@ -33,6 +33,7 @@ body{touch-action:pan-x pan-y}
    so the app behaves like a native screen rather than a web page. */
 *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
+input[type="time"],input[type="date"],input[type="number"],input[type="range"]{-webkit-user-select:none;user-select:none}
 /* Pulling down past the top of a scrolling area used to rubber-band the
    whole thing, carrying the sticky app bar down with it. Containing the
    overscroll keeps the bar pinned and the bounce inside the list. */
