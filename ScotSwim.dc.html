@@ -1706,13 +1706,13 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <sc-if value="{{ showProgressTimes }}" hint-placeholder-val="{{ true }}">
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:16px 18px">
         <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">TIMES</div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">{{ det.progSectionLabel }}</div>
           <div style="font-size:12px;font-weight:800;color:#1B7A78;white-space:nowrap">{{ det.imp }}</div>
         </div>
         <sc-if value="{{ det.chartEmpty }}" hint-placeholder-val="{{ false }}">
           <div style="text-align:center;padding:32px 8px 8px">
-            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">NO TIMES YET</div>
-            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Log a time in My Events below and your progression chart will build itself from there.</div>
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">{{ det.chartEmptyTitle }}</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">{{ det.chartEmptyMsg }}</div>
           </div>
         </sc-if>
         <sc-if value="{{ det.hasChart }}" hint-placeholder-val="{{ true }}">
@@ -2173,8 +2173,8 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
           <sc-if value="{{ selDet.chartEmpty }}" hint-placeholder-val="{{ false }}">
             <div style="text-align:center;padding:32px 8px 8px">
-              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">NO TIMES YET</div>
-              <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">Once they log a time in My Events, their progression chart will show up here.</div>
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#6B1F33">{{ selDet.chartEmptyTitle }}</div>
+              <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.45">{{ selDet.chartEmptyMsgOther }}</div>
             </div>
           </sc-if>
           <sc-if value="{{ selDet.hasChart }}" hint-placeholder-val="{{ true }}">
@@ -3714,6 +3714,10 @@ class Component extends DCLogic {
       eventsEmptyMsg:s.diver?'No scores yet — pick an event with ＋ Add score, then enter the date and your score. Add the same event again for every meet you dive at — your progression chart builds itself from these.':'No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.',
       pbsEmptyMsg:s.diver?'No scores entered yet — once they log one, it\'ll show up here.':'No times entered yet — once they log one, it\'ll show up here.',
       entryColLabel:s.diver?'SCORE':'TIME',
+      progSectionLabel:s.diver?'SCORES':'TIMES',
+      chartEmptyTitle:s.diver?'NO SCORES YET':'NO TIMES YET',
+      chartEmptyMsg:s.diver?'Log a score in My Events below and your progression chart will build itself from there.':'Log a time in My Events below and your progression chart will build itself from there.',
+      chartEmptyMsgOther:s.diver?'Once they log a score in My Events, their progression chart will show up here.':'Once they log a time in My Events, their progression chart will show up here.',
       myEventGroups,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
       trainingLogRows,addTrainingLogEntry,trainingLogEmpty:tlEntryIds.length===0,
       totalMiles:totalMiles>0?(Math.round(totalMiles*10)/10).toString():'0',
