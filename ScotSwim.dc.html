@@ -4869,6 +4869,8 @@ class Component extends DCLogic {
       authChecking:false,
       myEvents:{},trainingLog:{},soloLifts:{},goalWorkouts:{},goalDelta:{},
       selfGoals:{},selfOrder:{},coachGoalOrder:{},bios:{},stats:{},myPhotos:{},attendance:{},
+      doneDays:{},dayStatus:{},attEditSnap:null,trainEditSnap:null,
+      annPost:'',meetUpdatePost:'',
       notifications:[],notifOpen:false,notifSeenAt:0,
       meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',
       lineupDraft:{pics:[],pdf:null,notes:''},lineupZoom:null,
@@ -4896,7 +4898,7 @@ class Component extends DCLogic {
   onAuthChange(user){
     if(this.state.screen==='invite')return;
     const epoch=(this._authEpoch=(this._authEpoch||0)+1);
-    if(!user){this.clearAuthWatchdog();this.setState(this.SIGNED_OUT_STATE());return;}
+    if(!user){this.clearAuthWatchdog();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();this.setState(this.SIGNED_OUT_STATE());return;}
     this.loadProfile(user).then(doc=>{
       // A profile read is several round trips with retries. If another
       // auth event happened while it was in flight — a sign-out, or a
@@ -5414,9 +5416,15 @@ class Component extends DCLogic {
       .onSnapshot(snap=>{
         const prev=(this.state.notifications||[]).length;
         const next=snap.docs.map(d=>({id:d.id,...d.data()}));
+        const isFirst=!this._notifConnected;
+        this._notifConnected=true;
         this.setState({notifications:next});
-        if(next.length>prev&&this.state.notifVibrate!==false&&!(this.state.notifPausedUntil>Date.now())){
-          try{navigator.vibrate&&navigator.vibrate([150]);}catch(e){}
+        if(!isFirst&&next.length>prev&&this.state.notifVibrate!==false&&!(this.state.notifPausedUntil>Date.now())){
+          const qs=this.state.notifQuietStart||'22:00';const qe=this.state.notifQuietEnd||'06:00';
+          const now=new Date();const nm=now.getHours()*60+now.getMinutes();
+          const qsm=parseInt(qs)*60+parseInt(qs.split(':')[1]);const qem=parseInt(qe)*60+parseInt(qe.split(':')[1]);
+          const inQ=qsm>qem?(nm>=qsm||nm<qem):(nm>=qsm&&nm<qem);
+          if(!inQ){try{navigator.vibrate&&navigator.vibrate([150]);}catch(e){}}
         }
       },()=>{});
   }
@@ -5432,6 +5440,10 @@ class Component extends DCLogic {
     const reminderMins=this.state.notifReminderMins||30;
     if(!reminderMins)return;
     if(this.state.notifPausedUntil>Date.now())return;
+    const qs=this.state.notifQuietStart||'22:00';const qe=this.state.notifQuietEnd||'06:00';
+    const _n=new Date();const _nm=_n.getHours()*60+_n.getMinutes();
+    const _qsm=parseInt(qs)*60+parseInt(qs.split(':')[1]);const _qem=parseInt(qe)*60+parseInt(qe.split(':')[1]);
+    if(_qsm>_qem?(_nm>=_qsm||_nm<_qem):(_nm>=_qsm&&_nm<_qem))return;
     const now=new Date();
     const dayNames=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
     const dayName=dayNames[now.getDay()];
@@ -5458,6 +5470,7 @@ class Component extends DCLogic {
   }
   stopNotificationsSync(){
     if(this._notifUnsub){this._notifUnsub();this._notifUnsub=null;}
+    this._notifConnected=false;
   }
   // Read state is a single timestamp rather than a per-item list: it can't
   // grow without bound, and "everything older than when I last looked" is
@@ -5613,6 +5626,8 @@ class Component extends DCLogic {
     if(this._attUnsub){this._attUnsub();this._attUnsub=null;}
     if(this._attDocUnsub){this._attDocUnsub();this._attDocUnsub=null;}
     clearTimeout(this._attDocRetry);this._attDocKey=null;
+    if(this._trainAttUnsub){this._trainAttUnsub();this._trainAttUnsub=null;}
+    this._attTrainWeekKey=null;
     if(this._rosterUnsub){this._rosterUnsub();this._rosterUnsub=null;}
   }
   postAnnouncement(){
@@ -5949,9 +5964,7 @@ class Component extends DCLogic {
       .then(()=>user.delete())
       .then(()=>{
         this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();
-        this.setState({screen:'login',role:null,tab:'home',sel:null,pickerEv:null,menuOpen:false,
-          showDeletePanel:false,deletePassword:'',deleteBusy:false,authUser:null,
-          uname:'',pass:'',authMsg:'Your account has been deleted.'});
+        this.setState({...this.SIGNED_OUT_STATE(),showDeletePanel:false,deletePassword:'',deleteBusy:false,authMsg:'Your account has been deleted.'});
       })
       .catch(err=>this.setState({deleteBusy:false,deleteErr:this.authErrMsg(err)}));
   }
