@@ -33,6 +33,7 @@ body{touch-action:pan-x pan-y}
    so the app behaves like a native screen rather than a web page. */
 *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
+input[type="time"],input[type="date"],input[type="number"],input[type="range"]{-webkit-user-select:none;user-select:none}
 /* Pulling down past the top of a scrolling area used to rubber-band the
    whole thing, carrying the sticky app bar down with it. Containing the
    overscroll keeps the bar pinned and the bounce inside the list. */
@@ -1462,7 +1463,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;overflow:hidden">
 
           <!-- Pause — first, highlighted -->
-          <button onClick="{{ notifPaused?resumeNotifs:openSnoozeSheet }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:none;border-left:3px solid {{ pauseBorderCol }};background:{{ pauseRowBg }};cursor:pointer;text-align:left;border-bottom:1px solid rgba(42,18,24,.06)">
+          <button onClick="{{ onPauseTap }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:none;border-left:3px solid {{ pauseBorderCol }};background:{{ pauseRowBg }};cursor:pointer;text-align:left;border-bottom:1px solid rgba(42,18,24,.06)">
             <div style="width:34px;height:34px;border-radius:9px;background:{{ pauseIconBg }};display:flex;align-items:center;justify-content:center;flex:none">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5E9DC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </div>
@@ -1615,7 +1616,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;margin:0 16px;overflow:hidden">
 
         <!-- Pause -->
-        <div onClick="{{ notifPaused?resumeNotifs:openSnoozeSheet }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06);cursor:pointer;border-left:3px solid {{ pauseBorderCol }}">
+        <div onClick="{{ onPauseTap }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06);cursor:pointer;border-left:3px solid {{ pauseBorderCol }}">
           <div style="flex:1">
             <div style="font-size:14px;font-weight:600;color:{{ pauseLabelCol }}">{{ pauseLabel }}</div>
             <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">{{ pauseSub }}</div>
@@ -6525,6 +6526,7 @@ class Component extends DCLogic {
       notifVibBg:st.notifVibrate!==false?'#1B7A78':'rgba(42,18,24,.18)',
       notifVibDot:st.notifVibrate!==false?'22px':'2px',
       notifPaused,notifPausedUntil,resumeNotifs:()=>this.saveNotifPref('notifPausedUntil',0),
+      onPauseTap:notifPaused?(()=>this.saveNotifPref('notifPausedUntil',0)):openSnoozeSheet,
       pauseLabel:notifPaused?'Paused — tap to resume':'Pause notifications',
       pauseSub:notifPaused?fmtResume(notifPausedUntil):'Snooze for 1 hr, 4 hrs, until tomorrow…',
       pauseRowBg:notifPaused?'rgba(107,31,51,.07)':'rgba(27,122,120,.07)',
