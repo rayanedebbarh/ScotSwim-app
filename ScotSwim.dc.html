@@ -5200,6 +5200,12 @@ class Component extends DCLogic {
       return;
     }
     if(type==='absence'||type==='attendance'){
+      if(!this.isCoachRole()){
+        // Athletes don't have an attendance tab — the notification message
+        // is the information; just close the panel and stay where they are.
+        this.setState(base);
+        return;
+      }
       // ref is "2026-09-27-M" or "2026-09-27-W"; fall back gracefully for old format.
       const lastDash=ref.lastIndexOf('-');
       const rawSeg=lastDash>7?ref.slice(lastDash+1):'';
@@ -6348,7 +6354,7 @@ class Component extends DCLogic {
       rosterJoin:{icon:'\ud83d\udc4b',iconBg:'#1B7A78',cta:'View profile'},
       absence:{icon:'\u26a0\ufe0f',iconBg:'#6B1F33',cta:'See attendance'},
       meetUpdate:{icon:'\ud83d\udccc',iconBg:'#1B7A78',cta:'See the update'},
-      attendance:{icon:'\u2705',iconBg:'#1B7A78',cta:'See attendance'}
+      attendance:{icon:'\u2705',iconBg:'#1B7A78',cta:this.isCoachRole()?'See attendance':'Noted'}
     };
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
