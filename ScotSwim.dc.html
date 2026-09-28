@@ -1856,10 +1856,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
   <!-- ============ DIVING WELL ============ -->
   <sc-if value="{{ vDive }}" hint-placeholder-val="{{ false }}">
     <div style="padding:14px 16px 18px;display:flex;flex-direction:column;gap:12px">
-      <div style="background:#1B7A78;color:#F5E9DC;border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:14px">
-        <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;min-width:44px">FRI</div>
-        <div style="flex:1"><div style="font-weight:600;font-size:13.5px">Boards + dryland — 4:00 PM</div><div style="font-size:11.5px;color:rgba(245,233,220,.75)">Dive sheets due 48h before each meet</div></div>
-      </div>
+      <sc-if value="{{ hasNextDivePractice }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#1B7A78;color:#F5E9DC;border-radius:8px;padding:14px 18px;display:flex;align-items:center;gap:14px">
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;min-width:44px">{{ nextDivePracticeDay }}</div>
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:13.5px">{{ nextDivePracticeTime }}</div>
+            <sc-if value="{{ nextDivePracticeHasName }}" hint-placeholder-val="{{ false }}"><div style="font-size:11.5px;color:rgba(245,233,220,.75)">{{ nextDivePracticeName }}</div></sc-if>
+          </div>
+          <div style="font-size:11px;color:rgba(245,233,220,.7);text-align:right;flex:none">{{ nextDivePracticeDate }}</div>
+        </div>
+      </sc-if>
       <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
         <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;color:#6B1F33">MEN'S DIVING</div>
         <sc-for list="{{ diversM }}" as="p" hint-placeholder-count="1">
@@ -1886,7 +1892,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-for>
       </div>
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px;font-size:12.5px;line-height:1.5;color:rgba(42,18,24,.7)">Dual meets score 1M and 3M like swim events — six dives per board. Tap a diver to see score progression and board goals.</div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px;font-size:12.5px;line-height:1.5;color:rgba(42,18,24,.7)">Tap a diver to see their full season timeline, coach-set board goals, and score progression. Rankings reflect each diver's season-best scores on 1M and 3M springboard.</div>
     </div>
   </sc-if>
 
@@ -7362,6 +7368,31 @@ class Component extends DCLogic {
       diversW:this.women.filter(s=>s.diver).map(s=>({name:s.name,cls:s.cls,home:s.home,ini:s.ini,avc:s.avc,
         slotId:this.slotIdOf(s.id),photo:this.photoOf(s.id),
         dv1:s.pbs.DV1!=null?s.pbs.DV1.toFixed(1):'—',dv3:s.pbs.DV3!=null?s.pbs.DV3.toFixed(1):'—',onTap:()=>this.setState({sel:s.id,meEvent:null})})),
+      ...(()=>{
+        const DAY_ABBRS=['MON','TUE','WED','THU','FRI','SAT','SUN'];
+        const now=new Date();
+        let ndp={hasNext:false,day:'',date:'',time:'',name:'',hasName:false};
+        for(let offset=0;offset<=13;offset++){
+          const d=new Date(now);d.setDate(d.getDate()+offset);
+          const di=(d.getDay()+6)%7;
+          const dayName=this.DAYS[di];
+          const wk=this.weekDataFor(this.mondayKey(d));
+          const diveSessions=((wk.days&&wk.days[dayName])||[]).filter(s=>s.tag==='DIVE');
+          if(diveSessions.length){
+            const s=diveSessions[0];
+            const hasTime=!!(s.t&&s.t.trim());
+            const hasName=!!(s.n&&s.n.trim());
+            ndp={hasNext:true,day:DAY_ABBRS[di],
+              date:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+              time:hasTime?s.t:'Dive practice',
+              name:hasName?s.n:'',hasName};
+            break;
+          }
+        }
+        return {hasNextDivePractice:ndp.hasNext,nextDivePracticeDay:ndp.day,
+          nextDivePracticeDate:ndp.date,nextDivePracticeTime:ndp.time,
+          nextDivePracticeName:ndp.name,nextDivePracticeHasName:ndp.hasName};
+      })(),
       navItems,
       heroName:user.name.split(' ')[0],
       heroIsDiver:user.diver,heroIsMen:!user.diver&&user.gender==='M',heroIsWomen:!user.diver&&user.gender==='W',
