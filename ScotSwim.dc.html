@@ -4901,7 +4901,16 @@ class Component extends DCLogic {
       // The profile's own last-seen wins over this device's, so reading the
       // list on a phone doesn't leave the same items unread on a laptop.
       const seen=Math.max(this.state.notifSeenAt||0,profile.notifSeenAt||0);
-      this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,notifOpen:false,notifSeenAt:seen,goalSeg,teamSeg,attSeg});
+      // Restore cached goals from localStorage so the home tiles show the
+      // right numbers on the very first render, before Firestore syncs in.
+      // SIGNED_OUT_STATE zeros these out, which caused a flash of 0 → real.
+      let cachedGoals={};
+      try{const g=JSON.parse(localStorage.getItem('scotswim.goals')||'null');if(g){cachedGoals=g;}}catch(e){}
+      this.setState({authUser:user,authChecking:false,authBusy:false,screen:'app',role:profile.role,userId:profile.rosterId,tab:'home',sel:null,menuOpen:false,notifOpen:false,notifSeenAt:seen,goalSeg,teamSeg,attSeg,
+        ...(cachedGoals.goalDelta?{goalDelta:cachedGoals.goalDelta}:{}),
+        ...(cachedGoals.selfGoals?{selfGoals:cachedGoals.selfGoals}:{}),
+        ...(cachedGoals.selfOrder?{selfOrder:cachedGoals.selfOrder}:{}),
+        ...(cachedGoals.coachGoalOrder?{coachGoalOrder:cachedGoals.coachGoalOrder}:{})});
       // Left to the next tick so the dashboard paints first. These attach
       // seven-odd listeners that each fire an opening snapshot, and each
       // of those sets state again — doing it inline meant the app was
@@ -5986,6 +5995,7 @@ class Component extends DCLogic {
       // autofilled or typed. Matches doForgotPassword, which already did.
       const email=st.uname.trim().toLowerCase();
       if(!email||!st.pass){this.setState({authErr:'Enter your email and password.'});return;}
+      this._lastLoginAttempt=Date.now();
       this.setState({authBusy:true,authErr:'',authMsg:''});
       this.startAuthWatchdog();
       // Signing out is asynchronous, and the login form appears before it
@@ -6012,7 +6022,11 @@ class Component extends DCLogic {
     // there's no separate index to keep in sync or backfill), and only
     // call Firebase's reset email for an email a real account has.
     const doForgotPassword=()=>{
-      if(st.authBusy)return;
+      // Guard against ghost-clicks that fire after login has already succeeded
+      // and the screen has transitioned away from login. A ghost-click landing
+      // here after auth is complete must never send a reset email.
+      if(this.state.screen!=='login')return;
+      if(this.state.authBusy)return;
       if(!this.fbReady){this.setState({authErr:"That isn't available right now — try again in a moment."});return;}
       const email=st.uname.trim().toLowerCase();
       if(!email){this.setState({authErr:'Enter your email above first, then tap "Forgot password?" again.'});return;}
