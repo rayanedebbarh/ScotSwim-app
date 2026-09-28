@@ -4249,6 +4249,22 @@ class Component extends DCLogic {
         .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
     }
     if(notifMsg)this.pushNotification({type:'attendance',target:'coaches',tab:'attendance',ref:day,msg:notifMsg});
+    // Notify each athlete individually about their own recorded status.
+    // Only fires for unexcused/excused — present is the default expectation
+    // and doesn't need a push. Uses the same pushNotification path (coach-
+    // authored, written from the coach's session) with target=athleteId so
+    // myNotifications() routes it to that athlete's bell only.
+    const dayLabel=new Date(dateKey+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const marks=this.state.attendance[dateKey]||{};
+    Object.entries(marks).forEach(([athleteId,status])=>{
+      if(status==='unexcused'){
+        this.pushNotification({type:'attendance',target:athleteId,tab:'home',ref:day,
+          msg:'Your attendance was marked unexcused for practice on '+dayLabel});
+      }else if(status==='excused'){
+        this.pushNotification({type:'attendance',target:athleteId,tab:'home',ref:day,
+          msg:'Your absence was excused for practice on '+dayLabel});
+      }
+    });
   }
   unsetAttDone(day){
     // Snapshot before unlocking so Cancel can re-lock with the original marks.
@@ -4323,6 +4339,8 @@ class Component extends DCLogic {
       const dayLabel=new Date(day+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       this.pushNotification({type:'absence',target:'coaches',tab:'attendance',ref:id,
         msg:id+' was marked unexcused for practice on '+dayLabel});
+      this.pushNotification({type:'attendance',target:id,tab:'home',ref:day,
+        msg:'Your attendance was marked unexcused for practice on '+dayLabel});
     }
   }
   markAllPresent(day,roster){
@@ -7232,7 +7250,7 @@ class Component extends DCLogic {
         ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
         :isCoach
         ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
-        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['notifSettings','Settings'],['me','My Profile']]
+        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['me','My Profile'],['notifSettings','Settings']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
