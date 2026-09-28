@@ -5613,12 +5613,11 @@ class Component extends DCLogic {
     // there's no separate index to keep in sync or backfill), and only
     // call Firebase's reset email for an email a real account has.
     const doForgotPassword=()=>{
-      // Use this.state (not the stale closure `st`) so a ghost-click arriving
-      // before the next render still sees the authBusy flag set by doLogin.
-      // Also guard against layout-shift ghost-clicks: if login was attempted
-      // within the last 3 seconds, ignore any forgot-password tap.
+      // Guard against ghost-clicks that fire after login has already succeeded
+      // and the screen has transitioned away from login. A ghost-click landing
+      // here after auth is complete must never send a reset email.
+      if(this.state.screen!=='login')return;
       if(this.state.authBusy)return;
-      if(this._lastLoginAttempt&&Date.now()-this._lastLoginAttempt<3000)return;
       if(!this.fbReady){this.setState({authErr:"That isn't available right now — try again in a moment."});return;}
       const email=st.uname.trim().toLowerCase();
       if(!email){this.setState({authErr:'Enter your email above first, then tap "Forgot password?" again.'});return;}
