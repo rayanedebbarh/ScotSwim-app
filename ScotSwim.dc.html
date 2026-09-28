@@ -1482,12 +1482,10 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:14px;font-weight:600;color:#2A1218">Practice reminder</div>
               <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">How far in advance to alert you</div>
             </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <div style="font-size:13px;font-weight:700;color:rgba(42,18,24,.6)">{{ reminderLabel }}</div>
-              <select style="border:none;background:none;font-size:13px;font-weight:700;color:#1B7A78;cursor:pointer;padding:0;outline:none;font-family:'Barlow Condensed'" onChange="{{ onReminderChange }}">
-                <sc-for list="{{ reminderOpts }}" as="ro" hint-placeholder-count="4"><option value="{{ ro.id }}" selected="{{ notifReminderMins===ro.id }}">{{ ro.n }}</option></sc-for>
-              </select>
-            </div>
+            <select style="border:none;background:none;font-size:13px;font-weight:700;color:#1B7A78;cursor:pointer;padding:0;outline:none;font-family:'Barlow Condensed'" onChange="{{ onReminderChange }}">
+              <option value="0" selected="{{ notifReminderMins===0 }}">No reminder</option>
+              <sc-for list="{{ reminderOpts }}" as="ro" hint-placeholder-count="4"><option value="{{ ro.id }}" selected="{{ notifReminderMins===ro.id }}">{{ ro.n }}</option></sc-for>
+            </select>
           </div>
 
           <!-- Quiet hours -->
@@ -1548,6 +1546,134 @@ input::placeholder{color:rgba(245,233,220,.5)}
     </div>
 
     <!-- Snooze sheet -->
+    <sc-if value="{{ showSnoozeSheet }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);z-index:55;display:flex;flex-direction:column;justify-content:flex-end">
+        <div onClick="{{ closeSnoozeSheet }}" style="flex:1"></div>
+        <div style="background:#F2EDE5;border-radius:20px 20px 0 0;animation:fadeUp .28s ease">
+          <div style="width:34px;height:4px;background:rgba(42,18,24,.2);border-radius:2px;margin:10px auto 6px"></div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#2A1218;text-align:center;padding:4px 0 11px;border-bottom:1px solid rgba(42,18,24,.08);margin:0 16px">PAUSE NOTIFICATIONS</div>
+          <sc-for list="{{ snoozeOpts }}" as="so" hint-placeholder-count="4">
+            <button onClick="{{ so.onTap }}" style="width:100%;display:flex;align-items:center;gap:13px;padding:14px 20px;border:none;background:none;border-bottom:1px solid rgba(42,18,24,.05);cursor:pointer;text-align:left">
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:#2A1218">{{ so.label }}</div>
+                <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:2px">{{ so.sub }}</div>
+              </div>
+            </button>
+          </sc-for>
+          <button onClick="{{ closeSnoozeSheet }}" style="width:100%;padding:14px;border:none;background:none;font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1px;color:rgba(42,18,24,.4);cursor:pointer">CANCEL</button>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- ============ SETTINGS (coach) ============ -->
+  <sc-if value="{{ vNotifSettingsCoach }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:0 0 28px;display:flex;flex-direction:column;animation:fadeUp .3s ease">
+      <!-- Back bar -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 6px">
+        <button onClick="{{ goBackFromNotifSettings }}" style="border:none;background:none;padding:4px 6px 4px 0;cursor:pointer;display:flex;align-items:center;gap:5px;color:#1B7A78;font-size:14px;font-weight:700">‹ Dashboard</button>
+      </div>
+
+      <!-- Pause status banner (visible when paused) -->
+      <sc-if value="{{ notifPaused }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:0 16px 8px;background:rgba(107,31,51,.08);border:1px solid rgba(107,31,51,.22);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:20px">🔕</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:#6B1F33">Notifications paused</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ pauseSub }}</div>
+          </div>
+          <button onClick="{{ resumeNotifs }}" style="border:none;background:#1B7A78;color:#fff;border-radius:7px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer">Resume</button>
+        </div>
+      </sc-if>
+
+      <!-- PUSH NOTIFICATIONS -->
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:2px;color:rgba(42,18,24,.45);padding:14px 16px 6px">PUSH NOTIFICATIONS</div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;margin:0 16px;overflow:hidden">
+
+        <!-- Team announcements -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Team announcements</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">New messages posted to the team</div>
+          </div>
+          <div onClick="{{ toggleNotifAnnouncements }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifAnnBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifAnnDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+
+        <!-- Training schedule updates -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Schedule updates</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Changes to practices or events</div>
+          </div>
+          <div onClick="{{ toggleNotifTraining }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifTrainBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifTrainDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARAMETERS -->
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:2px;color:rgba(42,18,24,.45);padding:18px 16px 6px">PARAMETERS</div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;margin:0 16px;overflow:hidden">
+
+        <!-- Pause -->
+        <div onClick="{{ notifPaused?resumeNotifs:openSnoozeSheet }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06);cursor:pointer;border-left:3px solid {{ pauseBorderCol }}">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:{{ pauseLabelCol }}">{{ pauseLabel }}</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">{{ pauseSub }}</div>
+          </div>
+          <div style="font-size:18px;color:rgba(42,18,24,.28)">›</div>
+        </div>
+
+        <!-- Quiet hours -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Quiet hours</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Auto-silence between these times</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input type="time" value="{{ notifQuietStart }}" onChange="{{ onQuietStartChange }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+            <div style="font-size:12px;color:rgba(42,18,24,.4)">–</div>
+            <input type="time" value="{{ notifQuietEnd }}" onChange="{{ onQuietEndChange }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+          </div>
+        </div>
+
+        <!-- Lock screen preview -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Lock screen preview</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Show message content on lock screen</div>
+          </div>
+          <div onClick="{{ toggleNotifLockScreen }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifLockBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifLockDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+
+        <!-- Vibrate -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Vibrate</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Haptic feedback with notifications</div>
+          </div>
+          <div onClick="{{ toggleNotifVibrate }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifVibBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifVibDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+
+        <!-- Delivery method -->
+        <div onClick="{{ toggleDelivery }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Delivery method</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">How notifications reach you</div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:#1B7A78">{{ deliveryLabel }}</div>
+          <div style="font-size:18px;color:rgba(42,18,24,.28)">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coach snooze sheet (reuses same sheet) -->
     <sc-if value="{{ showSnoozeSheet }}" hint-placeholder-val="{{ false }}">
       <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);z-index:55;display:flex;flex-direction:column;justify-content:flex-end">
         <div onClick="{{ closeSnoozeSheet }}" style="flex:1"></div>
@@ -5896,7 +6022,7 @@ class Component extends DCLogic {
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
       off:(!isCoach?(NAV_X_OFFSET[id]||0):(NAV_X_OFFSET_COACH[id]||0))*NAV_OFF_SCALE,
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
-    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE',notifSettings:'NOTIFICATIONS'};
+    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE',notifSettings:'SETTINGS'};
     const tagOf=m=>m.kind==='champ'?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.kind==='home'?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.kind==='inv'?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
@@ -6255,7 +6381,7 @@ class Component extends DCLogic {
     const notifPausedUntil=st.notifPausedUntil||0;
     const notifPaused=notifPausedUntil>Date.now();
     const goNotifSettings=()=>this.setState({tab:'notifSettings',menuOpen:false});
-    const goBackFromNotifSettings=()=>this.setState({tab:'me'});
+    const goBackFromNotifSettings=()=>this.setState({tab:isCoach?'home':'me'});
     const openSnoozeSheet=()=>this.setState({showSnoozeSheet:true});
     const closeSnoozeSheet=()=>this.setState({showSnoozeSheet:false});
     const pauseFor=(ms)=>this.setState({notifPausedUntil:Date.now()+ms,showSnoozeSheet:false});
@@ -6283,6 +6409,7 @@ class Component extends DCLogic {
     const summaryLabel=notifSummary==='individual'?'Individual':notifSummary==='off'?'Off':'Grouped';
     const notifSettingsVals={
       vNotifSettings:isApp&&!isCoach&&tab==='notifSettings',
+      vNotifSettingsCoach:isApp&&isCoach&&tab==='notifSettings',
       goNotifSettings,goBackFromNotifSettings,
       notifAttendance:st.notifAttendance!==false,
       notifTraining:st.notifTraining!==false,
@@ -6297,22 +6424,23 @@ class Component extends DCLogic {
       toggleNotifLockScreen:()=>this.setState({notifLockScreen:st.notifLockScreen===false}),
       toggleNotifVibrate:()=>this.setState({notifVibrate:st.notifVibrate===false}),
       notifAttBg:st.notifAttendance!==false?'#1B7A78':'rgba(42,18,24,.18)',
-      notifAttDot:st.notifAttendance!==false?'13px':'2px',
+      notifAttDot:st.notifAttendance!==false?'22px':'2px',
       notifTrainBg:st.notifTraining!==false?'#1B7A78':'rgba(42,18,24,.18)',
-      notifTrainDot:st.notifTraining!==false?'13px':'2px',
+      notifTrainDot:st.notifTraining!==false?'22px':'2px',
       notifAnnBg:st.notifAnnouncements!==false?'#1B7A78':'rgba(42,18,24,.18)',
-      notifAnnDot:st.notifAnnouncements!==false?'13px':'2px',
+      notifAnnDot:st.notifAnnouncements!==false?'22px':'2px',
       notifMilBg:st.notifMilestones!==false?'#1B7A78':'rgba(42,18,24,.18)',
-      notifMilDot:st.notifMilestones!==false?'13px':'2px',
+      notifMilDot:st.notifMilestones!==false?'22px':'2px',
       notifLockBg:st.notifLockScreen!==false?'#1B7A78':'rgba(42,18,24,.18)',
-      notifLockDot:st.notifLockScreen!==false?'13px':'2px',
+      notifLockDot:st.notifLockScreen!==false?'22px':'2px',
       notifVibBg:st.notifVibrate!==false?'#1B7A78':'rgba(42,18,24,.18)',
-      notifVibDot:st.notifVibrate!==false?'13px':'2px',
+      notifVibDot:st.notifVibrate!==false?'22px':'2px',
       notifPaused,notifPausedUntil,resumeNotifs,
       pauseLabel:notifPaused?'Paused — tap to resume':'Pause notifications',
       pauseSub:notifPaused?fmtResume(notifPausedUntil):'Snooze for 1 hr, 4 hrs, until tomorrow…',
       pauseRowBg:notifPaused?'rgba(107,31,51,.07)':'rgba(27,122,120,.07)',
       pauseBorderCol:notifPaused?'#6B1F33':'#1B7A78',
+      pauseLabelCol:notifPaused?'#6B1F33':'#2A1218',
       pauseIconBg:notifPaused?'#6B1F33':'#2A1218',
       openSnoozeSheet,closeSnoozeSheet,showSnoozeSheet:!!st.showSnoozeSheet,
       snoozeOpts,
@@ -7102,9 +7230,9 @@ class Component extends DCLogic {
       deleteBusy:st.deleteBusy,deleteBtnLabel:st.deleteBusy?'Deleting…':'Permanently Delete My Account',
       confirmDeleteAccount:()=>this.deleteAccount(st.deletePassword),
       menuItems:(isDivingCoach
-        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
+        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
         :isCoach
-        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
+        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
         :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['notifSettings','Notifications'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
