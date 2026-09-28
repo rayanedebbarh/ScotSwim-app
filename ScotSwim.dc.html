@@ -338,7 +338,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
           <button onClick="{{ goSwims }}" style="border:none;background:none;color:#1B7A78;font-size:12.5px;font-weight:700;cursor:pointer">{{ allLabel }} ›</button>
         </div>
         <sc-if value="{{ myRecentEmpty }}" hint-placeholder-val="{{ false }}">
-          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times logged yet — log one in My Events and it'll show up here.</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">{{ myRecentEmptyMsg }}</div>
         </sc-if>
         <sc-for list="{{ myRecent }}" as="r" hint-placeholder-count="3">
           <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07)">
@@ -1208,7 +1208,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
             </select>
           </div>
           <sc-if value="{{ diveTimesEmpty }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0">No times recorded yet for this event.</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0">No scores recorded yet for this event.</div>
           </sc-if>
           <sc-for list="{{ diveTimesRows }}" as="r" hint-placeholder-count="3">
             <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(42,18,24,.07)">
@@ -1757,12 +1757,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:17px;letter-spacing:1.5px">MY EVENTS</div>
           <select value="" onChange="{{ det.addEventSel }}" style="background:#fff;color:#1B7A78;border:1.5px solid #1B7A78;border-radius:999px;padding:6px 8px;font-size:11.5px;font-weight:700;font-family:'Barlow';outline:none;max-width:140px">
-            <option value="">＋ Add time</option>
+            <option value="">{{ det.addEventLabel }}</option>
             <sc-for list="{{ det.addEventOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
           </select>
         </div>
         <sc-if value="{{ det.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
-          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:12px;line-height:1.45">{{ det.eventsEmptyMsg }}</div>
         </sc-if>
         <sc-for list="{{ det.myEventGroups }}" as="g" hint-placeholder-count="3">
           <div style="margin-top:14px">
@@ -1774,7 +1774,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
                   <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
                 </div>
                 <div style="flex:1;min-width:0">
-                  <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">TIME</div>
+                  <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">{{ det.entryColLabel }}</div>
                   <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" onFocus="{{ r.onTimeFocus }}" onBlur="{{ r.onTimeBlur }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
                 </div>
                 <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
@@ -2235,7 +2235,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:8px 16px">
           <sc-if value="{{ selDet.pbsEmpty }}" hint-placeholder-val="{{ false }}">
-            <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0;line-height:1.45">No times entered yet — once they log one, it'll show up here.</div>
+            <div style="font-size:12.5px;color:rgba(42,18,24,.5);padding:10px 0;line-height:1.45">{{ selDet.pbsEmptyMsg }}</div>
           </sc-if>
           <sc-for list="{{ selDet.pbs }}" as="b" hint-placeholder-count="3">
             <div style="display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(42,18,24,.07);font-size:13px">
@@ -3709,7 +3709,11 @@ class Component extends DCLogic {
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
       setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
     };
-    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,
+    return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,isDiver:s.diver,
+      addEventLabel:s.diver?'＋ Add score':'＋ Add time',
+      eventsEmptyMsg:s.diver?'No scores yet — pick an event with ＋ Add score, then enter the date and your score. Add the same event again for every meet you dive at — your progression chart builds itself from these.':'No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.',
+      pbsEmptyMsg:s.diver?'No scores entered yet — once they log one, it\'ll show up here.':'No times entered yet — once they log one, it\'ll show up here.',
+      entryColLabel:s.diver?'SCORE':'TIME',
       myEventGroups,addEventOpts,addEventSel,myEventsEmpty:entryIds.length===0,
       trainingLogRows,addTrainingLogEntry,trainingLogEmpty:tlEntryIds.length===0,
       totalMiles:totalMiles>0?(Math.round(totalMiles*10)/10).toString():'0',
@@ -7371,13 +7375,30 @@ class Component extends DCLogic {
       ...(()=>{
         const DAY_ABBRS=['MON','TUE','WED','THU','FRI','SAT','SUN'];
         const now=new Date();
+        const nowMin=now.getHours()*60+now.getMinutes();
+        // Parse the start hour of a session time string (e.g. "7-9a", "4:00 PM", "6:00 – 7:30 AM")
+        const startMin=t=>{
+          if(!t)return -1;
+          const tl=t.toLowerCase();
+          const m=tl.match(/^(\d+)(?::(\d+))?/);
+          if(!m)return -1;
+          let h=parseInt(m[1]),mn=parseInt(m[2]||'0');
+          const rest=tl.slice(m[0].length);
+          if(/p/.test(rest)&&h<12)h+=12;
+          return h*60+mn;
+        };
         let ndp={hasNext:false,day:'',date:'',time:'',name:'',hasName:false};
-        for(let offset=0;offset<=13;offset++){
+        for(let offset=0;offset<=27;offset++){
           const d=new Date(now);d.setDate(d.getDate()+offset);
           const di=(d.getDay()+6)%7;
           const dayName=this.DAYS[di];
           const wk=this.weekDataFor(this.mondayKey(d));
-          const diveSessions=((wk.days&&wk.days[dayName])||[]).filter(s=>s.tag==='DIVE');
+          // On today (offset=0), skip sessions whose start time has already passed
+          const diveSessions=((wk.days&&wk.days[dayName])||[]).filter(s=>{
+            if(s.tag!=='DIVE')return false;
+            if(offset===0){const sm=startMin(s.t);return sm===-1||sm>nowMin;}
+            return true;
+          });
           if(diveSessions.length){
             const s=diveSessions[0];
             const hasTime=!!(s.t&&s.t.trim());
@@ -7422,6 +7443,7 @@ class Component extends DCLogic {
       myGoals,myGoalsEmpty,myRecent,myRecentEmpty:myRecent.length===0,sigEv:((this.evMap[sig]||{}).n||"").toUpperCase(),chal,
       recentLabel:user.diver?'RECENT DIVES':'RECENT SWIMS',
       allLabel:user.diver?'All dives':'All swims',
+      myRecentEmptyMsg:user.diver?'No scores logged yet — log one in My Events and it\'ll show up here.':'No times logged yet — log one in My Events and it\'ll show up here.',
       bestFirstLabel:user.diver?'Highest score first':'Fastest first',
       todayName:weekThis[dayIdx].day,todaySessions:weekThis[dayIdx].s,todaySessionsEmpty:weekThis[dayIdx].sEmpty,
       anns,annsEmpty,annPost:st.annPost,annPostChange,annPostSubmit,week,trainEditing,trainNotEditing:!trainEditing,toggleTrainEdit,trainEditLabel,onTrainCancel,
