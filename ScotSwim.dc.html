@@ -4864,8 +4864,13 @@ class Component extends DCLogic {
       this.setState({...base,tab:'team',sel:ref,meEvent:null});
       return;
     }
-    if(type==='absence'){
-      this.setState({...base,tab:'attendance'});
+    if(type==='absence'||type==='attendance'){
+      // ref is "2026-09-27-M" or "2026-09-27-W"; fall back gracefully for old format.
+      const lastDash=ref.lastIndexOf('-');
+      const rawSeg=lastDash>7?ref.slice(lastDash+1):'';
+      const seg=rawSeg==='M'||rawSeg==='W'?rawSeg:'';
+      const dateKey=seg?ref.slice(0,lastDash):(ref.match(/^\d{4}-\d{2}-\d{2}$/)?ref:'');
+      this.setState({...base,tab:'attendance',...(dateKey?{attDate:dateKey}:{}),...(seg?{attSeg:seg}:{})});
       return;
     }
     if(type==='meetUpdate'){
