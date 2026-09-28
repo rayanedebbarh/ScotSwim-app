@@ -1462,7 +1462,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;overflow:hidden">
 
           <!-- Pause — first, highlighted -->
-          <button onClick="{{ openSnoozeSheet }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:none;border-left:3px solid {{ pauseBorderCol }};background:{{ pauseRowBg }};cursor:pointer;text-align:left;border-bottom:1px solid rgba(42,18,24,.06)">
+          <button onClick="{{ notifPaused?resumeNotifs:openSnoozeSheet }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:none;border-left:3px solid {{ pauseBorderCol }};background:{{ pauseRowBg }};cursor:pointer;text-align:left;border-bottom:1px solid rgba(42,18,24,.06)">
             <div style="width:34px;height:34px;border-radius:9px;background:{{ pauseIconBg }};display:flex;align-items:center;justify-content:center;flex:none">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5E9DC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
             </div>
@@ -2706,11 +2706,22 @@ class Component extends DCLogic {
       const savedGoals=JSON.parse(localStorage.getItem('scotswim.goals')||'null');
       if(savedGoals){
         if(savedGoals.goalDelta)this.state.goalDelta=savedGoals.goalDelta;
-      const seenAt=parseInt(localStorage.getItem('scotswim.notifSeenAt')||'0',10);
-      if(seenAt)this.state.notifSeenAt=seenAt;
         if(savedGoals.selfGoals)this.state.selfGoals=savedGoals.selfGoals;
         if(savedGoals.selfOrder)this.state.selfOrder=savedGoals.selfOrder;
         if(savedGoals.coachGoalOrder)this.state.coachGoalOrder=savedGoals.coachGoalOrder;
+      }
+    }catch(e){}
+    try{
+      const seenAt=parseInt(localStorage.getItem('scotswim.notifSeenAt')||'0',10);
+      if(seenAt)this.state.notifSeenAt=seenAt;
+    }catch(e){}
+    try{
+      const savedPrefs=JSON.parse(localStorage.getItem('scotswim.notifPrefs.v1')||'null');
+      if(savedPrefs){
+        const keys=['notifAttendance','notifTraining','notifAnnouncements','notifMilestones',
+          'notifLockScreen','notifVibrate','notifDelivery','notifSummary',
+          'notifReminderMins','notifQuietStart','notifQuietEnd','notifPausedUntil'];
+        keys.forEach(k=>{if(savedPrefs[k]!==undefined)this.state[k]=savedPrefs[k];});
       }
     }catch(e){}
     // Restore coach-taken practice attendance (see saveAttendance) — the
@@ -4725,7 +4736,7 @@ class Component extends DCLogic {
     root.setProperty('--sab',this._sabMax+'px');
   }
   componentDidMount(){
-    this._ct=setInterval(()=>this.forceUpdate(),60000);
+    this._ct=setInterval(()=>{this.forceUpdate();this.checkPracticeReminder();},60000);
     this.captureSafeInsets(true);
     // A first read can land before the webview has settled into its final
     // frame, so re-read shortly after; both only ever raise the value.
@@ -5369,8 +5380,49 @@ class Component extends DCLogic {
     this._notifUnsub=this.db.collection('notifications')
       .orderBy('createdAt','desc').limit(40)
       .onSnapshot(snap=>{
-        this.setState({notifications:snap.docs.map(d=>({id:d.id,...d.data()}))});
+        const prev=(this.state.notifications||[]).length;
+        const next=snap.docs.map(d=>({id:d.id,...d.data()}));
+        this.setState({notifications:next});
+        if(next.length>prev&&this.state.notifVibrate!==false&&!(this.state.notifPausedUntil>Date.now())){
+          try{navigator.vibrate&&navigator.vibrate([150]);}catch(e){}
+        }
       },()=>{});
+  }
+  saveNotifPref(k,v){
+    this.setState({[k]:v});
+    try{
+      const stored=JSON.parse(localStorage.getItem('scotswim.notifPrefs.v1')||'{}');
+      stored[k]=v;
+      localStorage.setItem('scotswim.notifPrefs.v1',JSON.stringify(stored));
+    }catch(e){}
+  }
+  checkPracticeReminder(){
+    const reminderMins=this.state.notifReminderMins||30;
+    if(!reminderMins)return;
+    if(this.state.notifPausedUntil>Date.now())return;
+    const now=new Date();
+    const dayNames=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+    const dayName=dayNames[now.getDay()];
+    const sessions=(this.WEEK_TEMPLATE&&this.WEEK_TEMPLATE[dayName])||[];
+    const poolSessions=sessions.filter(s=>s.tag==='POOL');
+    for(const s of poolSessions){
+      const m=s.t&&s.t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if(!m)continue;
+      let h=parseInt(m[1],10);
+      const min=parseInt(m[2],10);
+      const ap=m[3].toUpperCase();
+      if(ap==='PM'&&h!==12)h+=12;
+      if(ap==='AM'&&h===12)h=0;
+      const practiceMs=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,min,0,0).getTime();
+      const diffMin=(practiceMs-Date.now())/60000;
+      if(diffMin>0&&diffMin<=reminderMins){
+        const key=dayName+'-'+h+'-'+min;
+        if(this._lastPracticeRemind===key)continue;
+        this._lastPracticeRemind=key;
+        this.setState({toastMsg:'Practice in ~'+Math.round(diffMin)+' min'});
+        setTimeout(()=>this.setState({toastMsg:null}),4000);
+      }
+    }
   }
   stopNotificationsSync(){
     if(this._notifUnsub){this._notifUnsub();this._notifUnsub=null;}
@@ -5390,10 +5442,20 @@ class Component extends DCLogic {
   // a plain string match — it's a role, not a person, so it's whichever
   // coach happens to be looking rather than one fixed id.
   myNotifications(){
-    const me=this.state.userId;
+    const st=this.state;
+    const me=st.userId;
     const forCoaches=this.isCoachRole();
-    return (this.state.notifications||[])
-      .filter(n=>n.author!==me&&(n.target==='team'||n.target===me||(n.target==='coaches'&&forCoaches)))
+    if(st.notifPausedUntil>Date.now())return[];
+    return (st.notifications||[])
+      .filter(n=>{
+        if(n.author===me)return false;
+        if(!(n.target==='team'||n.target===me||(n.target==='coaches'&&forCoaches)))return false;
+        if(n.type==='attendance'&&st.notifAttendance===false)return false;
+        if(n.type==='schedule'&&st.notifTraining===false)return false;
+        if(n.type==='announcement'&&st.notifAnnouncements===false)return false;
+        if((n.type==='pb'||n.type==='goalHit')&&st.notifMilestones===false)return false;
+        return true;
+      })
       .slice(0,30);
   }
   // "just now" / "3h ago" / "Tue" — short enough for a one-line row.
@@ -6343,7 +6405,13 @@ class Component extends DCLogic {
     // coach still hears about the swim coach's schedule changes.
     const myNotifs=this.myNotifications();
     const seenAt=st.notifSeenAt||0;
-    const unread=myNotifs.filter(n=>n.createdAt>seenAt).length;
+    const quietStart=st.notifQuietStart||'22:00';
+    const quietEnd=st.notifQuietEnd||'06:00';
+    const nowMin=(new Date().getHours()*60+new Date().getMinutes());
+    const qsMin=parseInt(quietStart.split(':')[0],10)*60+parseInt(quietStart.split(':')[1],10);
+    const qeMin=parseInt(quietEnd.split(':')[0],10)*60+parseInt(quietEnd.split(':')[1],10);
+    const inQuietHours=qsMin>qeMin?(nowMin>=qsMin||nowMin<qeMin):(nowMin>=qsMin&&nowMin<qeMin);
+    const unread=inQuietHours?0:myNotifs.filter(n=>n.createdAt>seenAt).length;
     const notifLook={
       announcement:{icon:'\ud83d\udce3',iconBg:'#6B1F33',cta:'Read it'},
       schedule:{icon:'\ud83d\udcc5',iconBg:'#1B7A78',cta:'See the schedule'},
@@ -6405,9 +6473,9 @@ class Component extends DCLogic {
     const goBackFromNotifSettings=()=>this.setState({tab:isCoach?'home':'me'});
     const openSnoozeSheet=()=>this.setState({showSnoozeSheet:true});
     const closeSnoozeSheet=()=>this.setState({showSnoozeSheet:false});
-    const pauseFor=(ms)=>this.setState({notifPausedUntil:Date.now()+ms,showSnoozeSheet:false});
-    const pauseIndefinitely=()=>this.setState({notifPausedUntil:9999999999999,showSnoozeSheet:false});
-    const resumeNotifs=()=>this.setState({notifPausedUntil:0});
+    const pauseFor=(ms)=>{this.saveNotifPref('notifPausedUntil',Date.now()+ms);this.setState({showSnoozeSheet:false});};
+    const pauseIndefinitely=()=>{this.saveNotifPref('notifPausedUntil',9999999999999);this.setState({showSnoozeSheet:false});};
+    const resumeNotifs=()=>this.saveNotifPref('notifPausedUntil',0);
     const fmtResume=(ts)=>{
       if(ts>9000000000000)return 'Off indefinitely';
       return 'Resumes '+new Date(ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
@@ -6438,12 +6506,12 @@ class Component extends DCLogic {
       notifMilestones:st.notifMilestones!==false,
       notifLockScreen:st.notifLockScreen!==false,
       notifVibrate:st.notifVibrate!==false,
-      toggleNotifAttendance:()=>this.setState({notifAttendance:st.notifAttendance===false}),
-      toggleNotifTraining:()=>this.setState({notifTraining:st.notifTraining===false}),
-      toggleNotifAnnouncements:()=>this.setState({notifAnnouncements:st.notifAnnouncements===false}),
-      toggleNotifMilestones:()=>this.setState({notifMilestones:st.notifMilestones===false}),
-      toggleNotifLockScreen:()=>this.setState({notifLockScreen:st.notifLockScreen===false}),
-      toggleNotifVibrate:()=>this.setState({notifVibrate:st.notifVibrate===false}),
+      toggleNotifAttendance:()=>this.saveNotifPref('notifAttendance',st.notifAttendance===false),
+      toggleNotifTraining:()=>this.saveNotifPref('notifTraining',st.notifTraining===false),
+      toggleNotifAnnouncements:()=>this.saveNotifPref('notifAnnouncements',st.notifAnnouncements===false),
+      toggleNotifMilestones:()=>this.saveNotifPref('notifMilestones',st.notifMilestones===false),
+      toggleNotifLockScreen:()=>this.saveNotifPref('notifLockScreen',st.notifLockScreen===false),
+      toggleNotifVibrate:()=>this.saveNotifPref('notifVibrate',st.notifVibrate===false),
       notifAttBg:st.notifAttendance!==false?'#1B7A78':'rgba(42,18,24,.18)',
       notifAttDot:st.notifAttendance!==false?'22px':'2px',
       notifTrainBg:st.notifTraining!==false?'#1B7A78':'rgba(42,18,24,.18)',
@@ -6456,7 +6524,7 @@ class Component extends DCLogic {
       notifLockDot:st.notifLockScreen!==false?'22px':'2px',
       notifVibBg:st.notifVibrate!==false?'#1B7A78':'rgba(42,18,24,.18)',
       notifVibDot:st.notifVibrate!==false?'22px':'2px',
-      notifPaused,notifPausedUntil,resumeNotifs,
+      notifPaused,notifPausedUntil,resumeNotifs:()=>this.saveNotifPref('notifPausedUntil',0),
       pauseLabel:notifPaused?'Paused — tap to resume':'Pause notifications',
       pauseSub:notifPaused?fmtResume(notifPausedUntil):'Snooze for 1 hr, 4 hrs, until tomorrow…',
       pauseRowBg:notifPaused?'rgba(107,31,51,.07)':'rgba(27,122,120,.07)',
@@ -6467,17 +6535,17 @@ class Component extends DCLogic {
       snoozeOpts,
       reminderLabel,reminderOpts,notifReminderMins,
       deliveryLabel,notifDelivery,
-      toggleDelivery:()=>this.setState({notifDelivery:notifDelivery==='push'?'inapp':'push'}),
+      toggleDelivery:()=>this.saveNotifPref('notifDelivery',notifDelivery==='push'?'inapp':'push'),
       summaryLabel,notifSummary,
-      toggleSummary:()=>this.setState({notifSummary:notifSummary==='grouped'?'individual':'grouped'}),
+      toggleSummary:()=>this.saveNotifPref('notifSummary',notifSummary==='grouped'?'individual':'grouped'),
       notifQuietStart:st.notifQuietStart||'22:00',
       notifQuietEnd:st.notifQuietEnd||'06:00',
       quietLabel:(st.notifQuietStart||'22:00')+' – '+(st.notifQuietEnd||'06:00'),
-      onQuietStartChange:e=>this.setState({notifQuietStart:e.target.value}),
-      onQuietEndChange:e=>this.setState({notifQuietEnd:e.target.value}),
+      onQuietStartChange:e=>this.saveNotifPref('notifQuietStart',e.target.value),
+      onQuietEndChange:e=>this.saveNotifPref('notifQuietEnd',e.target.value),
       onQuietStartClick:e=>{try{e.target.showPicker();}catch(ex){}},
       onQuietEndClick:e=>{try{e.target.showPicker();}catch(ex){}},
-      onReminderChange:e=>this.setState({notifReminderMins:Number(e.target.value)}),
+      onReminderChange:e=>this.saveNotifPref('notifReminderMins',Number(e.target.value)),
     };
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
     const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the next meet';
