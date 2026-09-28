@@ -376,16 +376,18 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <sc-if value="{{ hasRival }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;align-items:center;gap:12px;margin-top:10px">
             <div style="flex:1;text-align:center">
-              <div style="width:48px;height:48px;border-radius:50%;background:#6B1F33;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
-                <image-slot id="rival-a" src="{{ chal.aPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.aIni }}"></image-slot>
+              <div style="width:48px;height:48px;border-radius:50%;background:#6B1F33;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);flex:none">
+                <sc-if value="{{ chal.aHasP }}" hint-placeholder-val="{{ true }}"><img src="{{ chal.aPhoto }}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:{{ chal.aFrame.objPos }};transform:scale({{ chal.aFrame.scale }})"></sc-if>
+                <sc-if value="{{ chal.aNoP }}" hint-placeholder-val="{{ false }}"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px;color:#F5E9DC">{{ chal.aIni }}</div></sc-if>
               </div>
               <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.aName }}</div>
               <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.aTime }}</div>
             </div>
             <div style="font-family:'Barlow Condensed';font-weight:800;font-size:20px;color:rgba(245,233,220,.5)">VS</div>
             <div style="flex:1;text-align:center">
-              <div style="width:48px;height:48px;border-radius:50%;background:#1B7A78;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px">
-                <image-slot id="rival-b" src="{{ chal.bPhoto }}" minimal="true" shape="circle" placeholder="{{ chal.bIni }}"></image-slot>
+              <div style="width:48px;height:48px;border-radius:50%;background:#1B7A78;margin:0 auto;overflow:hidden;border:2px solid rgba(245,233,220,.35);flex:none">
+                <sc-if value="{{ chal.bHasP }}" hint-placeholder-val="{{ true }}"><img src="{{ chal.bPhoto }}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:{{ chal.bFrame.objPos }};transform:scale({{ chal.bFrame.scale }})"></sc-if>
+                <sc-if value="{{ chal.bNoP }}" hint-placeholder-val="{{ false }}"><div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed';font-weight:700;font-size:17px;color:#F5E9DC">{{ chal.bIni }}</div></sc-if>
               </div>
               <div style="font-size:12px;font-weight:600;margin-top:5px">{{ chal.bName }}</div>
               <div style="font-variant-numeric:tabular-nums;font-weight:700;color:#7fd0cd">{{ chal.bTime }}</div>
@@ -6435,6 +6437,8 @@ class Component extends DCLogic {
     const lead=hasRival&&(isDiveEv?(user.pbs[rEv]>rv.pbs[rEv]):(user.pbs[rEv]<rv.pbs[rEv]));
     const gap=hasRival?Math.abs(user.pbs[rEv]-rv.pbs[rEv]).toFixed(2):'';
     const aP=this.photoOf(user.id),bP=hasRival?this.photoOf(rv.id):'';
+    const rivalFrame=id=>{const mp=this.state.myPhotos[id]||{};const s=Number.isFinite(mp.s)?mp.s:1;const x=Math.max(-50,Math.min(50,Number.isFinite(mp.x)?mp.x:0));const y=Math.max(-50,Math.min(50,Number.isFinite(mp.y)?mp.y:0));return{scale:s,objPos:(50+x)+'% '+(50+y)+'%'};};
+    const aFrame=rivalFrame(user.id),bFrame=hasRival?rivalFrame(rv.id):{scale:1,objPos:'50% 50%'};
     // ---- notifications ----------------------------------------------
     // Coaches see the team-wide ones too (minus their own), so a diving
     // coach still hears about the swim coach's schedule changes.
@@ -6587,7 +6591,7 @@ class Component extends DCLogic {
     const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the next meet';
     const chal=hasRival?{ev:this.evMap[rEv].n,aIni:user.ini,aName:user.name.split(' ')[0],aTime:this.fmtEv(rEv,user.pbs[rEv]),
       bIni:rv.ini,bName:rv.name.split(' ')[0],bTime:this.fmtEv(rEv,rv.pbs[rEv]),
-      aPhoto:aP,aHasP:!!aP,aNoP:!aP,bPhoto:bP,bHasP:!!bP,bNoP:!bP,
+      aPhoto:aP,aHasP:!!aP,aNoP:!aP,aFrame,bPhoto:bP,bHasP:!!bP,bNoP:!bP,bFrame,
       note:lead?defendLine:rv.name.split(' ')[0]+' leads by '+gap+' — reel it in'}:null;
     const dayIdx=(new Date().getDay()+6)%7;
     // Coach-editable weekly training schedule (swim coach and diving
