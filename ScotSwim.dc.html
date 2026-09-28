@@ -33,6 +33,7 @@ body{touch-action:pan-x pan-y}
    so the app behaves like a native screen rather than a web page. */
 *{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 input,textarea{-webkit-user-select:text;user-select:text}
+input[type="time"],input[type="date"],input[type="number"],input[type="range"]{-webkit-user-select:none;user-select:none}
 /* Pulling down past the top of a scrolling area used to rubber-band the
    whole thing, carrying the sticky app bar down with it. Containing the
    overscroll keeps the bar pinned and the bounce inside the list. */
@@ -1375,7 +1376,320 @@ input::placeholder{color:rgba(245,233,220,.5)}
           </div>
         </sc-if>
       </div>
+      <!-- Settings section -->
+      <button onClick="{{ goNotifSettings }}" style="width:100%;display:flex;align-items:center;gap:14px;border:none;background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;padding:15px 16px;cursor:pointer;text-align:left">
+        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1B7A78 0%,#154f4e 100%);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 2px 6px rgba(27,122,120,.3)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:#2A1218">Settings</div>
+          <div style="font-size:12px;color:rgba(42,18,24,.45);margin-top:2px">Notifications, quiet hours &amp; more</div>
+        </div>
+        <div style="font-size:20px;color:rgba(42,18,24,.22);font-weight:300">›</div>
+      </button>
     </div>
+  </sc-if>
+
+  <!-- ============ NOTIFICATION SETTINGS ============ -->
+  <sc-if value="{{ vNotifSettings }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:0 0 28px;display:flex;flex-direction:column;animation:fadeUp .3s ease">
+      <!-- Back bar -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 6px">
+        <button onClick="{{ goBackFromNotifSettings }}" style="border:none;background:none;padding:4px 6px 4px 0;cursor:pointer;display:flex;align-items:center;gap:5px;color:#1B7A78;font-size:14px;font-weight:700">‹ My Profile</button>
+      </div>
+
+      <!-- Pause status banner (visible when paused) -->
+      <sc-if value="{{ notifPaused }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:0 16px 8px;background:rgba(107,31,51,.08);border:1px solid rgba(107,31,51,.22);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:20px">🔕</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:#6B1F33">Notifications paused</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ pauseSub }}</div>
+          </div>
+          <button onClick="{{ resumeNotifs }}" style="border:1px solid #1B7A78;background:none;color:#1B7A78;border-radius:999px;padding:6px 13px;font-size:12.5px;font-weight:700;cursor:pointer">Resume</button>
+        </div>
+      </sc-if>
+
+      <!-- Push Notifications section -->
+      <div style="margin:8px 16px 0">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(42,18,24,.45);padding:0 2px 6px">PUSH NOTIFICATIONS</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;overflow:hidden">
+          <!-- Attendance recorded -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Attendance recorded</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">When your coach marks you present or absent</div>
+            </div>
+            <div onClick="{{ toggleNotifAttendance }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifAttBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+              <div style="position:absolute;top:3px;left:{{ notifAttDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+            </div>
+          </div>
+          <!-- Training updates -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Training updates</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Schedule changes and cancellations</div>
+            </div>
+            <div onClick="{{ toggleNotifTraining }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifTrainBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+              <div style="position:absolute;top:3px;left:{{ notifTrainDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+            </div>
+          </div>
+          <!-- Team announcements -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Team announcements</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Coach posts and team-wide messages</div>
+            </div>
+            <div onClick="{{ toggleNotifAnnouncements }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifAnnBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+              <div style="position:absolute;top:3px;left:{{ notifAnnDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+            </div>
+          </div>
+          <!-- Teammate milestones -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Teammate milestones</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">PBs, goals hit, and achievements</div>
+            </div>
+            <div onClick="{{ toggleNotifMilestones }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifMilBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+              <div style="position:absolute;top:3px;left:{{ notifMilDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Parameters section -->
+      <div style="margin:18px 16px 0">
+        <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(42,18,24,.45);padding:0 2px 6px">PARAMETERS</div>
+        <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;overflow:hidden">
+
+          <!-- Pause — first, highlighted -->
+          <button onClick="{{ onPauseTap }}" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;border:none;border-left:3px solid {{ pauseBorderCol }};background:{{ pauseRowBg }};cursor:pointer;text-align:left;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="width:34px;height:34px;border-radius:9px;background:{{ pauseIconBg }};display:flex;align-items:center;justify-content:center;flex:none">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5E9DC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:#2A1218">{{ pauseLabel }}</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">{{ pauseSub }}</div>
+            </div>
+            <div style="font-size:18px;color:rgba(42,18,24,.28)">›</div>
+          </button>
+
+          <!-- Practice reminder timing -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Practice reminder</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">How far in advance to alert you</div>
+            </div>
+            <select style="border:none;background:none;font-size:13px;font-weight:700;color:#1B7A78;cursor:pointer;padding:0;outline:none;font-family:'Barlow Condensed'" onChange="{{ onReminderChange }}">
+              <option value="0" selected="{{ notifReminderMins===0 }}">No reminder</option>
+              <sc-for list="{{ reminderOpts }}" as="ro" hint-placeholder-count="4"><option value="{{ ro.id }}" selected="{{ notifReminderMins===ro.id }}">{{ ro.n }}</option></sc-for>
+            </select>
+          </div>
+
+          <!-- Quiet hours -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Quiet hours</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Auto-silence between these times</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px">
+              <input type="time" value="{{ notifQuietStart }}" onChange="{{ onQuietStartChange }}" onClick="{{ onQuietStartClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+              <span style="font-size:12px;color:rgba(42,18,24,.4)">–</span>
+              <input type="time" value="{{ notifQuietEnd }}" onChange="{{ onQuietEndChange }}" onClick="{{ onQuietEndClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+            </div>
+          </div>
+
+          <!-- Lock screen preview -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Lock screen preview</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Show message content on lock screen</div>
+            </div>
+            <div onClick="{{ toggleNotifLockScreen }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifLockBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+              <div style="position:absolute;top:3px;left:{{ notifLockDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+            </div>
+          </div>
+
+          <!-- Vibrate -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Vibrate</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Haptic feedback with alerts</div>
+            </div>
+            <div onClick="{{ toggleNotifVibrate }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifVibBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+              <div style="position:absolute;top:3px;left:{{ notifVibDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+            </div>
+          </div>
+
+          <!-- Delivery method -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Delivery method</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Push sends phone alerts; in-app only badges the app</div>
+            </div>
+            <button onClick="{{ toggleDelivery }}" style="border:1.5px solid rgba(42,18,24,.18);background:none;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;color:#2A1218;cursor:pointer;white-space:nowrap">{{ deliveryLabel }}</button>
+          </div>
+
+          <!-- Attendance summary -->
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:600;color:#2A1218">Attendance summary</div>
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">One grouped alert per save vs. individual</div>
+            </div>
+            <button onClick="{{ toggleSummary }}" style="border:1.5px solid rgba(42,18,24,.18);background:none;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:700;color:#2A1218;cursor:pointer;white-space:nowrap">{{ summaryLabel }}</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Snooze sheet -->
+    <sc-if value="{{ showSnoozeSheet }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);z-index:55;display:flex;flex-direction:column;justify-content:flex-end">
+        <div onClick="{{ closeSnoozeSheet }}" style="flex:1"></div>
+        <div style="background:#F2EDE5;border-radius:20px 20px 0 0;animation:fadeUp .28s ease">
+          <div style="width:34px;height:4px;background:rgba(42,18,24,.2);border-radius:2px;margin:10px auto 6px"></div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#2A1218;text-align:center;padding:4px 0 11px;border-bottom:1px solid rgba(42,18,24,.08);margin:0 16px">PAUSE NOTIFICATIONS</div>
+          <sc-for list="{{ snoozeOpts }}" as="so" hint-placeholder-count="4">
+            <button onClick="{{ so.onTap }}" style="width:100%;display:flex;align-items:center;gap:13px;padding:14px 20px;border:none;background:none;border-bottom:1px solid rgba(42,18,24,.05);cursor:pointer;text-align:left">
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:#2A1218">{{ so.label }}</div>
+                <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:2px">{{ so.sub }}</div>
+              </div>
+            </button>
+          </sc-for>
+          <button onClick="{{ closeSnoozeSheet }}" style="width:100%;padding:14px;border:none;background:none;font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1px;color:rgba(42,18,24,.4);cursor:pointer">CANCEL</button>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <!-- ============ SETTINGS (coach) ============ -->
+  <sc-if value="{{ vNotifSettingsCoach }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:0 0 28px;display:flex;flex-direction:column;animation:fadeUp .3s ease">
+      <!-- Back bar -->
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 16px 6px">
+        <button onClick="{{ goBackFromNotifSettings }}" style="border:none;background:none;padding:4px 6px 4px 0;cursor:pointer;display:flex;align-items:center;gap:5px;color:#1B7A78;font-size:14px;font-weight:700">‹ Dashboard</button>
+      </div>
+
+      <!-- Pause status banner (visible when paused) -->
+      <sc-if value="{{ notifPaused }}" hint-placeholder-val="{{ false }}">
+        <div style="margin:0 16px 8px;background:rgba(107,31,51,.08);border:1px solid rgba(107,31,51,.22);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px">
+          <div style="font-size:20px">🔕</div>
+          <div style="flex:1">
+            <div style="font-size:13.5px;font-weight:700;color:#6B1F33">Notifications paused</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.55);margin-top:2px">{{ pauseSub }}</div>
+          </div>
+          <button onClick="{{ resumeNotifs }}" style="border:none;background:#1B7A78;color:#fff;border-radius:7px;padding:7px 13px;font-size:12.5px;font-weight:700;cursor:pointer">Resume</button>
+        </div>
+      </sc-if>
+
+      <!-- PUSH NOTIFICATIONS -->
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:2px;color:rgba(42,18,24,.45);padding:14px 16px 6px">PUSH NOTIFICATIONS</div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;margin:0 16px;overflow:hidden">
+
+        <!-- Team announcements -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Team announcements</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">New messages posted to the team</div>
+          </div>
+          <div onClick="{{ toggleNotifAnnouncements }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifAnnBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifAnnDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+
+        <!-- Training schedule updates -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Schedule updates</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Changes to practices or events</div>
+          </div>
+          <div onClick="{{ toggleNotifTraining }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifTrainBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifTrainDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PARAMETERS -->
+      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:11px;letter-spacing:2px;color:rgba(42,18,24,.45);padding:18px 16px 6px">PARAMETERS</div>
+      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;margin:0 16px;overflow:hidden">
+
+        <!-- Pause -->
+        <div onClick="{{ onPauseTap }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06);cursor:pointer;border-left:3px solid {{ pauseBorderCol }}">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:{{ pauseLabelCol }}">{{ pauseLabel }}</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">{{ pauseSub }}</div>
+          </div>
+          <div style="font-size:18px;color:rgba(42,18,24,.28)">›</div>
+        </div>
+
+        <!-- Quiet hours -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Quiet hours</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Auto-silence between these times</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px">
+            <input type="time" value="{{ notifQuietStart }}" onChange="{{ onQuietStartChange }}" onClick="{{ onQuietStartClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+            <div style="font-size:12px;color:rgba(42,18,24,.4)">–</div>
+            <input type="time" value="{{ notifQuietEnd }}" onChange="{{ onQuietEndChange }}" onClick="{{ onQuietEndClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+          </div>
+        </div>
+
+        <!-- Lock screen preview -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Lock screen preview</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Show message content on lock screen</div>
+          </div>
+          <div onClick="{{ toggleNotifLockScreen }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifLockBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifLockDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+
+        <!-- Vibrate -->
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06)">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Vibrate</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Haptic feedback with notifications</div>
+          </div>
+          <div onClick="{{ toggleNotifVibrate }}" style="width:46px;height:27px;border-radius:14px;background:{{ notifVibBg }};position:relative;cursor:pointer;flex:none;transition:background .2s">
+            <div style="position:absolute;top:3px;left:{{ notifVibDot }};width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s"></div>
+          </div>
+        </div>
+
+        <!-- Delivery method -->
+        <div onClick="{{ toggleDelivery }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600;color:#2A1218">Delivery method</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">How notifications reach you</div>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:#1B7A78">{{ deliveryLabel }}</div>
+          <div style="font-size:18px;color:rgba(42,18,24,.28)">›</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Coach snooze sheet (reuses same sheet) -->
+    <sc-if value="{{ showSnoozeSheet }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgba(42,18,24,.45);z-index:55;display:flex;flex-direction:column;justify-content:flex-end">
+        <div onClick="{{ closeSnoozeSheet }}" style="flex:1"></div>
+        <div style="background:#F2EDE5;border-radius:20px 20px 0 0;animation:fadeUp .28s ease">
+          <div style="width:34px;height:4px;background:rgba(42,18,24,.2);border-radius:2px;margin:10px auto 6px"></div>
+          <div style="font-family:'Barlow Condensed';font-weight:800;font-size:13px;letter-spacing:2px;color:#2A1218;text-align:center;padding:4px 0 11px;border-bottom:1px solid rgba(42,18,24,.08);margin:0 16px">PAUSE NOTIFICATIONS</div>
+          <sc-for list="{{ snoozeOpts }}" as="so" hint-placeholder-count="4">
+            <button onClick="{{ so.onTap }}" style="width:100%;display:flex;align-items:center;gap:13px;padding:14px 20px;border:none;background:none;border-bottom:1px solid rgba(42,18,24,.05);cursor:pointer;text-align:left">
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:600;color:#2A1218">{{ so.label }}</div>
+                <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:2px">{{ so.sub }}</div>
+              </div>
+            </button>
+          </sc-for>
+          <button onClick="{{ closeSnoozeSheet }}" style="width:100%;padding:14px;border:none;background:none;font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1px;color:rgba(42,18,24,.4);cursor:pointer">CANCEL</button>
+        </div>
+      </div>
+    </sc-if>
   </sc-if>
 
   <!-- ============ PROGRESSION (athlete) ============ -->
@@ -2312,7 +2626,11 @@ class Component extends DCLogic {
       showPass:false,showSignupPass:false,showSignupPass2:false,showDeletePass:false,
       rosterEdits:{removed:[],added:[]},teamEditing:false,rosterErr:'',
       rosterDraft:{name:'',cls:'',pos:'',home:'',gender:'M'},
-      attView:'swim',liftLogsLoading:false,liftLogsLoaded:false,liftWeekKey:null,attStatusPickerOpen:false,attSavedFlash:false,doneDays:{},dayStatus:{},attEditSnap:null,trainEditSnap:null};
+      attView:'swim',liftLogsLoading:false,liftLogsLoaded:false,liftWeekKey:null,attStatusPickerOpen:false,attSavedFlash:false,doneDays:{},dayStatus:{},attEditSnap:null,trainEditSnap:null,
+      notifAttendance:true,notifTraining:true,notifAnnouncements:true,notifMilestones:true,
+      notifLockScreen:true,notifVibrate:true,notifDelivery:'push',notifSummary:'grouped',
+      notifReminderMins:30,notifQuietStart:'22:00',notifQuietEnd:'06:00',
+      notifPausedUntil:0,showSnoozeSheet:false};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -2389,11 +2707,22 @@ class Component extends DCLogic {
       const savedGoals=JSON.parse(localStorage.getItem('scotswim.goals')||'null');
       if(savedGoals){
         if(savedGoals.goalDelta)this.state.goalDelta=savedGoals.goalDelta;
-      const seenAt=parseInt(localStorage.getItem('scotswim.notifSeenAt')||'0',10);
-      if(seenAt)this.state.notifSeenAt=seenAt;
         if(savedGoals.selfGoals)this.state.selfGoals=savedGoals.selfGoals;
         if(savedGoals.selfOrder)this.state.selfOrder=savedGoals.selfOrder;
         if(savedGoals.coachGoalOrder)this.state.coachGoalOrder=savedGoals.coachGoalOrder;
+      }
+    }catch(e){}
+    try{
+      const seenAt=parseInt(localStorage.getItem('scotswim.notifSeenAt')||'0',10);
+      if(seenAt)this.state.notifSeenAt=seenAt;
+    }catch(e){}
+    try{
+      const savedPrefs=JSON.parse(localStorage.getItem('scotswim.notifPrefs.v1')||'null');
+      if(savedPrefs){
+        const keys=['notifAttendance','notifTraining','notifAnnouncements','notifMilestones',
+          'notifLockScreen','notifVibrate','notifDelivery','notifSummary',
+          'notifReminderMins','notifQuietStart','notifQuietEnd','notifPausedUntil'];
+        keys.forEach(k=>{if(savedPrefs[k]!==undefined)this.state[k]=savedPrefs[k];});
       }
     }catch(e){}
     // Restore coach-taken practice attendance (see saveAttendance) — the
@@ -3932,6 +4261,22 @@ class Component extends DCLogic {
         .set({doneSegs:{[seg]:true},updatedAt:Date.now()},{merge:true}).catch(()=>{});
     }
     if(notifMsg)this.pushNotification({type:'attendance',target:'coaches',tab:'attendance',ref:day,msg:notifMsg});
+    // Notify each athlete individually about their own recorded status.
+    // Only fires for unexcused/excused — present is the default expectation
+    // and doesn't need a push. Uses the same pushNotification path (coach-
+    // authored, written from the coach's session) with target=athleteId so
+    // myNotifications() routes it to that athlete's bell only.
+    const dayLabel=new Date(dateKey+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const marks=this.state.attendance[dateKey]||{};
+    Object.entries(marks).forEach(([athleteId,status])=>{
+      if(status==='unexcused'){
+        this.pushNotification({type:'attendance',target:athleteId,tab:'home',ref:day,
+          msg:'Your attendance was marked unexcused for practice on '+dayLabel});
+      }else if(status==='excused'){
+        this.pushNotification({type:'attendance',target:athleteId,tab:'home',ref:day,
+          msg:'Your absence was excused for practice on '+dayLabel});
+      }
+    });
   }
   unsetAttDone(day){
     // Snapshot before unlocking so Cancel can re-lock with the original marks.
@@ -4006,6 +4351,8 @@ class Component extends DCLogic {
       const dayLabel=new Date(day+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
       this.pushNotification({type:'absence',target:'coaches',tab:'attendance',ref:id,
         msg:id+' was marked unexcused for practice on '+dayLabel});
+      this.pushNotification({type:'attendance',target:id,tab:'home',ref:day,
+        msg:'Your attendance was marked unexcused for practice on '+dayLabel});
     }
   }
   markAllPresent(day,roster){
@@ -4390,7 +4737,7 @@ class Component extends DCLogic {
     root.setProperty('--sab',this._sabMax+'px');
   }
   componentDidMount(){
-    this._ct=setInterval(()=>this.forceUpdate(),60000);
+    this._ct=setInterval(()=>{this.forceUpdate();this.checkPracticeReminder();},60000);
     this.captureSafeInsets(true);
     // A first read can land before the webview has settled into its final
     // frame, so re-read shortly after; both only ever raise the value.
@@ -4873,8 +5220,19 @@ class Component extends DCLogic {
       this.setState({...base,tab:'team',sel:ref,meEvent:null});
       return;
     }
-    if(type==='absence'){
-      this.setState({...base,tab:'attendance'});
+    if(type==='absence'||type==='attendance'){
+      if(!this.isCoachRole()){
+        // Athletes don't have an attendance tab — the notification message
+        // is the information; just close the panel and stay where they are.
+        this.setState(base);
+        return;
+      }
+      // ref is "2026-09-27-M" or "2026-09-27-W"; fall back gracefully for old format.
+      const lastDash=ref.lastIndexOf('-');
+      const rawSeg=lastDash>7?ref.slice(lastDash+1):'';
+      const seg=rawSeg==='M'||rawSeg==='W'?rawSeg:'';
+      const dateKey=seg?ref.slice(0,lastDash):(ref.match(/^\d{4}-\d{2}-\d{2}$/)?ref:'');
+      this.setState({...base,tab:'attendance',...(dateKey?{attDate:dateKey}:{}),...(seg?{attSeg:seg}:{})});
       return;
     }
     if(type==='meetUpdate'){
@@ -5032,8 +5390,49 @@ class Component extends DCLogic {
     this._notifUnsub=this.db.collection('notifications')
       .orderBy('createdAt','desc').limit(40)
       .onSnapshot(snap=>{
-        this.setState({notifications:snap.docs.map(d=>({id:d.id,...d.data()}))});
+        const prev=(this.state.notifications||[]).length;
+        const next=snap.docs.map(d=>({id:d.id,...d.data()}));
+        this.setState({notifications:next});
+        if(next.length>prev&&this.state.notifVibrate!==false&&!(this.state.notifPausedUntil>Date.now())){
+          try{navigator.vibrate&&navigator.vibrate([150]);}catch(e){}
+        }
       },()=>{});
+  }
+  saveNotifPref(k,v){
+    this.setState({[k]:v});
+    try{
+      const stored=JSON.parse(localStorage.getItem('scotswim.notifPrefs.v1')||'{}');
+      stored[k]=v;
+      localStorage.setItem('scotswim.notifPrefs.v1',JSON.stringify(stored));
+    }catch(e){}
+  }
+  checkPracticeReminder(){
+    const reminderMins=this.state.notifReminderMins||30;
+    if(!reminderMins)return;
+    if(this.state.notifPausedUntil>Date.now())return;
+    const now=new Date();
+    const dayNames=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY'];
+    const dayName=dayNames[now.getDay()];
+    const sessions=(this.WEEK_TEMPLATE&&this.WEEK_TEMPLATE[dayName])||[];
+    const poolSessions=sessions.filter(s=>s.tag==='POOL');
+    for(const s of poolSessions){
+      const m=s.t&&s.t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if(!m)continue;
+      let h=parseInt(m[1],10);
+      const min=parseInt(m[2],10);
+      const ap=m[3].toUpperCase();
+      if(ap==='PM'&&h!==12)h+=12;
+      if(ap==='AM'&&h===12)h=0;
+      const practiceMs=new Date(now.getFullYear(),now.getMonth(),now.getDate(),h,min,0,0).getTime();
+      const diffMin=(practiceMs-Date.now())/60000;
+      if(diffMin>0&&diffMin<=reminderMins){
+        const key=dayName+'-'+h+'-'+min;
+        if(this._lastPracticeRemind===key)continue;
+        this._lastPracticeRemind=key;
+        this.setState({toastMsg:'Practice in ~'+Math.round(diffMin)+' min'});
+        setTimeout(()=>this.setState({toastMsg:null}),4000);
+      }
+    }
   }
   stopNotificationsSync(){
     if(this._notifUnsub){this._notifUnsub();this._notifUnsub=null;}
@@ -5053,10 +5452,20 @@ class Component extends DCLogic {
   // a plain string match — it's a role, not a person, so it's whichever
   // coach happens to be looking rather than one fixed id.
   myNotifications(){
-    const me=this.state.userId;
+    const st=this.state;
+    const me=st.userId;
     const forCoaches=this.isCoachRole();
-    return (this.state.notifications||[])
-      .filter(n=>n.author!==me&&(n.target==='team'||n.target===me||(n.target==='coaches'&&forCoaches)))
+    if(st.notifPausedUntil>Date.now())return[];
+    return (st.notifications||[])
+      .filter(n=>{
+        if(n.author===me)return false;
+        if(!(n.target==='team'||n.target===me||(n.target==='coaches'&&forCoaches)))return false;
+        if(n.type==='attendance'&&st.notifAttendance===false)return false;
+        if(n.type==='schedule'&&st.notifTraining===false)return false;
+        if(n.type==='announcement'&&st.notifAnnouncements===false)return false;
+        if((n.type==='pb'||n.type==='goalHit')&&st.notifMilestones===false)return false;
+        return true;
+      })
       .slice(0,30);
   }
   // "just now" / "3h ago" / "Tue" — short enough for a one-line row.
@@ -5711,7 +6120,7 @@ class Component extends DCLogic {
     const navItems=navDef.map(([id,n])=>({n,bar:tab===id?M:'transparent',fg:tab===id?M:'rgba(42,18,24,.45)',
       off:(!isCoach?(NAV_X_OFFSET[id]||0):(NAV_X_OFFSET_COACH[id]||0))*NAV_OFF_SCALE,
       onTap:()=>this.setState({tab:id,sel:null,pickerEv:null})}));
-    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE'};
+    const TITLES={home:'DASHBOARD',meets:'MEETS',train:'TRAINING',team:'TEAM',me:'MY PROFILE',sim:'MEET SIMULATOR',goals:'GOAL SETTING',dive:'DIVING',swims:user.diver?'ALL MY DIVES':'ALL MY SWIMS',progress:'PROGRESSION',attendance:'ATTENDANCE',notifSettings:'SETTINGS'};
     const tagOf=m=>m.kind==='champ'?{tag:'CHAMPS',tfg:'#F5E9DC',tbg:'#6B1F33',tbd:'#6B1F33'}
       :m.kind==='home'?{tag:'HOME',tfg:'#1B7A78',tbg:'transparent',tbd:'#1B7A78'}
       :m.kind==='inv'?{tag:'INVITE',tfg:'rgba(42,18,24,.6)',tbg:'transparent',tbd:'rgba(42,18,24,.3)'}
@@ -6011,7 +6420,13 @@ class Component extends DCLogic {
     // coach still hears about the swim coach's schedule changes.
     const myNotifs=this.myNotifications();
     const seenAt=st.notifSeenAt||0;
-    const unread=myNotifs.filter(n=>n.createdAt>seenAt).length;
+    const quietStart=st.notifQuietStart||'22:00';
+    const quietEnd=st.notifQuietEnd||'06:00';
+    const nowMin=(new Date().getHours()*60+new Date().getMinutes());
+    const qsMin=parseInt(quietStart.split(':')[0],10)*60+parseInt(quietStart.split(':')[1],10);
+    const qeMin=parseInt(quietEnd.split(':')[0],10)*60+parseInt(quietEnd.split(':')[1],10);
+    const inQuietHours=qsMin>qeMin?(nowMin>=qsMin||nowMin<qeMin):(nowMin>=qsMin&&nowMin<qeMin);
+    const unread=inQuietHours?0:myNotifs.filter(n=>n.createdAt>seenAt).length;
     const notifLook={
       announcement:{icon:'\ud83d\udce3',iconBg:'#6B1F33',cta:'Read it'},
       schedule:{icon:'\ud83d\udcc5',iconBg:'#1B7A78',cta:'See the schedule'},
@@ -6022,7 +6437,7 @@ class Component extends DCLogic {
       rosterJoin:{icon:'\ud83d\udc4b',iconBg:'#1B7A78',cta:'View profile'},
       absence:{icon:'\u26a0\ufe0f',iconBg:'#6B1F33',cta:'See attendance'},
       meetUpdate:{icon:'\ud83d\udccc',iconBg:'#1B7A78',cta:'See the update'},
-      attendance:{icon:'\u2705',iconBg:'#1B7A78',cta:'See attendance'}
+      attendance:{icon:'\u2705',iconBg:'#1B7A78',cta:this.isCoachRole()?'See attendance':'Noted'}
     };
     const notifRows=myNotifs.map(n=>{
       const look=notifLook[n.type]||notifLook.announcement;
@@ -6065,6 +6480,88 @@ class Component extends DCLogic {
       notifNew,notifEarlier,hasNotifNew:notifNew.length>0,hasNotifEarlier:notifEarlier.length>0,
       notifNewLabel:notifNew.length===1?'1 new':notifNew.length+' new',
       hasUnread:unread>0,unreadLabel:unread>9?'9+':String(unread)
+    };
+    // Notification settings
+    const notifPausedUntil=st.notifPausedUntil||0;
+    const notifPaused=notifPausedUntil>Date.now();
+    const goNotifSettings=()=>this.setState({tab:'notifSettings',menuOpen:false});
+    const goBackFromNotifSettings=()=>this.setState({tab:isCoach?'home':'me'});
+    const openSnoozeSheet=()=>this.setState({showSnoozeSheet:true});
+    const closeSnoozeSheet=()=>this.setState({showSnoozeSheet:false});
+    const pauseFor=(ms)=>{this.saveNotifPref('notifPausedUntil',Date.now()+ms);this.setState({showSnoozeSheet:false});};
+    const pauseIndefinitely=()=>{this.saveNotifPref('notifPausedUntil',9999999999999);this.setState({showSnoozeSheet:false});};
+    const resumeNotifs=()=>this.saveNotifPref('notifPausedUntil',0);
+    const fmtResume=(ts)=>{
+      if(ts>9000000000000)return 'Off indefinitely';
+      return 'Resumes '+new Date(ts).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+    };
+    const snoozeNow=new Date();
+    const snoozeAdd=(ms)=>new Date(Date.now()+ms).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+    const snoozeTom=new Date();snoozeTom.setDate(snoozeTom.getDate()+1);snoozeTom.setHours(6,0,0,0);
+    const snoozeOpts=[
+      {label:'For 1 hour',sub:'Resumes at '+snoozeAdd(3600000),onTap:()=>pauseFor(3600000)},
+      {label:'For 4 hours',sub:'Resumes at '+snoozeAdd(14400000),onTap:()=>pauseFor(14400000)},
+      {label:'Until tomorrow',sub:'Resumes at '+snoozeTom.toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}),onTap:()=>pauseFor(snoozeTom.getTime()-Date.now())},
+      {label:'Turn off indefinitely',sub:'Change anytime in Notifications settings',onTap:pauseIndefinitely},
+    ];
+    const notifReminderMins=st.notifReminderMins||30;
+    const reminderLabel=notifReminderMins>=60?(notifReminderMins/60)+' hr':notifReminderMins+' min';
+    const reminderOpts=[{id:15,n:'15 min'},{id:30,n:'30 min'},{id:60,n:'1 hour'},{id:120,n:'2 hours'}];
+    const notifDelivery=st.notifDelivery||'push';
+    const deliveryLabel=notifDelivery==='inapp'?'In-app only':'Push + in-app';
+    const notifSummary=st.notifSummary||'grouped';
+    const summaryLabel=notifSummary==='individual'?'Individual':notifSummary==='off'?'Off':'Grouped';
+    const notifSettingsVals={
+      vNotifSettings:isApp&&!isCoach&&tab==='notifSettings',
+      vNotifSettingsCoach:isApp&&isCoach&&tab==='notifSettings',
+      goNotifSettings,goBackFromNotifSettings,
+      notifAttendance:st.notifAttendance!==false,
+      notifTraining:st.notifTraining!==false,
+      notifAnnouncements:st.notifAnnouncements!==false,
+      notifMilestones:st.notifMilestones!==false,
+      notifLockScreen:st.notifLockScreen!==false,
+      notifVibrate:st.notifVibrate!==false,
+      toggleNotifAttendance:()=>this.saveNotifPref('notifAttendance',st.notifAttendance===false),
+      toggleNotifTraining:()=>this.saveNotifPref('notifTraining',st.notifTraining===false),
+      toggleNotifAnnouncements:()=>this.saveNotifPref('notifAnnouncements',st.notifAnnouncements===false),
+      toggleNotifMilestones:()=>this.saveNotifPref('notifMilestones',st.notifMilestones===false),
+      toggleNotifLockScreen:()=>this.saveNotifPref('notifLockScreen',st.notifLockScreen===false),
+      toggleNotifVibrate:()=>this.saveNotifPref('notifVibrate',st.notifVibrate===false),
+      notifAttBg:st.notifAttendance!==false?'#1B7A78':'rgba(42,18,24,.18)',
+      notifAttDot:st.notifAttendance!==false?'22px':'2px',
+      notifTrainBg:st.notifTraining!==false?'#1B7A78':'rgba(42,18,24,.18)',
+      notifTrainDot:st.notifTraining!==false?'22px':'2px',
+      notifAnnBg:st.notifAnnouncements!==false?'#1B7A78':'rgba(42,18,24,.18)',
+      notifAnnDot:st.notifAnnouncements!==false?'22px':'2px',
+      notifMilBg:st.notifMilestones!==false?'#1B7A78':'rgba(42,18,24,.18)',
+      notifMilDot:st.notifMilestones!==false?'22px':'2px',
+      notifLockBg:st.notifLockScreen!==false?'#1B7A78':'rgba(42,18,24,.18)',
+      notifLockDot:st.notifLockScreen!==false?'22px':'2px',
+      notifVibBg:st.notifVibrate!==false?'#1B7A78':'rgba(42,18,24,.18)',
+      notifVibDot:st.notifVibrate!==false?'22px':'2px',
+      notifPaused,notifPausedUntil,resumeNotifs:()=>this.saveNotifPref('notifPausedUntil',0),
+      onPauseTap:notifPaused?(()=>this.saveNotifPref('notifPausedUntil',0)):openSnoozeSheet,
+      pauseLabel:notifPaused?'Paused — tap to resume':'Pause notifications',
+      pauseSub:notifPaused?fmtResume(notifPausedUntil):'Snooze for 1 hr, 4 hrs, until tomorrow…',
+      pauseRowBg:notifPaused?'rgba(107,31,51,.07)':'rgba(27,122,120,.07)',
+      pauseBorderCol:notifPaused?'#6B1F33':'#1B7A78',
+      pauseLabelCol:notifPaused?'#6B1F33':'#2A1218',
+      pauseIconBg:notifPaused?'#6B1F33':'#2A1218',
+      openSnoozeSheet,closeSnoozeSheet,showSnoozeSheet:!!st.showSnoozeSheet,
+      snoozeOpts,
+      reminderLabel,reminderOpts,notifReminderMins,
+      deliveryLabel,notifDelivery,
+      toggleDelivery:()=>this.saveNotifPref('notifDelivery',notifDelivery==='push'?'inapp':'push'),
+      summaryLabel,notifSummary,
+      toggleSummary:()=>this.saveNotifPref('notifSummary',notifSummary==='grouped'?'individual':'grouped'),
+      notifQuietStart:st.notifQuietStart||'22:00',
+      notifQuietEnd:st.notifQuietEnd||'06:00',
+      quietLabel:(st.notifQuietStart||'22:00')+' – '+(st.notifQuietEnd||'06:00'),
+      onQuietStartChange:e=>this.saveNotifPref('notifQuietStart',e.target.value),
+      onQuietEndChange:e=>this.saveNotifPref('notifQuietEnd',e.target.value),
+      onQuietStartClick:e=>{try{e.target.showPicker();}catch(ex){}},
+      onQuietEndClick:e=>{try{e.target.showPicker();}catch(ex){}},
+      onReminderChange:e=>this.saveNotifPref('notifReminderMins',Number(e.target.value)),
     };
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
     const defendLine=user.diver?'You lead by '+gap+' — defend it at the next board':'You lead by '+gap+' — defend it at the next meet';
@@ -6415,7 +6912,6 @@ class Component extends DCLogic {
     // swimDaysFor already calls weekDataFor which merges both sources, so
     // this correctly handles weeks where no Firestore doc exists yet.
     const attIsSwimPractice=!!this.swimDaysFor(attWeekKey)[attDayOfWeek];
-    const attIsNoPractice=SEASON_STARTED&&!attIsSwimPractice;
     const attDayCanceled=attDayStatusVal==='canceled';
     const attDayPostponed=attDayStatusVal==='postponed';
     const attDayChipLabel=attDayCanceled?'Canceled':attDayPostponed?'Postponed':'Set status';
@@ -6435,6 +6931,7 @@ class Component extends DCLogic {
     // calculated, and season PBs count. Flip back to false only if the app
     // is ever reset for an off-season gap.
     const SEASON_STARTED=true;
+    const attIsNoPractice=SEASON_STARTED&&!attIsSwimPractice;
     // Both coaches take attendance for the whole team — swimmers and
     // divers together — same reasoning as the Team roster above: the
     // diving coach may need to run the full team's practice, not just
@@ -6798,6 +7295,7 @@ class Component extends DCLogic {
       vTeam:isApp&&tab==='team',
       vMe:isApp&&!isCoach&&tab==='me',
       vProgress:isApp&&!isCoach&&tab==='progress',
+      ...notifSettingsVals,
       vAttendance:isApp&&isCoach&&tab==='attendance',
       vGoals:isApp&&isCoach&&tab==='goals',
       vDive:isApp&&tab==='dive',
@@ -6839,10 +7337,10 @@ class Component extends DCLogic {
       deleteBusy:st.deleteBusy,deleteBtnLabel:st.deleteBusy?'Deleting…':'Permanently Delete My Account',
       confirmDeleteAccount:()=>this.deleteAccount(st.deletePassword),
       menuItems:(isDivingCoach
-        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
+        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
         :isCoach
-        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving']]
-        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['me','My Profile']]
+        ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
+        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['me','My Profile'],['notifSettings','Settings']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
