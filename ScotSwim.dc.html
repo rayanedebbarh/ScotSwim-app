@@ -1617,6 +1617,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
 
         <!-- Pause -->
         <div onClick="{{ onPauseTap }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid rgba(42,18,24,.06);cursor:pointer;border-left:3px solid {{ pauseBorderCol }}">
+          <div style="width:34px;height:34px;border-radius:9px;background:{{ pauseIconBg }};display:flex;align-items:center;justify-content:center;flex:none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5E9DC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </div>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:600;color:{{ pauseLabelCol }}">{{ pauseLabel }}</div>
             <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">{{ pauseSub }}</div>
