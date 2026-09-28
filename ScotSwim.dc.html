@@ -2651,7 +2651,7 @@ class Component extends DCLogic {
     this.fbConfig={apiKey:'AIzaSyB0sIGGQ216cEgZBDAHPjvnk3_BWphXSaI',authDomain:'scotswim-app.firebaseapp.com',projectId:'scotswim-app',storageBucket:'scotswim-app.firebasestorage.app',messagingSenderId:'1030021616865',appId:'1:1030021616865:web:8140fa07b3f1e15f93d3a0'};
     this.fbReady=!!(window.firebase&&window.firebase.initializeApp);
     if(this.fbReady){
-      window.firebase.initializeApp(this.fbConfig);
+      if(!window.firebase.apps.length)window.firebase.initializeApp(this.fbConfig);
       this.auth=window.firebase.auth();
       this.db=window.firebase.firestore();
       // Firestore's default streaming connection often can't be
@@ -4879,6 +4879,16 @@ class Component extends DCLogic {
   signOutEverything(){
     this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();
     this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();
+    // Cancel all pending debounced writes so they don't fire after sign-out
+    // under the departing user's credentials.
+    clearTimeout(this._rosterSaveTimer);this._rosterSaveTimer=null;
+    clearTimeout(this._schedSaveTimer);this._schedSaveTimer=null;
+    if(this._attSaveTimers){Object.keys(this._attSaveTimers).forEach(k=>{clearTimeout(this._attSaveTimers[k]);});this._attSaveTimers={};}
+    if(this._trainSaveTimers){Object.keys(this._trainSaveTimers).forEach(k=>{clearTimeout(this._trainSaveTimers[k]);});this._trainSaveTimers={};}
+    if(this._myEventsSaveTimers){Object.keys(this._myEventsSaveTimers).forEach(k=>{clearTimeout(this._myEventsSaveTimers[k]);});this._myEventsSaveTimers={};}
+    if(this._trainingLogSaveTimers){Object.keys(this._trainingLogSaveTimers).forEach(k=>{clearTimeout(this._trainingLogSaveTimers[k]);});this._trainingLogSaveTimers={};}
+    if(this._goalWorkoutsSaveTimers){Object.keys(this._goalWorkoutsSaveTimers).forEach(k=>{clearTimeout(this._goalWorkoutsSaveTimers[k]);});this._goalWorkoutsSaveTimers={};}
+
     // Started before the state reset below: it reads the signed-in user
     // synchronously, and signOut waits for it to finish.
     const tokenCleared=this.clearPushToken();
@@ -4989,7 +4999,7 @@ class Component extends DCLogic {
         const local=this.state.myEvents[rosterId];
         if(local&&Object.keys(local).length)ref.set({entries:local},{merge:true});
       }
-    });
+    },()=>{});
   }
   stopMyEventsSync(){
     if(this._myEventsUnsub){this._myEventsUnsub();this._myEventsUnsub=null;}
@@ -5021,7 +5031,7 @@ class Component extends DCLogic {
         const local=this.state.trainingLog[rosterId];
         if(local&&Object.keys(local).length)ref.set({entries:local},{merge:true});
       }
-    });
+    },()=>{});
   }
   stopTrainingLogSync(){
     if(this._trainingLogUnsub){this._trainingLogUnsub();this._trainingLogUnsub=null;}
@@ -5041,7 +5051,7 @@ class Component extends DCLogic {
       this.setState(gd?{goalWorkouts,goalDelta:gd}:{goalWorkouts});
       this.saveGoalWorkouts(goalWorkouts);
       if(gd)this.saveGoalPrefs(gd,this.state.selfGoals);
-    });
+    },()=>{});
   }
   // ---- notifications ------------------------------------------------
   // One document per thing a coach did that athletes should hear about.
@@ -5961,6 +5971,7 @@ class Component extends DCLogic {
       //   allow delete: if request.auth != null && request.auth.uid == uid;
       // to the users rule and this cleans up the profile too.
       .then(()=>this.db.collection('users').doc(user.uid).delete().catch(()=>null))
+      .then(()=>this.clearPushToken().catch(()=>{}))
       .then(()=>user.delete())
       .then(()=>{
         this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();
