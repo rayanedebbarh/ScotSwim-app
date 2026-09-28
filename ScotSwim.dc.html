@@ -1376,19 +1376,16 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </sc-if>
       </div>
       <!-- Settings section -->
-      <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;overflow:hidden">
-        <div style="font-size:10px;font-weight:800;letter-spacing:2px;color:rgba(42,18,24,.45);padding:13px 18px 4px">SETTINGS</div>
-        <button onClick="{{ goNotifSettings }}" style="width:100%;display:flex;align-items:center;gap:12px;border:none;background:none;padding:13px 18px;cursor:pointer;text-align:left;border-top:1px solid rgba(42,18,24,.06)">
-          <div style="width:34px;height:34px;border-radius:9px;background:rgba(107,31,51,.1);display:flex;align-items:center;justify-content:center;flex:none">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#6B1F33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </div>
-          <div style="flex:1">
-            <div style="font-size:14.5px;font-weight:600;color:#2A1218">Notifications</div>
-            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:1px">Push alerts, reminders, quiet hours</div>
-          </div>
-          <div style="font-size:18px;color:rgba(42,18,24,.28)">›</div>
-        </button>
-      </div>
+      <button onClick="{{ goNotifSettings }}" style="width:100%;display:flex;align-items:center;gap:14px;border:none;background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:10px;padding:15px 16px;cursor:pointer;text-align:left">
+        <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1B7A78 0%,#154f4e 100%);display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 2px 6px rgba(27,122,120,.3)">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700;color:#2A1218">Settings</div>
+          <div style="font-size:12px;color:rgba(42,18,24,.45);margin-top:2px">Notifications, quiet hours &amp; more</div>
+        </div>
+        <div style="font-size:20px;color:rgba(42,18,24,.22);font-weight:300">›</div>
+      </button>
     </div>
   </sc-if>
 
@@ -1495,9 +1492,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
               <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Auto-silence between these times</div>
             </div>
             <div style="display:flex;align-items:center;gap:4px">
-              <input type="time" value="{{ notifQuietStart }}" onChange="{{ onQuietStartChange }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+              <input type="time" value="{{ notifQuietStart }}" onChange="{{ onQuietStartChange }}" onClick="{{ onQuietStartClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
               <span style="font-size:12px;color:rgba(42,18,24,.4)">–</span>
-              <input type="time" value="{{ notifQuietEnd }}" onChange="{{ onQuietEndChange }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+              <input type="time" value="{{ notifQuietEnd }}" onChange="{{ onQuietEndChange }}" onClick="{{ onQuietEndClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
             </div>
           </div>
 
@@ -1633,9 +1630,9 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:2px">Auto-silence between these times</div>
           </div>
           <div style="display:flex;align-items:center;gap:4px">
-            <input type="time" value="{{ notifQuietStart }}" onChange="{{ onQuietStartChange }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+            <input type="time" value="{{ notifQuietStart }}" onChange="{{ onQuietStartChange }}" onClick="{{ onQuietStartClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
             <div style="font-size:12px;color:rgba(42,18,24,.4)">–</div>
-            <input type="time" value="{{ notifQuietEnd }}" onChange="{{ onQuietEndChange }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
+            <input type="time" value="{{ notifQuietEnd }}" onChange="{{ onQuietEndChange }}" onClick="{{ onQuietEndClick }}" style="border:none;background:none;font-size:12.5px;font-weight:700;color:#1B7A78;outline:none;cursor:pointer;font-family:'Barlow Condensed'">
           </div>
         </div>
 
@@ -6454,6 +6451,8 @@ class Component extends DCLogic {
       quietLabel:(st.notifQuietStart||'22:00')+' – '+(st.notifQuietEnd||'06:00'),
       onQuietStartChange:e=>this.setState({notifQuietStart:e.target.value}),
       onQuietEndChange:e=>this.setState({notifQuietEnd:e.target.value}),
+      onQuietStartClick:e=>{try{e.target.showPicker();}catch(ex){}},
+      onQuietEndClick:e=>{try{e.target.showPicker();}catch(ex){}},
       onReminderChange:e=>this.setState({notifReminderMins:Number(e.target.value)}),
     };
     const rivalryLabel=user.diver?'BOARD RIVALRY':'LANE RIVALRY';
@@ -7233,7 +7232,7 @@ class Component extends DCLogic {
         ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
         :isCoach
         ?[['home','Dashboard'],['meets','Meets'],['train','Training'],['attendance','Attendance'],['team','Team'],['goals','Goal Setting'],['dive','Diving'],['notifSettings','Settings']]
-        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['notifSettings','Notifications'],['me','My Profile']]
+        :[['home','Home'],['meets','Meets'],['train','Training'],['progress','Progression'],['team','Team'],['dive','Diving'],['notifSettings','Settings'],['me','My Profile']]
       ).map(([id,n])=>({n,bg:tab===id?'rgba(245,233,220,.08)':'transparent',
         fg:tab===id?'#F5E9DC':'rgba(245,233,220,.72)',
         dot:tab===id?'#7fd0cd':'rgba(245,233,220,.35)',
