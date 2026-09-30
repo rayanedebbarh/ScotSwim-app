@@ -11,6 +11,12 @@
 
 ---
 
+## Internship Final Project
+
+ScotSwim was built as the final project for a **Data Engineering internship at [Enopps](https://enopps.com)** — an IT consulting and engineering company based in Morocco, specializing in data solutions, software development, and digital transformation for businesses. The internship was hybrid, based in Morocco, and the project was designed, developed, and shipped end-to-end over the course of the internship.
+
+---
+
 ## Overview
 
 Before ScotSwim, the season ran across paper heat sheets, group texts, spreadsheets, and third-party results sites. Athletes often didn't know what practice was that day. Coaches had no single place to keep any of it.
@@ -22,18 +28,19 @@ ScotSwim is that single place — used daily by **34 athletes and 2 coaches** th
 ## Screenshots
 
 <p align="center">
-  <img src="store-listing/screenshots/ios/1-dashboard-iphone-6.7-1290x2796.jpg" width="160" alt="Dashboard" />
-  <img src="store-listing/screenshots/ios/2-progression-iphone-6.7-1290x2796.jpg" width="160" alt="Progression" />
-  <img src="store-listing/screenshots/ios/3-training-iphone-6.7-1290x2796.jpg" width="160" alt="Training" />
-  <img src="store-listing/screenshots/ios/8-meets-iphone-6.7-1290x2796.jpg" width="160" alt="Meets" />
-  <img src="store-listing/screenshots/ios/7-goals-iphone-6.7-1290x2796.jpg" width="160" alt="Goals" />
+  <img src="store-listing/screenshots/ios/1-dashboard-iphone-6.7-1290x2796.jpg" width="155" alt="Dashboard" />
+  <img src="store-listing/screenshots/ios/2-progression-iphone-6.7-1290x2796.jpg" width="155" alt="Progression" />
+  <img src="store-listing/screenshots/ios/3-training-iphone-6.7-1290x2796.jpg" width="155" alt="Training" />
+  <img src="store-listing/screenshots/ios/8-meets-iphone-6.7-1290x2796.jpg" width="155" alt="Meets" />
+  <img src="store-listing/screenshots/ios/7-goals-iphone-6.7-1290x2796.jpg" width="155" alt="Goals" />
 </p>
 
 <p align="center">
-  <img src="store-listing/screenshots/ios/5-coach-dashboard-iphone-6.7-1290x2796.jpg" width="160" alt="Coach Dashboard" />
-  <img src="store-listing/screenshots/ios/6-attendance-iphone-6.7-1290x2796.jpg" width="160" alt="Attendance" />
-  <img src="store-listing/screenshots/ios/4-team-iphone-6.7-1290x2796.jpg" width="160" alt="Team" />
-  <img src="store-listing/screenshots/ios/9-notifications-iphone-6.7-1290x2796.jpg" width="160" alt="Notifications" />
+  <img src="store-listing/screenshots/ios/5-coach-dashboard-iphone-6.7-1290x2796.jpg" width="155" alt="Coach Dashboard" />
+  <img src="store-listing/screenshots/ios/6-attendance-iphone-6.7-1290x2796.jpg" width="155" alt="Attendance" />
+  <img src="store-listing/screenshots/ios/4-team-iphone-6.7-1290x2796.jpg" width="155" alt="Team" />
+  <img src="store-listing/screenshots/ios/9-notifications-iphone-6.7-1290x2796.jpg" width="155" alt="Notifications" />
+  <img src="store-listing/screenshots/ios/10-profile-iphone-6.7-1290x2796.jpg" width="155" alt="My Profile" />
 </p>
 
 ---
