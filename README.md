@@ -1,4 +1,4 @@
-# ScotSwim
+# ScotSwim App
 
 A team-management app for the Alma College swimming and diving program — live on the
 App Store and in daily use by 32 athletes and 2 coaches through the 2026–27 season.
