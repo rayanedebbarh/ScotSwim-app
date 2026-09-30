@@ -94,23 +94,34 @@ ScotSwim is that single place.
 ### For Athletes
 | | |
 |---|---|
-| 🏠 **Dashboard** | Practice schedule for the week, upcoming meets, and team announcements at a glance |
-| 📈 **Progression** | Log times and dive scores after every meet — the app builds a personal progression chart automatically |
-| 🎯 **Goals** | View coach-set goals and prescribed workouts, track your own season targets |
-| 🏋️ **Training Log** | Track miles swum, time in the pool, and independent lift check-ins |
-| 📅 **Attendance** | Follow your own practice streak and attendance record |
-| 🔔 **Notifications** | Real-time push alerts for announcements, schedule changes, and new goals — with configurable quiet hours and a daily practice reminder |
-| 👤 **Profile** | Personal stats, bio, and photo with custom framing |
+| 🏠 **Dashboard** | Week's practice schedule, next meet countdown, personal best highlights, coach goals summary, and team announcements — all in one view |
+| 📈 **Progression** | Log times and dive scores after every meet; the app builds a personal progression chart per event automatically, with improvement deltas against personal bests |
+| 🏊 **Meets** | Full season meet calendar with locations and dates; view the official meet lineup posted by coaches, with your specific events highlighted |
+| 📋 **Meet Lineup** | Coaches post the heat sheet (as images or PDF) with a note; every athlete sees their own events called out directly in the lineup |
+| 🎯 **Goals** | View season goals and prescribed workouts set by the coach; track your own targets alongside them |
+| 🏋️ **Training Log** | Log training volume — miles swum and time in the pool — and check off independent lifts from the coach's prescribed lift plan |
+| 🤽 **Diving** | Diving-specific goal tracking, dive scores logged per meet, board assignments, and a progression chart built for dive scores rather than swim times |
+| 🏆 **Lane & Board Rivalry** | Head-to-head competition block on the dashboard pairing you against a rival teammate — updated live as times and scores are logged |
+| 👥 **Team** | Full roster with athlete profiles, stats, bio, and photo |
+| 👤 **My Profile** | Personal stats (year, height, weight, hometown, strokes), bio, and profile photo with custom framing |
+| 🔔 **Notifications** | Real-time push alerts for announcements, lineup posts, schedule changes, attendance marks, and new goals — with configurable quiet hours and a daily practice reminder |
+| ⚙️ **Settings** | Control which notification types you receive, set quiet hours, pause alerts temporarily, and manage your account |
 
 ### For Coaches
 | | |
 |---|---|
-| ✅ **Attendance** | Take practice attendance in seconds with excused / unexcused markings |
-| 👥 **Roster & Schedule** | Edit the team roster and season meet calendar as things change |
-| 🎯 **Per-Athlete Goals** | Set individual goals and write a prescribed workout for each swimmer or diver |
-| 📢 **Announcements** | Post team-wide messages and attach workout sheets |
-| 🧮 **Meet Simulator** | Project dual-meet scores against MIAA and Division III opponents, event by event, from both teams' entry times |
-| 📊 **Lift Grid** | Week-at-a-glance view of who completed their independent lifts |
+| 🏠 **Dashboard** | Season overview with the next meet, recent announcements, and quick access to all coaching tools |
+| 🏊 **Meets** | Edit the full season meet calendar; post meet updates (bus time, warm-up instructions, what to wear) visible to the whole team |
+| 📋 **Meet Lineup** | Upload the official heat sheet (photos or PDF) for the upcoming meet, add a coach note, and push a notification to the team — athletes see their own events highlighted |
+| 📅 **Training Schedule** | Edit the weekly practice schedule (sessions, times, pool lanes) visible to all athletes |
+| ✅ **Attendance** | Take practice attendance in seconds with present / excused / unexcused markings; athletes are notified of unexcused absences automatically |
+| 📊 **Lift Grid** | Week-at-a-glance grid showing which athletes completed their independent lifts |
+| 👥 **Team & Roster** | Manage the full team roster — add and remove athletes, view profiles, stats, and photos |
+| 🎯 **Goal Setting** | Set individual season goals for each athlete and write a prescribed workout per goal; athletes see these alongside their own targets |
+| 📢 **Announcements & Workout Sheets** | Post team-wide announcements and attach dated workout sheets for athletes to reference |
+| 🤽 **Diving** | Full diving-specific section: dive scores, board assignments, diving goals, and progression — managed separately from swim data |
+| 🧮 **Meet Simulator** | Project dual-meet scores against MIAA and Division III opponents event by event, using both teams' entry times — so coaches know the score before the bus leaves |
+| ⚙️ **Settings** | Notification preferences and account management |
 
 > **Access is invite-only.** Every account comes from a coach-generated invite link bound to a specific email and roster spot. Nothing in the app is visible outside the team.
 
