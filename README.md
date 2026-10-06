@@ -246,3 +246,4 @@ npx cap open ios    # opens Xcode
     <a href="https://rayanedebbarh.github.io/ScotSwim-app/privacy.html">Privacy Policy</a>
   </p>
 </div>
+
