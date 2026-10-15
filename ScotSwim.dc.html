@@ -19,6 +19,25 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&amp;family=Barlow+Condensed:wght@500;600;700;800&amp;display=swap" rel="stylesheet">
 <script src="./image-slot.js"></script>
+<script>
+(function(){
+  // Capture the full-screen height before any keyboard appears and pin it
+  // to --app-h so the flex layout never shrinks when the keyboard opens.
+  function setH(){document.documentElement.style.setProperty('--app-h',window.innerHeight+'px');}
+  setH();
+  window.addEventListener('orientationchange',function(){setTimeout(setH,350);});
+  // When the keyboard opens (visualViewport shrinks), scroll the active
+  // input into view within its scrollable ancestor so it stays visible.
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',function(){
+      var el=document.activeElement;
+      if(el&&(el.tagName==='INPUT'||el.tagName==='TEXTAREA')){
+        setTimeout(function(){el.scrollIntoView({behavior:'smooth',block:'nearest'});},60);
+      }
+    });
+  }
+})();
+</script>
 <style>
 body{margin:0;background:#2A1218;font-family:'Barlow',sans-serif}
 a{color:#1B7A78;text-decoration:none}a:hover{color:#6B1F33}
@@ -131,6 +150,11 @@ input::placeholder{color:rgba(245,233,220,.5)}
 .zoomRange::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:22px;height:22px;border-radius:50%;background:#fff;border:2px solid #1a1a1a;margin-top:-8px;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .zoomRange::-moz-range-track{height:6px;border-radius:999px;background:#1a1a1a}
 .zoomRange::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid #1a1a1a;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+/* Freeze app root height so the keyboard overlays content instead of
+   compressing the layout (nav bars stay in place on iOS). */
+@media (pointer:coarse){
+  .iosdev-root{height:var(--app-h,100dvh)!important}
+}
 </style>
 </helmet>
 <div style="display:flex;justify-content:center;min-height:100dvh;align-items:flex-start;background:#2A1218">
@@ -3623,16 +3647,23 @@ class Component extends DCLogic {
       setMyPhoto({x:clampPan(this._panStart.ox-dx),y:clampPan(this._panStart.oy-dy)});
     };
     const onPhotoPanEnd=()=>{this._panStart=null;};
+    // Always read current state (not the render-time snapshot) so a
+    // Firestore sync landing between keystrokes never overwrites other rows.
+    const mePatch=(entryId,patch)=>{
+      const cur=this.state.myEvents[s.id]||{};
+      if(!cur[entryId])return;
+      setMyEvents({...cur,[entryId]:{...cur[entryId],...patch}});
+    };
     const myEventRows=entryIds.map(entryId=>{
       const entry=myEntries[entryId];
       const e=this.evMap[entry.eventId];
       return {id:entryId,n:e?e.n:entry.eventId,
         timeValue:entry.time||'',dateValue:entry.date||'',
         timePlaceholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
-        onTimeChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,time:e2.target.value}}),
+        onTimeChange:e2=>mePatch(entryId,{time:e2.target.value}),
         onTimeFocus:()=>this.beginTimeEdit(s.id,entry.eventId),
         onTimeBlur:()=>this.checkTimeEditResult(s.id,entry.eventId),
-        onDateChange:e2=>setMyEvents({...myEntries,[entryId]:{...entry,date:e2.target.value}}),
+        onDateChange:e2=>mePatch(entryId,{date:e2.target.value}),
         remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
     });
     // Grouped by event (50 Free entries with 50 Free, etc.) rather than
@@ -3649,11 +3680,11 @@ class Component extends DCLogic {
       const entry=myEntries[r.id];
       (rowsByEvent[entry.eventId]=rowsByEvent[entry.eventId]||[]).push(r);
     });
+    // Sort by entryId (stable, timestamp-based) so rows never reorder
+    // mid-keystroke — sorting by dateValue caused inputs to swap DOM nodes
+    // while the user was still typing, mixing values between rows.
     Object.keys(rowsByEvent).forEach(evId=>{
-      rowsByEvent[evId].sort((a,b)=>{
-        const ta=Date.parse(a.dateValue)||-Infinity,tb=Date.parse(b.dateValue)||-Infinity;
-        return tb-ta;
-      });
+      rowsByEvent[evId].sort((a,b)=>a.id>b.id?-1:a.id<b.id?1:0);
     });
     const VISIBLE_CAP=2;
     const myEventGroups=evChoices.filter(e=>rowsByEvent[e.id]).map(e=>{
