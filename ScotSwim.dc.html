@@ -5028,6 +5028,10 @@ class Component extends DCLogic {
         // as startTrainingLogSync to prevent a Firestore round-trip from
         // blanking a mid-word keystroke.
         const justEdited=Date.now()-((this._myEventsEditAt||{})[rosterId]||0)<2500;
+        if(!justEdited){
+          if(!this._lastSyncedMyEventIds)this._lastSyncedMyEventIds={};
+          this._lastSyncedMyEventIds[rosterId]=new Set(Object.keys(entries));
+        }
         const myEvents=justEdited?this.state.myEvents:{...this.state.myEvents,[rosterId]:entries};
         const sg=this.mergeSelfGoals(rosterId,doc.data().selfGoals);
         // A reorder made on another device arrives here. Skipped while a
@@ -5917,7 +5921,25 @@ class Component extends DCLogic {
     if(!this._myEventsSaveTimers)this._myEventsSaveTimers={};
     clearTimeout(this._myEventsSaveTimers[rosterId]);
     this._myEventsSaveTimers[rosterId]=setTimeout(()=>{
-      this.db.collection('myEvents').doc(rosterId).set({entries},{merge:true}).catch(()=>{});
+      const prev=this._lastSyncedMyEventIds?.[rosterId]||new Set();
+      const newIds=new Set(Object.keys(entries));
+      const deletedIds=[...prev].filter(id=>!newIds.has(id));
+      if(!this._lastSyncedMyEventIds)this._lastSyncedMyEventIds={};
+      this._lastSyncedMyEventIds[rosterId]=newIds;
+      const ref=this.db.collection('myEvents').doc(rosterId);
+      if(deletedIds.length){
+        // set({entries},{merge:true}) deep-merges and would keep deleted keys.
+        // Use dotted-path update with FieldValue.delete() to truly remove them.
+        const FV=window.firebase.firestore.FieldValue;
+        const upd={};
+        Object.entries(entries).forEach(([k,v])=>{upd['entries.'+k]=v;});
+        deletedIds.forEach(id=>{upd['entries.'+id]=FV.delete();});
+        ref.update(upd).catch(err=>{
+          if(err&&err.code==='not-found')ref.set({entries},{merge:true}).catch(()=>{});
+        });
+      }else{
+        ref.set({entries},{merge:true}).catch(()=>{});
+      }
     },700);
   }
   // One-time fetch for viewing someone ELSE's training log, e.g. from the
