@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1030021616865",
+    "project_id": "scotswim-app",
+    "storage_bucket": "scotswim-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1030021616865:android:3c2ad97df7d3874593d3a0",
+        "android_client_info": {
+          "package_name": "edu.alma.scotswim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC81ZyV61iN_PBMT6cMDVGco2QtwwcJzpw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
