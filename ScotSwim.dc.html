@@ -3664,7 +3664,7 @@ class Component extends DCLogic {
         onTimeFocus:()=>this.beginTimeEdit(s.id,entry.eventId),
         onTimeBlur:()=>this.checkTimeEditResult(s.id,entry.eventId),
         onDateChange:e2=>mePatch(entryId,{date:e2.target.value}),
-        remove:()=>{const next={...myEntries};delete next[entryId];setMyEvents(next);}};
+        remove:()=>{const cur=this.state.myEvents[s.id]||{};const next={...cur};delete next[entryId];setMyEvents(next);}};
     });
     // Grouped by event (50 Free entries with 50 Free, etc.) rather than
     // one long flat list — an athlete who's logged a meet's worth of
@@ -3747,7 +3747,8 @@ class Component extends DCLogic {
     const addEventSel=e2=>{
       const evId=e2.target.value;if(!evId)return;
       const entryId='e'+Date.now()+Math.random().toString(36).slice(2,6);
-      setMyEvents({...myEntries,[entryId]:{eventId:evId,time:'',date:''}});
+      const cur=this.state.myEvents[s.id]||{};
+      setMyEvents({...cur,[entryId]:{eventId:evId,time:'',date:''}});
     };
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,isDiver:s.diver,
       addEventLabel:s.diver?'＋ Add score':'＋ Add time',
@@ -5019,7 +5020,11 @@ class Component extends DCLogic {
       if(doc.exists){
         const entries=doc.data().entries||{};
         this.applyMyEvents(rosterId,entries);
-        const myEvents={...this.state.myEvents,[rosterId]:entries};
+        // Skip our own echo-back if the user is still typing — same guard
+        // as startTrainingLogSync to prevent a Firestore round-trip from
+        // blanking a mid-word keystroke.
+        const justEdited=Date.now()-((this._myEventsEditAt||{})[rosterId]||0)<2500;
+        const myEvents=justEdited?this.state.myEvents:{...this.state.myEvents,[rosterId]:entries};
         const sg=this.mergeSelfGoals(rosterId,doc.data().selfGoals);
         // A reorder made on another device arrives here. Skipped while a
         // drag is in flight so the list can't reshuffle under the finger.
@@ -5900,6 +5905,10 @@ class Component extends DCLogic {
   // wasteful and laggy; the local state + localStorage update in
   // setMyEvents is what keeps typing itself instant.
   syncMyEventsToCloud(rosterId,entries){
+    // Stamp before the fbReady check so the onSnapshot guard below knows
+    // an edit just happened even if we couldn't reach the network yet.
+    if(!this._myEventsEditAt)this._myEventsEditAt={};
+    this._myEventsEditAt[rosterId]=Date.now();
     if(!this.fbReady)return;
     if(!this._myEventsSaveTimers)this._myEventsSaveTimers={};
     clearTimeout(this._myEventsSaveTimers[rosterId]);
