@@ -3658,12 +3658,16 @@ class Component extends DCLogic {
       const entry=myEntries[entryId];
       const e=this.evMap[entry.eventId];
       return {id:entryId,n:e?e.n:entry.eventId,
-        timeValue:entry.time||'',dateValue:entry.date||'',
+        timeValue:(entry.time||'').trim(),dateValue:(entry.date||'').trim(),
         timePlaceholder:e&&e.dive?'e.g. 245.5':'e.g. 25.30',
         onTimeChange:e2=>mePatch(entryId,{time:e2.target.value}),
         onTimeFocus:()=>this.beginTimeEdit(s.id,entry.eventId),
-        onTimeBlur:()=>this.checkTimeEditResult(s.id,entry.eventId),
-        onDateChange:e2=>mePatch(entryId,{date:e2.target.value}),
+        onTimeBlur:()=>{
+          this.checkTimeEditResult(s.id,entry.eventId);
+          const cur=this.state.myEvents[s.id]||{};
+          if(cur[entryId]){const t=(cur[entryId].time||'').trim();if(t!==cur[entryId].time)mePatch(entryId,{time:t});}
+        },
+        onDateChange:e2=>mePatch(entryId,{date:e2.target.value.trim()}),
         remove:()=>{const cur=this.state.myEvents[s.id]||{};const next={...cur};delete next[entryId];setMyEvents(next);}};
     });
     // Grouped by event (50 Free entries with 50 Free, etc.) rather than
