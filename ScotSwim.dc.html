@@ -324,7 +324,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">PERSONAL BESTS</div>
           <div style="font-family:'Barlow Condensed';font-weight:800;font-size:34px;color:#2A1218;margin-top:6px">{{ pbCount }}</div>
-          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set last season</div>
+          <div style="font-size:12.5px;color:rgba(42,18,24,.6)">set this season</div>
         </div>
         <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:15px 16px">
           <div style="font-size:10.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55)">COACH GOALS</div>
@@ -2283,6 +2283,41 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="border:1px solid rgba(107,31,51,.3);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;color:#6B1F33;background:#fff">★ {{ b.n }}</div>
           </sc-for>
         </div>
+        <sc-if value="{{ selDet.canLogMyEvents }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">MY EVENTS</div>
+              <select value="" onChange="{{ selDet.addEventSel }}" style="background:#fff;color:#1B7A78;border:1.5px solid #1B7A78;border-radius:999px;padding:6px 8px;font-size:11.5px;font-weight:700;font-family:'Barlow';outline:none;max-width:140px">
+                <option value="">{{ selDet.addEventLabel }}</option>
+                <sc-for list="{{ selDet.addEventOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
+              </select>
+            </div>
+            <sc-if value="{{ selDet.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
+              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:10px;line-height:1.45">{{ selDet.eventsEmptyMsg }}</div>
+            </sc-if>
+            <sc-for list="{{ selDet.myEventGroups }}" as="g" hint-placeholder-count="3">
+              <div style="margin-top:12px">
+                <div style="font-size:11.5px;font-weight:800;letter-spacing:1px;color:#6B1F33">{{ g.n }}</div>
+                <sc-for list="{{ g.visibleRows }}" as="r" hint-placeholder-count="2">
+                  <div style="display:flex;align-items:flex-end;gap:8px;padding:8px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">DATE</div>
+                      <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
+                    </div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">{{ selDet.entryColLabel }}</div>
+                      <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" onFocus="{{ r.onTimeFocus }}" onBlur="{{ r.onTimeBlur }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
+                    </div>
+                    <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ false }}">
+                  <button onClick="{{ g.toggleExpand }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;padding:7px 0 0">{{ g.moreLabel }}</button>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
           <button onClick="{{ selGoalBtn }}" style="border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:14px;font-family:'Barlow Condensed';font-weight:700;font-size:17px;letter-spacing:1.5px;cursor:pointer">SET GOALS FOR {{ selDet.first }}</button>
         </sc-if>
@@ -3541,6 +3576,7 @@ class Component extends DCLogic {
       (hasReal?'Log another time to see your trend':'');
     const YEAR={'Fr.':'Freshman','So.':'Sophomore','Jr.':'Junior','Sr.':'Senior'};
     const canEditBio=this.state.role==='athlete'&&this.state.userId===s.id;
+    const canLogMyEvents=canEditBio||this.isCoachRole();
     const bioEditing=canEditBio&&this.state.bioEdit===s.id;
     const bioVal=this.state.bios[s.id]||'';
     // height/weight/high school are self-entered and persisted the same way
@@ -3792,7 +3828,7 @@ class Component extends DCLogic {
       }),
       pbsEmpty:primary.length===0,
       badges:s.badges,badgesEmpty:(s.badges||[]).length===0,
-      canEditBio,bioEditing,
+      canEditBio,canLogMyEvents,bioEditing,
       bioIcon:bioEditing?'✓':'✎',
       bioReadOnly:!bioEditing,
       bioText:bioVal||(canEditBio?'No bio yet — tap ✎ to add one.':'No bio yet.'),
@@ -6187,7 +6223,7 @@ class Component extends DCLogic {
             if(info.role==='athlete')this.pushAthleteNotification({type:'rosterJoin',tab:'team',ref:info.rosterId,
               author:info.rosterId,msg:info.rosterId+' joined the team'});
           })
-      ).catch(err=>this.setState({authBusy:false,authErr:this.authErrMsg(err)}));
+      ).catch(err=>{if(this.fbReady&&this.auth.currentUser)this.auth.signOut().catch(()=>{});this.setState({authBusy:false,authErr:this.authErrMsg(err)});});
     };
     // Coach-only invite panel — one person picked from the roster (plus
     // the two coach slots), an email for them, Generate makes the link.
@@ -7526,7 +7562,7 @@ class Component extends DCLogic {
       heroName:user.name.split(' ')[0],
       heroIsDiver:user.diver,heroIsMen:!user.diver&&user.gender==='M',heroIsWomen:!user.diver&&user.gender==='W',
       nextMeet,cdDays:String(cdDays),nextShortName:nextMeet.n,
-      pbCount:user.id==='Rayane Debbarh'?'5':(user.hasLogged?String(user.primary.length):'0'),
+      pbCount:(()=>{if(!user.hasLogged||!SEASON_STARTED)return '0';const ssd=new Date(this.SEASON_FIRST_MONDAY+'T00:00:00');let c=0;(user.primary||[]).forEach(evId=>{const h=user.hist[evId]||[];const dates=(user.dateLogByEv||{})[evId]||[];const dive=this.evMap[evId].dive;let best=dive?-Infinity:Infinity;h.forEach((t,i)=>{const isNew=dive?t>best:t<best;if(!isNew)return;best=t;const d=dates[i];if(d&&d>=ssd)c++;});});return String(c);})(),
       selfList,selfCount,selfEmpty:selfList.length===0,addOpts,addSel,addEvtVal:'',
       allSelfBtn:()=>this.setState({showAllSelf:!st.showAllSelf}),
       allSelfLabel:st.showAllSelf?'Top 3 ‹':'All goals ›',
