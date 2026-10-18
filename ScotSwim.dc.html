@@ -2283,39 +2283,36 @@ input::placeholder{color:rgba(245,233,220,.5)}
             <div style="border:1px solid rgba(107,31,51,.3);border-radius:999px;padding:6px 12px;font-size:11.5px;font-weight:700;color:#6B1F33;background:#fff">★ {{ b.n }}</div>
           </sc-for>
         </div>
-        <sc-if value="{{ selDet.canLogMyEvents }}" hint-placeholder-val="{{ false }}">
-          <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 16px">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-              <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px">MY EVENTS</div>
-              <select value="" onChange="{{ selDet.addEventSel }}" style="background:#fff;color:#1B7A78;border:1.5px solid #1B7A78;border-radius:999px;padding:6px 8px;font-size:11.5px;font-weight:700;font-family:'Barlow';outline:none;max-width:140px">
-                <option value="">{{ selDet.addEventLabel }}</option>
-                <sc-for list="{{ selDet.addEventOpts }}" as="o" hint-placeholder-count="8"><option value="{{ o.id }}">{{ o.n }}</option></sc-for>
-              </select>
-            </div>
-            <sc-if value="{{ selDet.myEventsEmpty }}" hint-placeholder-val="{{ true }}">
-              <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:10px;line-height:1.45">{{ selDet.eventsEmptyMsg }}</div>
-            </sc-if>
-            <sc-for list="{{ selDet.myEventGroups }}" as="g" hint-placeholder-count="3">
-              <div style="margin-top:12px">
-                <div style="font-size:11.5px;font-weight:800;letter-spacing:1px;color:#6B1F33">{{ g.n }}</div>
-                <sc-for list="{{ g.visibleRows }}" as="r" hint-placeholder-count="2">
-                  <div style="display:flex;align-items:flex-end;gap:8px;padding:8px 0;border-bottom:1px solid rgba(42,18,24,.07)">
-                    <div style="flex:1;min-width:0">
-                      <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">DATE</div>
-                      <input value="{{ r.dateValue }}" onChange="{{ r.onDateChange }}" placeholder="mm/dd/yyyy" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;outline:none;box-sizing:border-box">
-                    </div>
-                    <div style="flex:1;min-width:0">
-                      <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;color:rgba(42,18,24,.4);margin-bottom:3px">{{ selDet.entryColLabel }}</div>
-                      <input value="{{ r.timeValue }}" onChange="{{ r.onTimeChange }}" onFocus="{{ r.onTimeFocus }}" onBlur="{{ r.onTimeBlur }}" placeholder="{{ r.timePlaceholder }}" style="width:100%;padding:6px 8px;border:1.5px solid rgba(42,18,24,.2);border-radius:6px;font-family:'Barlow';font-size:13px;font-variant-numeric:tabular-nums;text-align:right;outline:none;box-sizing:border-box">
-                    </div>
-                    <button onClick="{{ r.remove }}" style="border:none;background:none;color:rgba(42,18,24,.4);font-size:13px;cursor:pointer;padding:4px 0 8px;flex:none">✕</button>
-                  </div>
-                </sc-for>
-                <sc-if value="{{ g.hasMore }}" hint-placeholder-val="{{ false }}">
-                  <button onClick="{{ g.toggleExpand }}" style="border:none;background:none;color:#1B7A78;font-size:11.5px;font-weight:700;cursor:pointer;padding:7px 0 0">{{ g.moreLabel }}</button>
-                </sc-if>
+        <sc-if value="{{ selDet.hasSeasonResults }}" hint-placeholder-val="{{ true }}">
+          <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;overflow:hidden">
+            <div style="padding:8px 14px 6px;font-size:9.5px;font-weight:700;letter-spacing:2px;color:rgba(42,18,24,.55);border-bottom:1px solid rgba(42,18,24,.06)">SEASON RESULTS</div>
+            <sc-for list="{{ selDet.seasonResults }}" as="r" hint-placeholder-count="3">
+              <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(42,18,24,.06)">
+                <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:#2A1218">{{ r.evName }}</div>
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1px;border-radius:4px;padding:2px 7px;color:{{ r.rankColor }};background:{{ r.rankBg }}">{{ r.rankLabel }}</div>
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:20px;color:#2A1218;font-variant-numeric:tabular-nums">{{ r.bestTime }}</div>
               </div>
             </sc-for>
+            <div style="display:flex;justify-content:space-around;padding:10px 14px 12px">
+              <div style="text-align:center">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#1B7A78;line-height:1">{{ selDet.seasonEvCount }}</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55);margin-top:3px">EVENTS</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:#1e7a4a;line-height:1">{{ selDet.seasonPbCount }}</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55);margin-top:3px">PBs</div>
+              </div>
+              <div style="text-align:center">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:22px;color:{{ selDet.bestRankColor }};line-height:1">{{ selDet.bestRankLabel }}</div>
+                <div style="font-size:9px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.55);margin-top:3px">BEST RANK</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ selDet.seasonResultsEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:20px 16px;text-align:center">
+            <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#6B1F33">NO RESULTS YET</div>
+            <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:6px;line-height:1.4">Times will appear here after they are imported from meet files.</div>
           </div>
         </sc-if>
         <sc-if value="{{ isCoach }}" hint-placeholder-val="{{ false }}">
@@ -3790,6 +3787,15 @@ class Component extends DCLogic {
       const cur=this.state.myEvents[s.id]||{};
       setMyEvents({...cur,[entryId]:{eventId:evId,time:'',date:''}});
     };
+    const ssd=new Date(this.SEASON_FIRST_MONDAY+'T00:00:00');
+    const seasonBestMap={};
+    if(hasReal){(primary||[]).forEach(evId=>{const h=s.hist[evId]||[];const dates=(s.dateLogByEv||{})[evId]||[];const isDive=!!(this.evMap[evId]&&this.evMap[evId].dive);let best=isDive?-Infinity:Infinity;h.forEach((t,i)=>{const d=dates[i];if(!d||d<ssd)return;if(isDive?t>best:t<best)best=t;});if(isFinite(best))seasonBestMap[evId]=best;});}
+    const ordLabel=n=>n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th';
+    const seasonResults=Object.keys(seasonBestMap).map(evId=>{const isDive=!!(this.evMap[evId]&&this.evMap[evId].dive);const myBest=seasonBestMap[evId];const allBests=[];(this.all||[]).forEach(u=>{const uH=(u.hist||{})[evId]||[];const uD=((u.dateLogByEv||{})[evId])||[];let uBest=isDive?-Infinity:Infinity;uH.forEach((t,i)=>{const d=uD[i];if(!d||d<ssd)return;if(isDive?t>uBest:t<uBest)uBest=t;});if(isFinite(uBest))allBests.push(uBest);});allBests.sort((a,b)=>isDive?b-a:a-b);const rank=allBests.indexOf(myBest)+1;return {evName:this.evMap[evId].n,bestTime:this.fmtEv(evId,myBest),rankLabel:rank>0?ordLabel(rank):'—',rankColor:rank===1?'#a36b00':'#1B7A78',rankBg:rank===1?'rgba(163,107,0,.1)':'rgba(27,122,120,.1)',_rank:rank};});
+    let selSeasonPbCount=0;
+    if(hasReal){(primary||[]).forEach(evId=>{const h=s.hist[evId]||[];const dates=(s.dateLogByEv||{})[evId]||[];const isDive=!!(this.evMap[evId]&&this.evMap[evId].dive);let best=isDive?-Infinity:Infinity;h.forEach((t,i)=>{const isNew=isDive?t>best:t<best;if(!isNew)return;best=t;const d=dates[i];if(d&&d>=ssd)selSeasonPbCount++;});});}
+    const allRanks=seasonResults.map(r=>r._rank).filter(r=>r>0);
+    const bestRankNum=allRanks.length?Math.min(...allRanks):null;
     return {name:s.name,first:s.name.split(' ')[0].toUpperCase(),ini:s.ini,cls:effCls,pos:effPos,showStrokes:!s.diver,home:effHome,imp:impText,isDiver:s.diver,
       addEventLabel:s.diver?'＋ Add score':'＋ Add time',
       eventsEmptyMsg:s.diver?'No scores yet — pick an event with ＋ Add score, then enter the date and your score. Add the same event again for every meet you dive at — your progression chart builds itself from these.':'No times yet — pick an event with ＋ Add time, then enter the date and your time. Add the same event again for every meet you swim it at — your progression chart builds itself from these.',
@@ -3846,7 +3852,10 @@ class Component extends DCLogic {
       hsValue:statVal.hs||'',
       onHeightChange:e=>setStat('height',e.target.value),
       onWeightChange:e=>setStat('weight',e.target.value),
-      onHsChange:e=>setStat('hs',e.target.value)};
+      onHsChange:e=>setStat('hs',e.target.value),
+      seasonResults:seasonResults.map(({_rank,...r})=>r),hasSeasonResults:seasonResults.length>0,seasonResultsEmpty:seasonResults.length===0,
+      seasonEvCount:String(seasonResults.length),seasonPbCount:String(selSeasonPbCount),
+      bestRankLabel:bestRankNum?ordLabel(bestRankNum):'—',bestRankColor:bestRankNum===1?'#a36b00':'#6B1F33'};
   }
   // Meet-day lineup (heat sheet) for one meet — replaces the paper
   // "event/heat/lane" sheet that used to get photographed and passed
