@@ -1,0 +1,660 @@
+<title>MY EVENTS Replacement Mockups</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&display=swap">
+
+<style>
+  :root {
+    --bg: #F2EDE5;
+    --card: #fff;
+    --fg: #2A1218;
+    --fg2: rgba(42,18,24,.6);
+    --fg3: rgba(42,18,24,.38);
+    --label: rgba(42,18,24,.55);
+    --border: rgba(42,18,24,.07);
+    --maroon: #6B1F33;
+    --teal: #1B7A78;
+    --teal-lt: rgba(27,122,120,.1);
+    --maroon-lt: rgba(107,31,51,.09);
+    --green: #1e7a4a;
+    --green-lt: rgba(30,122,74,.1);
+    --gold: #a36b00;
+    --gold-lt: rgba(163,107,0,.1);
+    --divider: rgba(42,18,24,.06);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1a1014;
+      --card: #241820;
+      --fg: #f0e8ea;
+      --fg2: rgba(240,232,234,.6);
+      --fg3: rgba(240,232,234,.35);
+      --label: rgba(240,232,234,.5);
+      --border: rgba(240,232,234,.08);
+      --maroon: #c4607a;
+      --teal: #3fb8b5;
+      --teal-lt: rgba(63,184,181,.12);
+      --maroon-lt: rgba(196,96,122,.12);
+      --green: #3dba7a;
+      --green-lt: rgba(61,186,122,.12);
+      --gold: #d4a020;
+      --gold-lt: rgba(212,160,32,.12);
+      --divider: rgba(240,232,234,.07);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1014;
+    --card: #241820;
+    --fg: #f0e8ea;
+    --fg2: rgba(240,232,234,.6);
+    --fg3: rgba(240,232,234,.35);
+    --label: rgba(240,232,234,.5);
+    --border: rgba(240,232,234,.08);
+    --maroon: #c4607a;
+    --teal: #3fb8b5;
+    --teal-lt: rgba(63,184,181,.12);
+    --maroon-lt: rgba(196,96,122,.12);
+    --green: #3dba7a;
+    --green-lt: rgba(61,186,122,.12);
+    --gold: #d4a020;
+    --gold-lt: rgba(212,160,32,.12);
+    --divider: rgba(240,232,234,.07);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Barlow', sans-serif;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 32px;
+  }
+
+  h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--fg);
+    margin-bottom: 6px;
+  }
+  .page-sub {
+    font-size: 13px;
+    color: var(--fg2);
+    margin-bottom: 32px;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  .option-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .option-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 1.5px;
+    color: var(--card);
+    background: var(--maroon);
+    border-radius: 6px;
+    padding: 2px 10px;
+  }
+  .option-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--fg);
+  }
+  .option-desc {
+    font-size: 12px;
+    color: var(--fg2);
+  }
+
+  /* Phone frame */
+  .phone {
+    background: var(--bg);
+    border-radius: 18px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(42,18,24,.1);
+  }
+
+  /* Fake nav bar */
+  .phone-header {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .back-btn {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: .5px;
+  }
+  .phone-header-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+    letter-spacing: 1px;
+    color: var(--fg);
+    flex: 1;
+  }
+
+  .phone-body {
+    padding: 14px 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Section header (matches app style) */
+  .sec-head {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--fg);
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--maroon);
+    margin-bottom: 0;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .lbl {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--label);
+  }
+
+  /* ─── OPTION A: MY RESULTS ─── */
+  .result-row {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .result-row + .result-row { border-top: 1px solid var(--divider); }
+  .result-ev {
+    flex: 1;
+    min-width: 0;
+  }
+  .result-ev-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  .result-ev-date {
+    font-size: 11px;
+    color: var(--fg3);
+    margin-top: 1px;
+  }
+  .result-time {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    color: var(--fg);
+    letter-spacing: .5px;
+  }
+  .pb-tag {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--teal);
+    background: var(--teal-lt);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin-top: 3px;
+    display: inline-block;
+  }
+
+  /* ─── OPTION B: MY STANDING ─── */
+  .standing-row {
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .standing-row + .standing-row { border-top: 1px solid var(--divider); }
+  .rank-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .rank-1 { background: var(--gold-lt); color: var(--gold); }
+  .rank-2 { background: var(--teal-lt); color: var(--teal); }
+  .rank-other { background: var(--maroon-lt); color: var(--maroon); }
+  .standing-ev {
+    flex: 1;
+    min-width: 0;
+  }
+  .standing-ev-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+  .standing-ev-count { font-size: 11px; color: var(--fg3); margin-top: 1px; }
+  .standing-time {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    color: var(--fg);
+    text-align: right;
+  }
+  .standing-rank-label {
+    font-size: 10px;
+    color: var(--fg3);
+    text-align: right;
+    margin-top: 1px;
+  }
+
+  /* ─── OPTION C: THIS SEASON ─── */
+  .improvement-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 12px 12px 8px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .impr-stat-block { text-align: center; }
+  .impr-big {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--green);
+  }
+  .impr-big.neutral { color: var(--fg); }
+  .impr-sub {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-top: 3px;
+  }
+
+  .impr-ev-row {
+    padding: 9px 12px;
+  }
+  .impr-ev-row + .impr-ev-row { border-top: 1px solid var(--divider); }
+  .impr-ev-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 5px;
+  }
+  .impr-ev-name { font-size: 12.5px; font-weight: 600; color: var(--fg); }
+  .impr-delta {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+    background: var(--green-lt);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  .impr-delta.none {
+    color: var(--fg3);
+    background: transparent;
+    padding: 1px 0;
+  }
+  .bar-track {
+    height: 4px;
+    background: var(--divider);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .bar-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width .4s;
+  }
+  .impr-times-row {
+    display: flex;
+    justify-content: space-between;
+  }
+  .impr-t {
+    font-size: 10.5px;
+    color: var(--fg3);
+    font-weight: 500;
+  }
+  .impr-t strong { color: var(--fg2); font-weight: 600; }
+
+  /* ─── OPTION D: Combo ─── */
+  .combo-mini-head {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--label);
+    padding: 8px 12px 4px;
+  }
+  .combo-results-row {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .combo-results-row + .combo-results-row { border-top: 1px solid var(--divider); }
+  .combo-ev-name { font-size: 12.5px; font-weight: 600; color: var(--fg); flex: 1; }
+  .combo-time {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--fg);
+  }
+  .combo-rank-pill {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 7px;
+    color: var(--teal);
+    background: var(--teal-lt);
+  }
+  .combo-rank-pill.rank-1 { color: var(--gold); background: var(--gold-lt); }
+  .combo-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  /* stat bar at bottom of D */
+  .combo-stat-strip {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 12px 12px;
+    border-top: 1px solid var(--divider);
+    gap: 8px;
+  }
+  .combo-stat { text-align: center; }
+  .combo-stat-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--teal);
+  }
+  .combo-stat-num.green { color: var(--green); }
+  .combo-stat-lbl {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-top: 3px;
+  }
+</style>
+
+<h1>MY EVENTS Replacement</h1>
+<p class="page-sub">4 design options for what athletes see instead of the time-logging form · Example: Rayane Debbarh</p>
+
+<div class="options-grid">
+
+  <!-- OPTION A -->
+  <div class="option-wrap">
+    <div class="option-label">
+      <span class="option-badge">A</span>
+      <div>
+        <div class="option-title">MY RESULTS</div>
+        <div class="option-desc">Read-only feed of all logged times, newest first</div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="phone-header">
+        <span class="back-btn">‹ Team</span>
+        <span class="phone-header-name">Rayane Debbarh</span>
+      </div>
+      <div class="phone-body">
+        <div class="sec-head">My Results</div>
+        <div class="card">
+          <div class="result-row">
+            <div class="result-ev">
+              <div class="result-ev-name">100 Breast</div>
+              <div class="result-ev-date">Oct 17 · vs Albion</div>
+            </div>
+            <div style="text-align:right">
+              <div class="result-time">1:20.26</div>
+              <div class="pb-tag">Season PB</div>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="result-ev">
+              <div class="result-ev-name">100 Free</div>
+              <div class="result-ev-date">Oct 17 · vs Albion</div>
+            </div>
+            <div style="text-align:right">
+              <div class="result-time">1:05.82</div>
+              <div class="pb-tag">Season PB</div>
+            </div>
+          </div>
+          <div class="result-row">
+            <div class="result-ev">
+              <div class="result-ev-name">100 Fly</div>
+              <div class="result-ev-date">Oct 17 · vs Albion</div>
+            </div>
+            <div style="text-align:right">
+              <div class="result-time">1:19.17</div>
+              <div class="pb-tag">Season PB</div>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;padding:6px 0 4px">
+          <span class="lbl">3 times logged this season</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION B -->
+  <div class="option-wrap">
+    <div class="option-label">
+      <span class="option-badge">B</span>
+      <div>
+        <div class="option-title">MY STANDING</div>
+        <div class="option-desc">Team rank per event — where you sit among teammates</div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="phone-header">
+        <span class="back-btn">‹ Team</span>
+        <span class="phone-header-name">Rayane Debbarh</span>
+      </div>
+      <div class="phone-body">
+        <div class="sec-head">My Standing</div>
+        <div class="card">
+          <div class="standing-row">
+            <div class="rank-circle rank-2">2</div>
+            <div class="standing-ev">
+              <div class="standing-ev-name">100 Breast</div>
+              <div class="standing-ev-count">6 teammates logged</div>
+            </div>
+            <div>
+              <div class="standing-time">1:20.26</div>
+              <div class="standing-rank-label">2nd fastest</div>
+            </div>
+          </div>
+          <div class="standing-row">
+            <div class="rank-circle rank-other">4</div>
+            <div class="standing-ev">
+              <div class="standing-ev-name">100 Free</div>
+              <div class="standing-ev-count">8 teammates logged</div>
+            </div>
+            <div>
+              <div class="standing-time">1:05.82</div>
+              <div class="standing-rank-label">4th fastest</div>
+            </div>
+          </div>
+          <div class="standing-row">
+            <div class="rank-circle rank-other">3</div>
+            <div class="standing-ev">
+              <div class="standing-ev-name">100 Fly</div>
+              <div class="standing-ev-count">5 teammates logged</div>
+            </div>
+            <div>
+              <div class="standing-time">1:19.17</div>
+              <div class="standing-rank-label">3rd fastest</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION C -->
+  <div class="option-wrap">
+    <div class="option-label">
+      <span class="option-badge">C</span>
+      <div>
+        <div class="option-title">THIS SEASON</div>
+        <div class="option-desc">Progress bar per event: first time → current best</div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="phone-header">
+        <span class="back-btn">‹ Team</span>
+        <span class="phone-header-name">Rayane Debbarh</span>
+      </div>
+      <div class="phone-body">
+        <div class="sec-head">This Season</div>
+        <div class="card">
+          <div class="improvement-header">
+            <div class="impr-stat-block">
+              <div class="impr-big neutral">3</div>
+              <div class="impr-sub">Events</div>
+            </div>
+            <div class="impr-stat-block">
+              <div class="impr-big">3</div>
+              <div class="impr-sub">PBs Set</div>
+            </div>
+            <div class="impr-stat-block">
+              <div class="impr-big">–</div>
+              <div class="impr-sub">Avg Drop</div>
+            </div>
+          </div>
+          <div class="impr-ev-row">
+            <div class="impr-ev-top">
+              <span class="impr-ev-name">100 Breast</span>
+              <span class="impr-delta none">first time</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+            <div class="impr-times-row">
+              <span class="impr-t">First: <strong>—</strong></span>
+              <span class="impr-t">Best: <strong>1:20.26</strong></span>
+            </div>
+          </div>
+          <div class="impr-ev-row">
+            <div class="impr-ev-top">
+              <span class="impr-ev-name">100 Free</span>
+              <span class="impr-delta none">first time</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+            <div class="impr-times-row">
+              <span class="impr-t">First: <strong>—</strong></span>
+              <span class="impr-t">Best: <strong>1:05.82</strong></span>
+            </div>
+          </div>
+          <div class="impr-ev-row">
+            <div class="impr-ev-top">
+              <span class="impr-ev-name">100 Fly</span>
+              <span class="impr-delta none">first time</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:100%"></div></div>
+            <div class="impr-times-row">
+              <span class="impr-t">First: <strong>—</strong></span>
+              <span class="impr-t">Best: <strong>1:19.17</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OPTION D -->
+  <div class="option-wrap">
+    <div class="option-label">
+      <span class="option-badge">D</span>
+      <div>
+        <div class="option-title">Combo A + B</div>
+        <div class="option-desc">Results feed with team rank pill + season stats strip</div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="phone-header">
+        <span class="back-btn">‹ Team</span>
+        <span class="phone-header-name">Rayane Debbarh</span>
+      </div>
+      <div class="phone-body">
+        <div class="sec-head">My Events</div>
+        <div class="card">
+          <div class="combo-mini-head">Season Results</div>
+          <div class="combo-divider"></div>
+          <div class="combo-results-row">
+            <div class="combo-ev-name">100 Breast</div>
+            <span class="combo-rank-pill">2nd</span>
+            <div class="combo-time">1:20.26</div>
+          </div>
+          <div class="combo-results-row">
+            <div class="combo-ev-name">100 Free</div>
+            <span class="combo-rank-pill">4th</span>
+            <div class="combo-time">1:05.82</div>
+          </div>
+          <div class="combo-results-row">
+            <div class="combo-ev-name">100 Fly</div>
+            <span class="combo-rank-pill">3rd</span>
+            <div class="combo-time">1:19.17</div>
+          </div>
+          <div class="combo-stat-strip">
+            <div class="combo-stat">
+              <div class="combo-stat-num">3</div>
+              <div class="combo-stat-lbl">Events</div>
+            </div>
+            <div class="combo-stat">
+              <div class="combo-stat-num green">3</div>
+              <div class="combo-stat-lbl">PBs</div>
+            </div>
+            <div class="combo-stat">
+              <div class="combo-stat-num" style="color:var(--maroon)">2nd</div>
+              <div class="combo-stat-lbl">Best Rank</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

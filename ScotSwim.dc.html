@@ -852,6 +852,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
            lineup is being posted against. -->
       <sc-if value="{{ canPostLineup }}" hint-placeholder-val="{{ false }}">
         <button onClick="{{ openLineupCompose }}" style="width:100%;border:1.5px solid #1B7A78;background:rgba(27,122,120,.07);color:#1B7A78;border-radius:8px;padding:11px;font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;cursor:pointer">{{ postLineupLabel }}</button>
+        <div style="font-size:11.5px;color:rgba(42,18,24,.45);text-align:center;margin-top:-4px;line-height:1.45">To log athlete times after a meet, tap any meet in the schedule below.</div>
       </sc-if>
       <div data-focus="schedule" style="background:#fff;border:1px solid rgba(42,18,24,.07);border-radius:8px;padding:14px 18px 6px;scroll-margin-top:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -862,7 +863,7 @@ input::placeholder{color:rgba(245,233,220,.5)}
         </div>
         <sc-for list="{{ sched }}" as="m" hint-placeholder-count="8">
           <sc-if value="{{ m.notEditing }}" hint-placeholder-val="{{ true }}">
-            <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07)">
+            <div onClick="{{ m.onTap }}" style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(42,18,24,.07);cursor:{{ m.rowCursor }}">
               <div style="min-width:48px;text-align:center">
                 <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:rgba(42,18,24,.5)">{{ m.d1 }}</div>
                 <div style="font-family:'Barlow Condensed';font-weight:800;font-size:21px;line-height:1;color:#6B1F33">{{ m.d2 }}</div>
@@ -871,7 +872,12 @@ input::placeholder{color:rgba(245,233,220,.5)}
                 <div style="font-weight:600;font-size:14px;line-height:1.25">{{ m.n }}</div>
                 <div style="font-size:11.5px;color:rgba(42,18,24,.55)">{{ m.loc }}</div>
               </div>
-              <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px;flex:none">{{ m.tag }}</div>
+              <div style="display:flex;align-items:center;gap:8px;flex:none">
+                <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:{{ m.tfg }};border:1px solid {{ m.tbd }};background:{{ m.tbg }};border-radius:3px;padding:4px 8px">{{ m.tag }}</div>
+                <sc-if value="{{ m.showMeetChevron }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:14px;color:rgba(42,18,24,.3)">›</div>
+                </sc-if>
+              </div>
             </div>
           </sc-if>
           <sc-if value="{{ m.editing }}" hint-placeholder-val="{{ false }}">
@@ -929,6 +935,96 @@ input::placeholder{color:rgba(245,233,220,.5)}
         <div style="font-size:11.5px;color:rgba(42,18,24,.5);margin:4px 0 0">Official meet-by-meet results for the Scots, kept on SwimCloud.</div>
         <a href="{{ swimcloudResultsUrl }}" target="_blank" rel="noopener" class="scOpen">VIEW FULL RESULTS ↗</a>
       </div>
+      <!-- Meet results sheet — opens when a coach taps a schedule row -->
+      <sc-if value="{{ showMeetResultsSheet }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ closeMeetResultsSheet }}" style="position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:70"></div>
+        <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;z-index:71;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:fadeUp .22s ease;max-height:88vh;display:flex;flex-direction:column">
+          <!-- Fixed header -->
+          <div style="padding:16px 20px 0;flex:none">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+              <div style="flex:1;min-width:0">
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:19px;line-height:1.15;color:#2A1218">{{ meetResultsSheetMeetName }}</div>
+                <div style="font-size:12px;color:rgba(42,18,24,.5);margin-top:3px">{{ meetResultsSheetMeetDate }} · {{ meetResultsSheetMeetLoc }}</div>
+              </div>
+              <button onClick="{{ closeMeetResultsSheet }}" style="border:none;background:none;color:rgba(42,18,24,.35);font-size:26px;cursor:pointer;padding:0;line-height:1;flex:none;margin-top:-2px">×</button>
+            </div>
+            <div style="height:1px;background:rgba(42,18,24,.08)"></div>
+          </div>
+          <!-- Scrollable body -->
+          <div style="flex:1;overflow-y:auto;padding:16px 20px 28px">
+            <!-- Idle state — show the import prompt -->
+            <sc-if value="{{ pdfImportIdle }}" hint-placeholder-val="{{ true }}">
+              <div style="background:rgba(107,31,51,.04);border:1.5px solid rgba(107,31,51,.15);border-radius:10px;padding:18px 20px 20px">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                  <div style="width:36px;height:36px;border-radius:8px;background:#6B1F33;display:flex;align-items:center;justify-content:center;flex:none">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F5E9DC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"></polyline><line x1="12" y1="12" x2="12" y2="21"></line><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path></svg>
+                  </div>
+                  <div>
+                    <div style="font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1px;color:#6B1F33">IMPORT MEET RESULTS</div>
+                    <div style="font-size:11px;color:rgba(42,18,24,.5);margin-top:1px">Log times for all Alma athletes at once</div>
+                  </div>
+                </div>
+                <div style="font-size:12.5px;color:rgba(42,18,24,.6);line-height:1.55;margin-bottom:16px">Upload the SwimCloud PDF for this meet. Times are matched to athletes automatically and their progression charts update right away.</div>
+                <label for="meetResultsPdfFile" style="display:block;width:100%;border:none;background:#6B1F33;color:#F5E9DC;border-radius:8px;padding:12px 0;font-family:'Barlow Condensed';font-weight:800;font-size:15px;letter-spacing:1.5px;cursor:pointer;text-align:center;box-sizing:border-box">⬆ UPLOAD PDF RESULTS</label>
+                <input id="meetResultsPdfFile" type="file" accept=".pdf,application/pdf" onChange="{{ onPdfImportFileChange }}" style="display:none">
+              </div>
+            </sc-if>
+            <!-- Parsing -->
+            <sc-if value="{{ pdfImportParsing }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;padding:30px 0 16px">
+                <div style="font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:1.5px;color:#6B1F33;margin-bottom:16px">READING PDF…</div>
+                <div style="height:5px;background:rgba(42,18,24,.1);border-radius:3px;overflow:hidden;width:100%;max-width:220px;margin:0 auto">
+                  <div style="height:100%;background:#6B1F33;border-radius:3px;width:{{ pdfImportProgress }}%;transition:width .3s"></div>
+                </div>
+              </div>
+            </sc-if>
+            <!-- Preview -->
+            <sc-if value="{{ pdfImportPreview }}" hint-placeholder-val="{{ false }}">
+              <sc-if value="{{ pdfImportHasResults }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+                  <div style="font-size:13px;font-weight:600;color:#2A1218">Found <b>{{ pdfImportResultCount }}</b> times for <b>{{ pdfImportAthleteCount }}</b> athletes</div>
+                  <div style="font-size:11px;color:rgba(42,18,24,.4)">{{ pdfImportMeetLabel }}</div>
+                </div>
+                <div style="border:1px solid rgba(42,18,24,.07);border-radius:8px;overflow:hidden;margin-bottom:14px">
+                  <sc-for list="{{ pdfImportResults }}" as="r" hint-placeholder-count="5">
+                    <div style="padding:10px 14px;border-bottom:1px solid rgba(42,18,24,.05);display:flex;align-items:center;gap:10px">
+                      <div style="flex:1;min-width:0">
+                        <div style="font-size:13px;font-weight:600;color:#2A1218">{{ r.athleteName }}</div>
+                        <div style="font-size:11px;color:rgba(42,18,24,.5)">{{ r.evName }}</div>
+                      </div>
+                      <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;color:#6B1F33;font-variant-numeric:tabular-nums">{{ r.time }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ pdfImportHasSkipped }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11px;color:rgba(42,18,24,.4);margin-bottom:14px;line-height:1.4">Could not match: {{ pdfImportSkippedText }}</div>
+                </sc-if>
+                <div style="display:flex;gap:10px">
+                  <button onClick="{{ resetPdfImport }}" style="flex:1;border:1.5px solid rgba(42,18,24,.2);background:none;color:rgba(42,18,24,.7);border-radius:999px;padding:11px 0;font-size:13.5px;font-weight:700;cursor:pointer">Cancel</button>
+                  <button onClick="{{ confirmPdfImport }}" style="flex:2;border:none;background:#6B1F33;color:#F5E9DC;border-radius:999px;padding:11px 0;font-size:13.5px;font-weight:700;cursor:pointer">Save {{ pdfImportResultCount }} Times</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ pdfImportNoResults }}" hint-placeholder-val="{{ false }}">
+                <div style="text-align:center;padding:26px 0">
+                  <div style="font-family:'Barlow Condensed';font-weight:800;font-size:14px;letter-spacing:1.5px;color:#6B1F33;margin-bottom:8px">NO ALMA RESULTS FOUND</div>
+                  <div style="font-size:12.5px;color:rgba(42,18,24,.5);line-height:1.45;max-width:240px;margin:0 auto">Make sure this is a SwimCloud meet results PDF that includes Alma athletes.</div>
+                  <button onClick="{{ resetPdfImport }}" style="margin-top:16px;border:1.5px solid rgba(42,18,24,.2);background:none;color:rgba(42,18,24,.7);border-radius:999px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer">Try Again</button>
+                </div>
+              </sc-if>
+            </sc-if>
+            <!-- Done -->
+            <sc-if value="{{ pdfImportDone }}" hint-placeholder-val="{{ false }}">
+              <div style="text-align:center;padding:30px 0 16px">
+                <div style="width:52px;height:52px;border-radius:50%;background:#1e7a4a;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div style="font-family:'Barlow Condensed';font-weight:800;font-size:18px;letter-spacing:2px;color:#1e7a4a">TIMES SAVED</div>
+                <div style="font-size:12.5px;color:rgba(42,18,24,.5);margin-top:6px">{{ pdfImportResultCount }} times logged for {{ pdfImportAthleteCount }} athletes</div>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -2696,7 +2792,9 @@ class Component extends DCLogic {
       notifAttendance:true,notifTraining:true,notifAnnouncements:true,notifMilestones:true,
       notifLockScreen:true,notifVibrate:true,notifDelivery:'push',notifSummary:'grouped',
       notifReminderMins:30,notifQuietStart:'22:00',notifQuietEnd:'06:00',
-      notifPausedUntil:0,showSnoozeSheet:false};
+      notifPausedUntil:0,showSnoozeSheet:false,
+      pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:'',pdfImportProgress:0,
+      meetResultsSheet:null,pdfImportMeetDate:''};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -4039,6 +4137,206 @@ class Component extends DCLogic {
       });
     };
     reader.readAsArrayBuffer(file);
+  }
+  onPdfImportFileChange(e){
+    const file=e&&e.target&&e.target.files&&e.target.files[0];
+    if(!file)return;
+    e.target.value='';
+    if(!/pdf$/i.test(file.type||'')&&!/\.pdf$/i.test(file.name||'')){this.toastMsg('Please choose a PDF file');return;}
+    this.parseMeetResultsPdf(file);
+  }
+  parseMeetResultsPdf(file){
+    this.setState({pdfImport:'parsing',pdfImportProgress:5,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:''});
+    const reader=new FileReader();
+    reader.onerror=()=>{this.setState({pdfImport:null});this.toastMsg("Couldn't read that file");};
+    reader.onload=()=>{
+      this.loadPdfLib().then(async lib=>{
+        try{
+          const pdf=await lib.getDocument({data:new Uint8Array(reader.result)}).promise;
+          const allItems=[];
+          for(let i=1;i<=pdf.numPages;i++){
+            this.setState({pdfImportProgress:Math.round(5+85*(i/pdf.numPages))});
+            const page=await pdf.getPage(i);
+            const tc=await page.getTextContent();
+            // Collect items with their x,y positions for line reconstruction
+            tc.items.forEach(it=>{if(it.str)allItems.push({str:it.str.trim(),x:Math.round(it.transform[4]),y:Math.round(it.transform[5])});});
+          }
+          this.setState({pdfImportProgress:95});
+          this._parseMeetTextItems(allItems,file.name);
+        }catch(err){
+          this.setState({pdfImport:null});
+          this.toastMsg("Couldn't parse that PDF");
+        }
+      }).catch(()=>{this.setState({pdfImport:null});this.toastMsg("Couldn't load PDF reader");});
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  _parseMeetTextItems(items,fileName){
+    // SwimCloud event name → app event ID
+    const EV_NAME_MAP={
+      '50 Freestyle':'50FR','100 Freestyle':'100FR','200 Freestyle':'200FR',
+      '500 Freestyle':'500FR','1000 Freestyle':'1000FR','1650 Freestyle':'1650FR',
+      '50 Free':'50FR','100 Free':'100FR','200 Free':'200FR',
+      '500 Free':'500FR','1000 Free':'1000FR','1650 Free':'1650FR',
+      '1 Mile Free':'1650FR',
+      '50 Backstroke':'50BK','100 Backstroke':'100BK','200 Backstroke':'200BK',
+      '50 Back':'50BK','100 Back':'100BK','200 Back':'200BK',
+      '50 Breaststroke':'50BR','100 Breaststroke':'100BR','200 Breaststroke':'200BR',
+      '50 Breast':'50BR','100 Breast':'100BR','200 Breast':'200BR',
+      '50 Butterfly':'50FL','100 Butterfly':'100FL','200 Butterfly':'200FL',
+      '50 Fly':'50FL','100 Fly':'100FL','200 Fly':'200FL',
+      '200 Individual Medley':'200IM','400 Individual Medley':'400IM',
+      '200 IM':'200IM','400 IM':'400IM',
+      '1 Meter Diving':'DV1','3 Meter Diving':'DV3',
+      '1-Meter Diving':'DV1','3-Meter Diving':'DV3',
+      'One Meter Diving':'DV1','Three Meter Diving':'DV3',
+    };
+    // Build roster lookup by normalized name
+    const roster={};
+    (this.all||[]).forEach(s=>{
+      roster[s.name.toLowerCase().trim()]=s;
+      // "Last, First" variant
+      const parts=s.name.trim().split(/\s+/);
+      if(parts.length>=2){
+        const rev=(parts[parts.length-1]+', '+parts.slice(0,-1).join(' ')).toLowerCase();
+        roster[rev]=s;
+        // Last name only for partial matching
+        if(!roster['_last_'+parts[parts.length-1].toLowerCase()])
+          roster['_last_'+parts[parts.length-1].toLowerCase()]=s;
+      }
+    });
+    // Try to extract a meet date from filename (e.g. "17Oct26" or "2026-10-17")
+    let meetDate='';
+    const MONTHS={jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+    // Prefer the meet date from state (set when a coach opens a specific meet's sheet)
+    const presetDate=this.state.pdfImportMeetDate||'';
+    if(presetDate){
+      // ISO "YYYY-MM-DD" → "MM/DD/YYYY"
+      const dp=presetDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(dp)meetDate=dp[2]+'/'+dp[3]+'/'+dp[1];
+    }
+    const fn=fileName||'';
+    if(!meetDate){
+      const fm1=fn.match(/(\d{1,2})(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)(\d{2,4})/i);
+      if(fm1){
+        const yr=fm1[3].length===2?'20'+fm1[3]:fm1[3];
+        meetDate=MONTHS[fm1[2].toLowerCase()]+'/'+fm1[1].padStart(2,'0')+'/'+yr;
+      }
+      const fm2=fn.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if(!meetDate&&fm2)meetDate=fm2[2]+'/'+fm2[3]+'/'+fm2[1];
+    }
+    // Flatten items to strings for scanning
+    const strs=items.map(it=>it.str).filter(s=>s);
+    const results=[];
+    const skipped=new Set();
+    let curEvId=null;
+    let meetLabel='';
+    // Detect meet name from early text
+    const earlyText=strs.slice(0,20).filter(s=>s.length>4&&!/^\d+$/.test(s));
+    if(earlyText.length)meetLabel=earlyText.slice(0,2).join(' ').substring(0,60);
+    if(meetDate)meetLabel=meetLabel?(meetLabel+' · '+meetDate):meetDate;
+    // Walk items to find events and swimmer results
+    for(let i=0;i<strs.length;i++){
+      const s=strs[i]||'';
+      // Event header — SwimCloud uses "Event N" then event name as next item(s),
+      // or "Event N - Name" combined, or sometimes just the event name standalone
+      const evHdrNum=s.match(/^Event\s+(\d+)\s*(?:[-–]\s*(.+))?$/i);
+      if(evHdrNum){
+        const inline=(evHdrNum[2]||'').trim();
+        let evName=inline;
+        // If no inline name, next non-empty item(s) form the event name
+        if(!evName){
+          let j=i+1;
+          while(j<strs.length&&!strs[j])j++;
+          if(j<strs.length&&strs[j]&&!/^Event\s/i.test(strs[j])){evName=strs[j];i=j;}
+          // Handle split names like "200" + "Freestyle" as consecutive items
+          let k=i+1;
+          while(k<strs.length&&!strs[k])k++;
+          if(k<strs.length&&strs[k]&&EV_NAME_MAP[evName+' '+strs[k]]){evName=evName+' '+strs[k];i=k;}
+        }
+        // Resolve event name to ID
+        curEvId=null;
+        for(const [key,id] of Object.entries(EV_NAME_MAP)){
+          if(evName.toLowerCase().includes(key.toLowerCase())){curEvId=id;break;}
+        }
+        continue;
+      }
+      // Standalone event name (no "Event N" prefix — some PDFs omit it)
+      if(!curEvId){
+        for(const [key,id] of Object.entries(EV_NAME_MAP)){
+          if(s===key){curEvId=id;break;}
+        }
+        if(!curEvId)continue;
+        continue;
+      }
+      // Inside an event section — look for Alma swimmers
+      // SwimCloud format: swimmer row = Name · "Alma" · Time (with optional place/seed columns)
+      // The team name appears as a separate item right after the swimmer name
+      if(i+1<strs.length&&(strs[i+1]||'')===('Alma')){
+        const swimmerName=s;
+        // Skip past team name, find the time
+        let j=i+2;
+        while(j<strs.length&&!strs[j])j++;
+        let timeStr='';
+        // Skip over place/seed columns if present (pure numbers)
+        while(j<strs.length&&/^\d+$/.test((strs[j]||'').trim()))j++;
+        // Now expect time like "1:20.26" or "23.58" or dive score "263.40"
+        if(j<strs.length){
+          const candidate=(strs[j]||'').trim();
+          if(/^\d{1,2}:\d{2}\.\d{2}$/.test(candidate)||/^\d{1,3}\.\d{2}$/.test(candidate)){
+            timeStr=candidate;i=j;
+          }
+        }
+        if(!timeStr){i=j;continue;}
+        // Match to roster
+        const key=swimmerName.toLowerCase().trim();
+        let athlete=roster[key];
+        if(!athlete){
+          // Try last name only
+          const parts=swimmerName.trim().split(/\s+/);
+          athlete=roster['_last_'+(parts[parts.length-1]||'').toLowerCase()];
+        }
+        if(athlete&&curEvId){
+          results.push({athleteId:athlete.id,athleteName:athlete.name,eventId:curEvId,evName:this.evMap[curEvId].n,time:timeStr,date:meetDate});
+        } else if(curEvId){
+          skipped.add(swimmerName);
+        }
+        continue;
+      }
+    }
+    this.setState({
+      pdfImport:'preview',
+      pdfImportResults:results,
+      pdfImportSkipped:[...skipped],
+      pdfImportMeetLabel:meetLabel||'Meet Results',
+      pdfImportProgress:100,
+    });
+  }
+  confirmPdfImport(){
+    const results=this.state.pdfImportResults||[];
+    if(!results.length){this.setState({pdfImport:null});return;}
+    const byAthlete={};
+    results.forEach(r=>{if(!byAthlete[r.athleteId])byAthlete[r.athleteId]=[];byAthlete[r.athleteId].push(r);});
+    let myEvents={...this.state.myEvents};
+    Object.entries(byAthlete).forEach(([athleteId,rows])=>{
+      const existing={...myEvents[athleteId]||{}};
+      rows.forEach(r=>{
+        this._pdfSeq=(this._pdfSeq||0)+1;
+        const entryId='pdf_'+Date.now()+'_'+this._pdfSeq;
+        existing[entryId]={eventId:r.eventId,time:r.time,date:r.date};
+      });
+      this.applyMyEvents(athleteId,existing);
+      myEvents={...myEvents,[athleteId]:existing};
+    });
+    this.setState({myEvents,pdfImport:'done'});
+    this.saveMyEvents(myEvents);
+    Object.keys(byAthlete).forEach(athleteId=>this.syncMyEventsToCloud(athleteId,myEvents[athleteId]));
+    const cnt=results.length;
+    const acnt=Object.keys(byAthlete).length;
+    setTimeout(()=>{
+      this.setState({pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:'',meetResultsSheet:null});
+      this.toastMsg(cnt+' times saved for '+acnt+' athlete'+(acnt===1?'':'s'));
+    },2200);
   }
   // The posted lineup for a meet, in the shape the editor works in:
   // pics, then one PDF's pages, then the note. Pages posted before PDFs
@@ -6313,6 +6611,7 @@ class Component extends DCLogic {
     const schedT=meetsList.map((m,i)=>{
       const parts=this.meetDateParts(m.dateStart,m.dateEnd);
       const update=patch=>saveSched(meetsList.map((x,k)=>k===i?{...x,...patch}:x));
+      const canTap=isCoach&&!schedEditing;
       return {...m,...parts,...tagOf(m),
         editing:schedEditing,notEditing:!schedEditing,
         dateStartValue:m.dateStart,dateEndValue:m.dateEnd||'',
@@ -6325,7 +6624,10 @@ class Component extends DCLogic {
         cantMoveUp:i===0,cantMoveDown:i===meetsList.length-1,
         moveUp:()=>{if(i===0)return;const next=[...meetsList];[next[i-1],next[i]]=[next[i],next[i-1]];saveSched(next);},
         moveDown:()=>{if(i===meetsList.length-1)return;const next=[...meetsList];[next[i+1],next[i]]=[next[i],next[i+1]];saveSched(next);},
-        remove:()=>saveSched(meetsList.filter((_,k)=>k!==i))};
+        remove:()=>saveSched(meetsList.filter((_,k)=>k!==i)),
+        rowCursor:canTap?'pointer':'default',
+        showMeetChevron:canTap,
+        onTap:canTap?()=>this.setState({meetResultsSheet:m.id,pdfImportMeetDate:m.dateStart||'',pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:''}):null};
     });
     const addMeet=()=>{
       const id=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'meet-'+Date.now();
@@ -7655,6 +7957,29 @@ class Component extends DCLogic {
       canEditRoster,teamEditing,teamNotEditing:!teamEditing,
       teamEditLabel:teamEditing?'Done ✓':'Edit roster ✎',
       toggleTeamEdit:()=>this.setState({teamEditing:!st.teamEditing,rosterErr:''}),
+      canImportResults:canEditRoster&&st.teamSeg!=='S',
+      showMeetResultsSheet:!!st.meetResultsSheet,
+      closeMeetResultsSheet:()=>this.setState({meetResultsSheet:null,pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:''}),
+      meetResultsSheetMeetName:(()=>{const m=meetsList.find(x=>x.id===st.meetResultsSheet);return m?m.n:'';})(),
+      meetResultsSheetMeetDate:(()=>{const m=meetsList.find(x=>x.id===st.meetResultsSheet);if(!m)return '';const parts=this.meetDateParts(m.dateStart,m.dateEnd);return (parts.d1||'')+' '+( parts.d2||'');})(),
+      meetResultsSheetMeetLoc:(()=>{const m=meetsList.find(x=>x.id===st.meetResultsSheet);return m?m.loc:'';})(),
+      pdfImportIdle:!st.pdfImport,
+      pdfImportParsing:st.pdfImport==='parsing',
+      pdfImportPreview:st.pdfImport==='preview',
+      pdfImportDone:st.pdfImport==='done',
+      pdfImportProgress:String(Math.round(st.pdfImportProgress||0)),
+      pdfImportMeetLabel:st.pdfImportMeetLabel||'',
+      pdfImportResults:(st.pdfImportResults||[]).map((r,i)=>({...r,key:String(i)})),
+      pdfImportHasResults:(st.pdfImportResults||[]).length>0,
+      pdfImportNoResults:st.pdfImport==='preview'&&!((st.pdfImportResults||[]).length>0),
+      pdfImportResultCount:String((st.pdfImportResults||[]).length),
+      pdfImportAthleteCount:String([...new Set((st.pdfImportResults||[]).map(r=>r.athleteId))].length),
+      pdfImportSkippedText:(st.pdfImportSkipped||[]).join(', '),
+      pdfImportHasSkipped:(st.pdfImportSkipped||[]).length>0,
+      onPdfImportFileChange:e=>this.onPdfImportFileChange(e),
+      resetPdfImport:()=>this.setState({pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:''}),
+      closePdfImport:()=>this.setState({pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:''}),
+      confirmPdfImport:()=>this.confirmPdfImport(),
       rosterDraft,rosterPosOptions,rosterGenderOptions,
       onRosterName:e=>setRosterDraft({name:e.target.value}),
       onRosterCls:e=>setRosterDraft({cls:e.target.value}),
