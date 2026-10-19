@@ -317,29 +317,17 @@ async function loadData() {
     });
   } catch(e) { console.warn('roster load failed', e); }
 
-  // schedule — single doc: schedule/meets → {items:[...]}
-  // falls back to seed schedule if Firestore doc doesn't exist yet
-  const SEED_MEETS = [
-    {id:'2026-10-09',dateStart:'2026-10-09',n:'Alma at SVSU & LSSU'},
-    {id:'2026-10-17',dateStart:'2026-10-17',n:'Alma at Albion'},
-    {id:'2026-10-24',dateStart:'2026-10-24',n:'MIAA Invite'},
-    {id:'2026-11-07',dateStart:'2026-11-07',n:'Alma vs. Manchester'},
-    {id:'2026-11-19',dateStart:'2026-11-19',n:'Cardinal Invitational'},
-    {id:'2027-01-23',dateStart:'2027-01-23',n:'MIAA Invite'},
-    {id:'2027-01-30',dateStart:'2027-01-30',n:'Alma vs. Kalamazoo'},
-    {id:'2027-02-17',dateStart:'2027-02-17',n:'MIAA Championships'},
-    {id:'2027-03-18',dateStart:'2027-03-18',n:'D3 National Championships'},
-  ];
+  // schedule
   try {
-    const doc = await db.collection('schedule').doc('meets').get();
-    const items = (doc.exists && doc.data().items) || [];
-    const src = items.length ? items : SEED_MEETS;
-    src.forEach(m => { if (m.id && m.n) meets.push(m); });
+    const snap = await db.collection('schedule').get();
+    snap.forEach(doc => {
+      const d = doc.data();
+      (d.meets || []).forEach(m => {
+        if (m.id && m.n) meets.push(m);
+      });
+    });
     meets.sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
-  } catch(e) {
-    SEED_MEETS.forEach(m => meets.push(m));
-    meets.sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
-  }
+  } catch(e) { console.warn('schedule load failed', e); }
 
   populateMeets();
 }
