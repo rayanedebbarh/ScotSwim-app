@@ -5520,6 +5520,7 @@ class Component extends DCLogic {
   // the athlete it was set for, so each person only ever sees what's
   // actually theirs. `tab` is where tapping the row takes you.
   isCoachRole(){return this.state.role==='coach'||this.state.role==='dcoach';}
+  isAdmin(){return this.state.userId==='Rayane Debbarh';}
   coachDisplayName(){
     const s=this.byId[this.state.userId];
     const n=(s&&s.name)||this.state.userId||'';
@@ -6679,7 +6680,7 @@ class Component extends DCLogic {
     const schedT=meetsList.map((m,i)=>{
       const parts=this.meetDateParts(m.dateStart,m.dateEnd);
       const update=patch=>saveSched(meetsList.map((x,k)=>k===i?{...x,...patch}:x));
-      const canTap=isCoach&&!schedEditing;
+      const canTap=this.isAdmin()&&!schedEditing;
       return {...m,...parts,...tagOf(m),
         editing:schedEditing,notEditing:!schedEditing,
         dateStartValue:m.dateStart,dateEndValue:m.dateEnd||'',
@@ -8025,7 +8026,7 @@ class Component extends DCLogic {
       canEditRoster,teamEditing,teamNotEditing:!teamEditing,
       teamEditLabel:teamEditing?'Done ✓':'Edit roster ✎',
       toggleTeamEdit:()=>this.setState({teamEditing:!st.teamEditing,rosterErr:''}),
-      canImportResults:canEditRoster&&st.teamSeg!=='S',
+      canImportResults:this.isAdmin()&&st.teamSeg!=='S',
       showMeetResultsSheet:!!st.meetResultsSheet,
       closeMeetResultsSheet:()=>this.setState({meetResultsSheet:null,pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:''}),
       meetResultsSheetMeetName:(()=>{const m=meetsList.find(x=>x.id===st.meetResultsSheet);return m?m.n:'';})(),
