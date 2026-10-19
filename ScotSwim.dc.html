@@ -2833,7 +2833,7 @@ class Component extends DCLogic {
       notifReminderMins:30,notifQuietStart:'22:00',notifQuietEnd:'06:00',
       notifPausedUntil:0,showSnoozeSheet:false,
       pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:'',pdfImportProgress:0,
-      meetResultsSheet:null,pdfImportMeetDate:''};
+      meetResultsSheet:null,pdfImportMeetDate:'',meetResultsStore:{}};
     // Firebase — real accounts (Auth) + a shared database (Firestore),
     // replacing the old per-browser localStorage-only self-service data
     // and the fake name-matching login below. Config values are safe to
@@ -4351,28 +4351,26 @@ class Component extends DCLogic {
   confirmPdfImport(){
     const results=this.state.pdfImportResults||[];
     if(!results.length){this.setState({pdfImport:null});return;}
-    const byAthlete={};
-    results.forEach(r=>{if(!byAthlete[r.athleteId])byAthlete[r.athleteId]=[];byAthlete[r.athleteId].push(r);});
-    let myEvents={...this.state.myEvents};
-    Object.entries(byAthlete).forEach(([athleteId,rows])=>{
-      const existing={...myEvents[athleteId]||{}};
-      rows.forEach(r=>{
-        this._pdfSeq=(this._pdfSeq||0)+1;
-        const entryId='pdf_'+Date.now()+'_'+this._pdfSeq;
-        existing[entryId]={eventId:r.eventId,time:r.time,date:r.date};
-      });
-      this.applyMyEvents(athleteId,existing);
-      myEvents={...myEvents,[athleteId]:existing};
-    });
-    this.setState({myEvents,pdfImport:'done'});
-    this.saveMyEvents(myEvents);
-    Object.keys(byAthlete).forEach(athleteId=>this.syncMyEventsToCloud(athleteId,myEvents[athleteId]));
+    const meetId=this.state.meetResultsSheet;
+    if(!meetId||!this.fbReady){this.setState({pdfImport:null});return;}
     const cnt=results.length;
-    const acnt=Object.keys(byAthlete).length;
-    setTimeout(()=>{
-      this.setState({pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:'',meetResultsSheet:null});
-      this.toastMsg(cnt+' times saved for '+acnt+' athlete'+(acnt===1?'':'s'));
-    },2200);
+    const acnt=new Set(results.map(r=>r.athleteId)).size;
+    // Write to meetResults/{meetId} — the real-time listener propagates to all
+    // open apps automatically; no per-athlete myEvents writes needed.
+    this.db.collection('meetResults').doc(meetId).set({
+      results:results.map(({athleteId,eventId,time,date})=>({athleteId,eventId,time,date})),
+      importedAt:Date.now(),
+      meetLabel:this.state.pdfImportMeetLabel||meetId,
+    }).then(()=>{
+      this.setState({pdfImport:'done'});
+      setTimeout(()=>{
+        this.setState({pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:'',meetResultsSheet:null});
+        this.toastMsg(cnt+' time'+(cnt===1?'':'s')+' saved for '+acnt+' athlete'+(acnt===1?'':'s')+' — all devices update automatically');
+      },2200);
+    }).catch(()=>{
+      this.setState({pdfImport:null});
+      this.toastMsg("Couldn't save — check your connection");
+    });
   }
   // The posted lineup for a meet, in the shape the editor works in:
   // pics, then one PDF's pages, then the note. Pages posted before PDFs
@@ -4939,7 +4937,38 @@ class Component extends DCLogic {
   // readable instead of running into its neighbors — every point still
   // gets its complete, real date, just wrapped instead of cut off.
   fmtEntryDateParts(...a){return ScotSwimCore.fmtEntryDateParts(...a);}
-  applyMyEvents(id,entries){
+  getMeetResultEntries(athleteId){
+    const store=this._meetResultsStore||{};
+    const entries={};
+    Object.entries(store).forEach(([meetId,m])=>{
+      (m.results||[]).forEach((r,i)=>{
+        if(r.athleteId===athleteId)
+          entries['mr_'+meetId+'_'+i]={eventId:r.eventId,time:r.time,date:r.date};
+      });
+    });
+    return entries;
+  }
+  startMeetResultsSync(){
+    if(!this.fbReady)return;
+    if(this._meetResultsUnsub)this._meetResultsUnsub();
+    this._meetResultsUnsub=this.db.collection('meetResults').onSnapshot(snap=>{
+      const store={};
+      snap.forEach(doc=>{store[doc.id]=doc.data();});
+      // Sync to the instant field so applyMyEvents sees it immediately
+      this._meetResultsStore=store;
+      // Re-apply all athletes that have meet result entries
+      const affected=new Set();
+      Object.values(store).forEach(m=>(m.results||[]).forEach(r=>affected.add(r.athleteId)));
+      affected.forEach(id=>{
+        this.applyMyEvents(id,this.state.myEvents[id]||{});
+      });
+      this.setState({meetResultsStore:store});
+    },()=>{/* ignore permission errors — not all roles may have read access yet */});
+  }
+  applyMyEvents(id,manualEntries){
+    // Merge any coach-imported meet results so charts/season results include them automatically
+    const mrEntries=this.getMeetResultEntries(id);
+    const entries=Object.keys(mrEntries).length?{...(manualEntries||{}),...mrEntries}:(manualEntries||{});
     const s=this.byId[id];if(!s)return;
     if(!s.__origPrimary){s.__origPrimary=s.primary;s.__origPbs=s.pbs;s.__origHist=s.hist;s.__origGoals=s.goals;s.__origMeetLogByEv=s.meetLogByEv;}
     const byEvent={};
@@ -5295,11 +5324,13 @@ class Component extends DCLogic {
       notifications:[],notifOpen:false,notifSeenAt:0,
       meetLineups:[],lineupMeet:null,lineupCompose:null,rosterLoaded:false,focusKey:'',
       lineupDraft:{pics:[],pdf:null,notes:''},lineupZoom:null,
-      announcements:[],meetUpdates:[],workoutSheets:[],trainWeeks:{},rosterEdits:{}};
+      announcements:[],meetUpdates:[],workoutSheets:[],trainWeeks:{},rosterEdits:{},meetResultsStore:{}};
   }
   signOutEverything(){
     this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();
     this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();
+    if(this._meetResultsUnsub){this._meetResultsUnsub();this._meetResultsUnsub=null;}
+    this._meetResultsStore={};
     // Cancel all pending debounced writes so they don't fire after sign-out
     // under the departing user's credentials.
     clearTimeout(this._rosterSaveTimer);this._rosterSaveTimer=null;
@@ -5329,7 +5360,7 @@ class Component extends DCLogic {
   onAuthChange(user){
     if(this.state.screen==='invite')return;
     const epoch=(this._authEpoch=(this._authEpoch||0)+1);
-    if(!user){this.clearAuthWatchdog();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();this.setState(this.SIGNED_OUT_STATE());return;}
+    if(!user){this.clearAuthWatchdog();this.stopMyEventsSync();this.stopTrainingLogSync();this.stopGoalWorkoutsSync();this.stopTeamContentSync();this.stopNotificationsSync();this.stopLineupsSync();if(this._meetResultsUnsub){this._meetResultsUnsub();this._meetResultsUnsub=null;}this._meetResultsStore={};this.setState(this.SIGNED_OUT_STATE());return;}
     this.loadProfile(user).then(doc=>{
       // A profile read is several round trips with retries. If another
       // auth event happened while it was in flight — a sign-out, or a
@@ -5373,6 +5404,7 @@ class Component extends DCLogic {
       setTimeout(()=>{
         if(profile.role==='athlete'){this.startMyEventsSync(profile.rosterId);this.startTrainingLogSync(profile.rosterId);this.startGoalWorkoutsSync(profile.rosterId);}
         this.startTeamContentSync();this.startNotificationsSync();this.startLineupsSync();this.setupPush();
+        this.startMeetResultsSync();
       },0);
     }).catch(err=>{
       // Signed in, but their profile couldn't be read — leaving the auth
@@ -5488,6 +5520,7 @@ class Component extends DCLogic {
   // the athlete it was set for, so each person only ever sees what's
   // actually theirs. `tab` is where tapping the row takes you.
   isCoachRole(){return this.state.role==='coach'||this.state.role==='dcoach';}
+  isAdmin(){return this.state.userId==='Rayane Debbarh';}
   coachDisplayName(){
     const s=this.byId[this.state.userId];
     const n=(s&&s.name)||this.state.userId||'';
@@ -6647,7 +6680,7 @@ class Component extends DCLogic {
     const schedT=meetsList.map((m,i)=>{
       const parts=this.meetDateParts(m.dateStart,m.dateEnd);
       const update=patch=>saveSched(meetsList.map((x,k)=>k===i?{...x,...patch}:x));
-      const canTap=isCoach&&!schedEditing;
+      const canTap=this.isAdmin()&&!schedEditing;
       return {...m,...parts,...tagOf(m),
         editing:schedEditing,notEditing:!schedEditing,
         dateStartValue:m.dateStart,dateEndValue:m.dateEnd||'',
@@ -7993,7 +8026,7 @@ class Component extends DCLogic {
       canEditRoster,teamEditing,teamNotEditing:!teamEditing,
       teamEditLabel:teamEditing?'Done ✓':'Edit roster ✎',
       toggleTeamEdit:()=>this.setState({teamEditing:!st.teamEditing,rosterErr:''}),
-      canImportResults:canEditRoster&&st.teamSeg!=='S',
+      canImportResults:this.isAdmin()&&st.teamSeg!=='S',
       showMeetResultsSheet:!!st.meetResultsSheet,
       closeMeetResultsSheet:()=>this.setState({meetResultsSheet:null,pdfImport:null,pdfImportResults:[],pdfImportSkipped:[],pdfImportMeetLabel:''}),
       meetResultsSheetMeetName:(()=>{const m=meetsList.find(x=>x.id===st.meetResultsSheet);return m?m.n:'';})(),
