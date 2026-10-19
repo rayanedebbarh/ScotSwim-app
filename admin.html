@@ -1,0 +1,594 @@
+<title>ScotSwim Results Upload</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  :root {
+    --bg: #FFFDF9;
+    --card: #fff;
+    --fg: #2A1218;
+    --fg2: rgba(42,18,24,.55);
+    --fg3: rgba(42,18,24,.35);
+    --border: rgba(42,18,24,.09);
+    --accent: #6B1F33;
+    --accent-fg: #F5E9DC;
+    --green: #1B7A78;
+    --red: #c0392b;
+    --radius: 10px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1a0f13;
+      --card: #251419;
+      --fg: #F5E9DC;
+      --fg2: rgba(245,233,220,.55);
+      --fg3: rgba(245,233,220,.35);
+      --border: rgba(245,233,220,.1);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a0f13;
+    --card: #251419;
+    --fg: #F5E9DC;
+    --fg2: rgba(245,233,220,.55);
+    --fg3: rgba(245,233,220,.35);
+    --border: rgba(245,233,220,.1);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Barlow', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 32px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+  .logo { font-size: 11px; font-weight: 800; letter-spacing: 3px; color: var(--accent); text-align: center; padding-bottom: 4px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .card-head { padding: 12px 16px 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-label { font-size: 9.5px; font-weight: 700; letter-spacing: 2px; color: var(--fg2); }
+  .card-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+  label { font-size: 9.5px; font-weight: 700; letter-spacing: 1.5px; color: var(--fg2); display: block; margin-bottom: 5px; }
+  input[type=email], input[type=password], select {
+    width: 100%; padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit; font-size: 13px;
+    color: var(--fg); background: var(--bg);
+    outline: none; appearance: none; -webkit-appearance: none;
+    transition: border-color .15s;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  .btn {
+    width: 100%; padding: 12px;
+    background: var(--accent); color: var(--accent-fg);
+    border: none; border-radius: 999px;
+    font-family: inherit; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; transition: opacity .15s;
+  }
+  .btn:hover { opacity: .88; }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn.secondary { background: var(--border); color: var(--fg); }
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    padding: 28px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    position: relative;
+  }
+  .drop-zone.over { border-color: var(--accent); background: rgba(107,31,51,.06); }
+  .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .drop-icon { font-size: 28px; margin-bottom: 6px; }
+  .drop-label { font-size: 13px; font-weight: 600; color: var(--fg); }
+  .drop-sub { font-size: 11px; color: var(--fg3); margin-top: 3px; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .3s; }
+  .result-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .result-row:last-child { border-bottom: none; }
+  .result-name { flex: 1.4; font-size: 13px; font-weight: 600; min-width: 0; }
+  .result-ev { flex: 1; font-size: 12px; color: var(--fg2); min-width: 0; }
+  .result-time { font-size: 13px; font-weight: 700; color: var(--accent); min-width: 52px; text-align: right; }
+  .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 8px; border-radius: 999px; }
+  .tag.green { background: rgba(27,122,120,.12); color: var(--green); }
+  .tag.red { background: rgba(192,57,43,.1); color: var(--red); }
+  .msg { font-size: 12px; color: var(--fg2); text-align: center; padding: 8px 0; }
+  .err { font-size: 12px; color: var(--red); padding: 4px 0; }
+  .skipped-list { font-size: 11.5px; color: var(--fg2); line-height: 1.6; }
+  #screen-login, #screen-app { display: none; }
+  #screen-login.show, #screen-app.show { display: block; }
+  .done-icon { text-align: center; font-size: 44px; padding: 8px 0 4px; }
+  .done-msg { text-align: center; font-size: 15px; font-weight: 700; }
+  .done-sub { text-align: center; font-size: 12px; color: var(--fg2); margin-top: 4px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700;800&display=swap">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-firestore-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<div class="wrap">
+  <div class="logo">SCOTSWIM</div>
+
+  <!-- LOGIN -->
+  <div id="screen-login">
+    <div class="card">
+      <div class="card-head"><span class="card-label">SIGN IN</span></div>
+      <div class="card-body">
+        <div>
+          <label>EMAIL</label>
+          <input type="email" id="email" placeholder="your@email.com" autocomplete="email">
+        </div>
+        <div>
+          <label>PASSWORD</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div id="login-err" class="err" hidden></div>
+        <button class="btn" id="login-btn" onclick="doLogin()">Sign In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APP -->
+  <div id="screen-app">
+
+    <!-- Step 1: pick meet -->
+    <div class="card" id="step-meet">
+      <div class="card-head">
+        <span class="card-label">SELECT MEET</span>
+        <span id="user-label" style="font-size:11px;color:var(--fg3)"></span>
+      </div>
+      <div class="card-body">
+        <div>
+          <label>MEET</label>
+          <select id="meet-sel" onchange="onMeetChange()">
+            <option value="">Loading meets…</option>
+          </select>
+        </div>
+        <div>
+          <label>DATE (auto-filled from meet)</label>
+          <input type="text" id="meet-date-display" readonly style="color:var(--fg2);cursor:default">
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: upload PDF -->
+    <div class="card" id="step-upload">
+      <div class="card-head"><span class="card-label">UPLOAD RESULTS PDF</span></div>
+      <div class="card-body">
+        <div class="drop-zone" id="drop-zone"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="onDrop(event)">
+          <input type="file" accept=".pdf" id="pdf-input" onchange="onFileChange(event)">
+          <div class="drop-icon">📄</div>
+          <div class="drop-label" id="drop-label">Drop PDF here or tap to browse</div>
+          <div class="drop-sub">SwimCloud results sheet</div>
+        </div>
+        <div class="progress-bar" id="progress-wrap" hidden>
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+        <div id="parse-msg" class="msg" hidden></div>
+      </div>
+    </div>
+
+    <!-- Step 3: preview -->
+    <div class="card" id="step-preview" hidden>
+      <div class="card-head">
+        <span class="card-label">PREVIEW</span>
+        <span id="preview-counts" style="font-size:11px;color:var(--fg2)"></span>
+      </div>
+      <div class="card-body" style="padding-bottom:0">
+        <div id="preview-list"></div>
+        <div id="skipped-section" hidden style="padding:10px 0 14px">
+          <div style="font-size:9.5px;font-weight:700;letter-spacing:1.5px;color:var(--fg2);margin-bottom:5px">NOT MATCHED</div>
+          <div class="skipped-list" id="skipped-list"></div>
+        </div>
+      </div>
+      <div style="padding:14px 16px;display:flex;gap:10px;border-top:1px solid var(--border)">
+        <button class="btn secondary" style="flex:1" onclick="resetUpload()">← Redo</button>
+        <button class="btn" style="flex:2" id="confirm-btn" onclick="doConfirm()">Save Times</button>
+      </div>
+    </div>
+
+    <!-- Done -->
+    <div class="card" id="step-done" hidden>
+      <div class="card-body" style="padding:24px 16px">
+        <div class="done-icon">✅</div>
+        <div class="done-msg" id="done-msg">Times saved!</div>
+        <div class="done-sub" id="done-sub"></div>
+        <div style="margin-top:20px">
+          <button class="btn" onclick="resetAll()">Upload Another Meet</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /screen-app -->
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const FB_CONFIG = {
+  apiKey:'AIzaSyB0sIGGQ216cEgZBDAHPjvnk3_BWphXSaI',
+  authDomain:'scotswim-app.firebaseapp.com',
+  projectId:'scotswim-app',
+  storageBucket:'scotswim-app.firebasestorage.app',
+  messagingSenderId:'1030021616865',
+  appId:'1:1030021616865:web:8140fa07b3f1e15f93d3a0'
+};
+
+if (!firebase.apps.length) firebase.initializeApp(FB_CONFIG);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const EV_NAME_MAP = {
+  '50 Freestyle':'50FR','100 Freestyle':'100FR','200 Freestyle':'200FR',
+  '500 Freestyle':'500FR','1000 Freestyle':'1000FR','1650 Freestyle':'1650FR',
+  '50 Free':'50FR','100 Free':'100FR','200 Free':'200FR',
+  '500 Free':'500FR','1000 Free':'1000FR','1650 Free':'1650FR',
+  '1 Mile Free':'1650FR',
+  '50 Backstroke':'50BK','100 Backstroke':'100BK','200 Backstroke':'200BK',
+  '50 Back':'50BK','100 Back':'100BK','200 Back':'200BK',
+  '50 Breaststroke':'50BR','100 Breaststroke':'100BR','200 Breaststroke':'200BR',
+  '50 Breast':'50BR','100 Breast':'100BR','200 Breast':'200BR',
+  '50 Butterfly':'50FL','100 Butterfly':'100FL','200 Butterfly':'200FL',
+  '50 Fly':'50FL','100 Fly':'100FL','200 Fly':'200FL',
+  '200 Individual Medley':'200IM','400 Individual Medley':'400IM',
+  '200 IM':'200IM','400 IM':'400IM',
+  '1 Meter Diving':'DV1','3 Meter Diving':'DV3',
+  '1-Meter Diving':'DV1','3-Meter Diving':'DV3',
+  'One Meter Diving':'DV1','Three Meter Diving':'DV3',
+};
+
+const EV_NAMES = {
+  '50FR':'50 Free','100FR':'100 Free','200FR':'200 Free','500FR':'500 Free',
+  '1000FR':'1000 Free','1650FR':'1650 Free','50BK':'50 Back','100BK':'100 Back',
+  '200BK':'200 Back','50BR':'50 Breast','100BR':'100 Breast','200BR':'200 Breast',
+  '50FL':'50 Fly','100FL':'100 Fly','200FL':'200 Fly','200IM':'200 IM','400IM':'400 IM',
+  'DV1':'1M Diving','DV3':'3M Diving',
+};
+
+let roster = {};   // name→{id,name}
+let meets = [];    // [{id,n,dateStart}]
+let parsedResults = [];
+let parsedSkipped = [];
+let selectedMeetId = '';
+let selectedMeetDate = '';
+
+// ── Auth ─────────────────────────────────────────────────────────────
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById('screen-login').classList.remove('show');
+    document.getElementById('screen-app').classList.add('show');
+    document.getElementById('user-label').textContent = user.email;
+    loadData();
+  } else {
+    document.getElementById('screen-login').classList.add('show');
+    document.getElementById('screen-app').classList.remove('show');
+  }
+});
+
+async function doLogin() {
+  const email = document.getElementById('email').value.trim();
+  const pass = document.getElementById('password').value;
+  const errEl = document.getElementById('login-err');
+  errEl.hidden = true;
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    errEl.textContent = e.message || 'Sign-in failed';
+    errEl.hidden = false;
+    btn.disabled = false; btn.textContent = 'Sign In';
+  }
+}
+document.getElementById('password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── Load roster + meets ───────────────────────────────────────────────
+async function loadData() {
+  // roster
+  try {
+    const snap = await db.collection('roster').get();
+    snap.forEach(doc => {
+      const d = doc.data();
+      (d.athletes || []).forEach(a => {
+        if (!a.id || !a.name) return;
+        const nm = a.name.toLowerCase().trim();
+        roster[nm] = a;
+        const parts = a.name.trim().split(/\s+/);
+        if (parts.length >= 2) {
+          const rev = (parts[parts.length-1]+', '+parts.slice(0,-1).join(' ')).toLowerCase();
+          roster[rev] = a;
+          const lk = '_last_'+parts[parts.length-1].toLowerCase();
+          if (!roster[lk]) roster[lk] = a;
+        }
+      });
+    });
+  } catch(e) { console.warn('roster load failed', e); }
+
+  // schedule
+  try {
+    const snap = await db.collection('schedule').get();
+    snap.forEach(doc => {
+      const d = doc.data();
+      (d.meets || []).forEach(m => {
+        if (m.id && m.n) meets.push(m);
+      });
+    });
+    meets.sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
+  } catch(e) { console.warn('schedule load failed', e); }
+
+  populateMeets();
+}
+
+function populateMeets() {
+  const sel = document.getElementById('meet-sel');
+  sel.innerHTML = '<option value="">— pick a meet —</option>';
+  meets.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.n + (m.dateStart ? '  ·  ' + fmtDate(m.dateStart) : '');
+    sel.appendChild(opt);
+  });
+}
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y,mo,d] = iso.split('-');
+  return (mo||'')+'/'+(d||'')+'/'+(y||'');
+}
+
+function onMeetChange() {
+  const sel = document.getElementById('meet-sel');
+  selectedMeetId = sel.value;
+  const m = meets.find(x => x.id === selectedMeetId);
+  selectedMeetDate = m ? fmtDate(m.dateStart) : '';
+  document.getElementById('meet-date-display').value = selectedMeetDate || '—';
+  resetUpload();
+}
+
+// ── PDF handling ──────────────────────────────────────────────────────
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') processPdf(f);
+}
+
+function onFileChange(e) {
+  const f = e.target.files[0];
+  if (f) processPdf(f);
+}
+
+function setProgress(pct) {
+  document.getElementById('progress-wrap').hidden = false;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+async function processPdf(file) {
+  if (!selectedMeetId) {
+    alert('Please select a meet first.');
+    return;
+  }
+  document.getElementById('drop-label').textContent = file.name;
+  document.getElementById('parse-msg').hidden = false;
+  document.getElementById('parse-msg').textContent = 'Reading PDF…';
+  setProgress(10);
+
+  try {
+    const buf = await file.arrayBuffer();
+    setProgress(30);
+    const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+    setProgress(50);
+
+    const allItems = [];
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const page = await pdf.getPage(p);
+      const tc = await page.getTextContent();
+      const vp = page.getViewport({scale:1});
+      tc.items.forEach(it => {
+        if (it.str) allItems.push({str: it.str, x: it.transform[4], y: vp.height - it.transform[5]});
+      });
+      setProgress(50 + Math.round(40 * p / pdf.numPages));
+    }
+
+    setProgress(95);
+    parsePdf(allItems, file.name);
+    setProgress(100);
+  } catch(err) {
+    document.getElementById('parse-msg').textContent = 'Could not read PDF: ' + err.message;
+    setProgress(0);
+    document.getElementById('progress-wrap').hidden = true;
+  }
+}
+
+function parsePdf(items, fileName) {
+  const TIME_RE = /^\d{1,2}:\d{2}\.\d{2}$|^\d{1,3}\.\d{2}$/;
+
+  // Group by Y bucket
+  const lineMap = {};
+  items.forEach(it => {
+    if (!it.str) return;
+    const yKey = Math.round(it.y / 3) * 3;
+    (lineMap[yKey] = lineMap[yKey] || []).push(it);
+  });
+  const lines = Object.keys(lineMap).map(Number).sort((a,b) => b - a)
+    .map(yKey => {
+      const its = lineMap[yKey].slice().sort((a,b) => a.x - b.x);
+      return {y: yKey, strs: its.map(it => it.str.trim()).filter(s => s)};
+    });
+
+  const results = [];
+  const skipped = new Set();
+  let curEvId = null;
+
+  for (let li = 0; li < lines.length; li++) {
+    const {strs} = lines[li];
+    if (!strs.length) continue;
+    const lineText = strs.join(' ');
+
+    // Event header detection
+    let foundEvHeader = false;
+    for (let si = 0; si < strs.length; si++) {
+      const s = strs[si];
+      const evHdr = s.match(/^Event\s+(\d+)\s*(?:[-–]\s*(.+))?$/i);
+      if (evHdr) {
+        foundEvHeader = true;
+        let evName = (evHdr[2] || '').trim();
+        if (!evName) {
+          evName = strs.slice(si+1).join(' ').trim();
+          if (!evName && li+1 < lines.length) evName = lines[li+1].strs.join(' ').trim();
+        }
+        curEvId = null;
+        for (const [key, id] of Object.entries(EV_NAME_MAP)) {
+          if (evName.toLowerCase().includes(key.toLowerCase())) { curEvId = id; break; }
+        }
+        break;
+      }
+      for (const [key, id] of Object.entries(EV_NAME_MAP)) {
+        if (s === key || (si === 0 && lineText === key)) { foundEvHeader = true; curEvId = id; break; }
+      }
+      if (foundEvHeader) break;
+    }
+    if (foundEvHeader) continue;
+    if (!curEvId) continue;
+
+    // Match athlete
+    let matchedAthlete = null, matchedName = '';
+    for (let si = 0; si < strs.length; si++) {
+      const s = strs[si];
+      let a = roster[s.toLowerCase().trim()];
+      if (!a && si+1 < strs.length) a = roster[(s+' '+strs[si+1]).toLowerCase().trim()];
+      if (!a) {
+        const parts = s.trim().split(/\s+/);
+        if (parts.length >= 2) a = roster['_last_'+(parts[parts.length-1]||'').toLowerCase()];
+      }
+      if (a) { matchedAthlete = a; matchedName = s; break; }
+    }
+    if (!matchedAthlete) continue;
+
+    // Find time on this line or next 2
+    let timeStr = '';
+    const cands = [...strs];
+    for (let nl = li+1; nl <= li+2 && nl < lines.length; nl++) cands.push(...lines[nl].strs);
+    for (const t of cands) { if (TIME_RE.test(t)) { timeStr = t; break; } }
+
+    if (timeStr) {
+      results.push({
+        athleteId: matchedAthlete.id,
+        athleteName: matchedAthlete.name,
+        eventId: curEvId,
+        evName: EV_NAMES[curEvId] || curEvId,
+        time: timeStr,
+        date: selectedMeetDate,
+      });
+    } else {
+      skipped.add(matchedName);
+    }
+  }
+
+  parsedResults = results;
+  parsedSkipped = [...skipped];
+  showPreview();
+}
+
+function showPreview() {
+  document.getElementById('step-upload').hidden = true;
+  document.getElementById('step-preview').hidden = false;
+
+  const athleteCount = new Set(parsedResults.map(r => r.athleteId)).size;
+  document.getElementById('preview-counts').textContent =
+    parsedResults.length + ' time' + (parsedResults.length !== 1 ? 's' : '') +
+    ' · ' + athleteCount + ' athlete' + (athleteCount !== 1 ? 's' : '');
+
+  const list = document.getElementById('preview-list');
+  list.innerHTML = '';
+
+  if (!parsedResults.length) {
+    list.innerHTML = '<div class="msg">No times matched — check the PDF format or roster names.</div>';
+  } else {
+    parsedResults.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'result-row';
+      row.innerHTML =
+        `<div class="result-name">${r.athleteName}</div>` +
+        `<div class="result-ev">${r.evName}</div>` +
+        `<div class="result-time">${r.time}</div>`;
+      list.appendChild(row);
+    });
+  }
+
+  const skipSec = document.getElementById('skipped-section');
+  if (parsedSkipped.length) {
+    skipSec.hidden = false;
+    document.getElementById('skipped-list').textContent = parsedSkipped.join(', ');
+  } else {
+    skipSec.hidden = true;
+  }
+
+  const btn = document.getElementById('confirm-btn');
+  btn.textContent = 'Save ' + parsedResults.length + ' Times';
+  btn.disabled = !parsedResults.length;
+}
+
+async function doConfirm() {
+  if (!parsedResults.length || !selectedMeetId) return;
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const meetObj = meets.find(m => m.id === selectedMeetId);
+  const meetLabel = (meetObj ? meetObj.n : selectedMeetId) + (selectedMeetDate ? ' · ' + selectedMeetDate : '');
+
+  try {
+    await db.collection('meetResults').doc(selectedMeetId).set({
+      results: parsedResults.map(({athleteId, eventId, time, date}) => ({athleteId, eventId, time, date})),
+      importedAt: Date.now(),
+      meetLabel,
+    });
+
+    const athleteCount = new Set(parsedResults.map(r => r.athleteId)).size;
+    document.getElementById('step-preview').hidden = true;
+    document.getElementById('step-done').hidden = false;
+    document.getElementById('done-msg').textContent =
+      parsedResults.length + ' time' + (parsedResults.length !== 1 ? 's' : '') + ' saved';
+    document.getElementById('done-sub').textContent =
+      athleteCount + ' athlete' + (athleteCount !== 1 ? 's' : '') + ' — all devices update instantly';
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Save ' + parsedResults.length + ' Times';
+    alert('Save failed: ' + (e.message || e));
+  }
+}
+
+function resetUpload() {
+  parsedResults = [];
+  parsedSkipped = [];
+  document.getElementById('step-upload').hidden = false;
+  document.getElementById('step-preview').hidden = true;
+  document.getElementById('step-done').hidden = true;
+  document.getElementById('drop-label').textContent = 'Drop PDF here or tap to browse';
+  document.getElementById('parse-msg').hidden = true;
+  document.getElementById('progress-wrap').hidden = true;
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('pdf-input').value = '';
+}
+
+function resetAll() {
+  selectedMeetId = '';
+  selectedMeetDate = '';
+  document.getElementById('meet-sel').value = '';
+  document.getElementById('meet-date-display').value = '';
+  resetUpload();
+}
+</script>
