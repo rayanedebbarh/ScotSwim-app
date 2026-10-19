@@ -317,15 +317,11 @@ async function loadData() {
     });
   } catch(e) { console.warn('roster load failed', e); }
 
-  // schedule
+  // schedule — single doc: schedule/meets → {items:[...]}
   try {
-    const snap = await db.collection('schedule').get();
-    snap.forEach(doc => {
-      const d = doc.data();
-      (d.meets || []).forEach(m => {
-        if (m.id && m.n) meets.push(m);
-      });
-    });
+    const doc = await db.collection('schedule').doc('meets').get();
+    const items = (doc.exists && doc.data().items) || [];
+    items.forEach(m => { if (m.id && m.n) meets.push(m); });
     meets.sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
   } catch(e) { console.warn('schedule load failed', e); }
 
