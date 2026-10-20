@@ -257,11 +257,26 @@ const EV_NAMES = {
 };
 
 let roster = {};   // name→{id,name}
-let meets = [];    // [{id,n,dateStart}]
 let parsedResults = [];
 let parsedSkipped = [];
 let selectedMeetId = '';
 let selectedMeetDate = '';
+
+const SEED_MEETS = [
+  {id:'2026-10-09',dateStart:'2026-10-09',n:'Alma at SVSU & LSSU'},
+  {id:'2026-10-17',dateStart:'2026-10-17',n:'Alma at Albion'},
+  {id:'2026-10-24',dateStart:'2026-10-24',n:'MIAA Invite'},
+  {id:'2026-11-07',dateStart:'2026-11-07',n:'Alma vs. Manchester'},
+  {id:'2026-11-19',dateStart:'2026-11-19',n:'Cardinal Invitational'},
+  {id:'2027-01-23',dateStart:'2027-01-23',n:'MIAA Invite'},
+  {id:'2027-01-30',dateStart:'2027-01-30',n:'Alma vs. Kalamazoo'},
+  {id:'2027-02-17',dateStart:'2027-02-17',n:'MIAA Championships'},
+  {id:'2027-03-18',dateStart:'2027-03-18',n:'D3 National Championships'},
+];
+let meets = [...SEED_MEETS];  // pre-populated; Firestore may replace later
+
+// Pre-populate dropdown immediately from seed data (no Firestore needed)
+populateMeets();
 
 // ── Auth ─────────────────────────────────────────────────────────────
 auth.onAuthStateChanged(user => {
@@ -346,26 +361,16 @@ async function loadData() {
     }
   } catch(e) { console.warn('roster edits load failed', e); }
 
-  // schedule — single doc: schedule/meets → {items:[...]}
-  const SEED_MEETS = [
-    {id:'2026-10-09',dateStart:'2026-10-09',n:'Alma at SVSU & LSSU'},
-    {id:'2026-10-17',dateStart:'2026-10-17',n:'Alma at Albion'},
-    {id:'2026-10-24',dateStart:'2026-10-24',n:'MIAA Invite'},
-    {id:'2026-11-07',dateStart:'2026-11-07',n:'Alma vs. Manchester'},
-    {id:'2026-11-19',dateStart:'2026-11-19',n:'Cardinal Invitational'},
-    {id:'2027-01-23',dateStart:'2027-01-23',n:'MIAA Invite'},
-    {id:'2027-01-30',dateStart:'2027-01-30',n:'Alma vs. Kalamazoo'},
-    {id:'2027-02-17',dateStart:'2027-02-17',n:'MIAA Championships'},
-    {id:'2027-03-18',dateStart:'2027-03-18',n:'D3 National Championships'},
-  ];
+  // schedule — try to load from Firestore; falls back to SEED_MEETS already in meets[]
   try {
     const doc = await db.collection('schedule').doc('meets').get();
     const items = (doc.exists && doc.data().items) || [];
-    const src = items.length ? items : SEED_MEETS;
-    src.forEach(m => { if (m.id && m.n) meets.push(m); });
+    if (items.length) {
+      meets.length = 0;
+      items.forEach(m => { if (m.id && m.n) meets.push(m); });
+    }
     meets.sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
   } catch(e) {
-    SEED_MEETS.forEach(m => meets.push(m));
     meets.sort((a,b) => (b.dateStart||'').localeCompare(a.dateStart||''));
   }
 
