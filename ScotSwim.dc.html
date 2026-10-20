@@ -3989,7 +3989,7 @@ class Component extends DCLogic {
       onHeightChange:e=>setStat('height',e.target.value),
       onWeightChange:e=>setStat('weight',e.target.value),
       onHsChange:e=>setStat('hs',e.target.value),
-      seasonResults:seasonResults.map(({_rank,...r})=>r),hasSeasonResults:seasonResults.length>0,seasonResultsEmpty:seasonResults.length===0,
+      seasonResults:(()=>{const relayBest={};Object.values(this._meetResultsStore||{}).forEach(m=>{(m.results||[]).forEach(r=>{if(!r.relay||r.athleteId!==s.id)return;const e=this.evMap[r.eventId];if(!e)return;const dateObj=this.parseEntryDate(r.date);if(!dateObj||dateObj<ssd)return;const key=r.eventId+'|'+r.relay;const raw=(r.time||'').trim();if(!raw)return;let v;if(e.dive)v=parseFloat(raw);else if(raw.includes(':')){const p=raw.split(':');v=parseInt(p[0],10)*60+parseFloat(p[1]);}else v=parseFloat(raw);if(isNaN(v)||v<=0)return;if(!relayBest[key]||(!e.dive&&v<relayBest[key].v)||(e.dive&&v>relayBest[key].v))relayBest[key]={v,evId:r.eventId,relay:r.relay,e};});});const relayRows=Object.values(relayBest).map(({v,evId,relay,e})=>({evName:e.n+' · '+relay,bestTime:this.fmtEv(evId,v),rankLabel:'—',rankColor:'#1B7A78',rankBg:'rgba(27,122,120,.1)'}));return[...seasonResults.map(({_rank,...r})=>r),...relayRows];})(),hasSeasonResults:seasonResults.length>0,seasonResultsEmpty:seasonResults.length===0,
       seasonEvCount:String(seasonResults.length),seasonPbCount:String(selSeasonPbCount),
       bestRankLabel:bestRankNum?ordLabel(bestRankNum):'—',bestRankColor:bestRankNum===1?'#a36b00':'#6B1F33'};
   }
@@ -4943,7 +4943,7 @@ class Component extends DCLogic {
     Object.entries(store).forEach(([meetId,m])=>{
       (m.results||[]).forEach((r,i)=>{
         if(r.athleteId===athleteId)
-          entries['mr_'+meetId+'_'+i]={eventId:r.eventId,time:r.time,date:r.date};
+          entries['mr_'+meetId+'_'+i]={eventId:r.eventId,time:r.time,date:r.date,relay:r.relay||null};
       });
     });
     return entries;
@@ -4974,6 +4974,7 @@ class Component extends DCLogic {
     const byEvent={};
     Object.keys(entries||{}).forEach(entryId=>{
       const entry=entries[entryId];if(!entry)return;
+      if(entry.relay)return; // relay splits shown separately in season results, not in progression chart
       const e=this.evMap[entry.eventId];if(!e)return;
       const raw=(entry.time||'').trim();if(!raw)return;
       let v;
