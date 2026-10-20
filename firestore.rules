@@ -188,6 +188,13 @@ service cloud.firestore {
         && request.resource.data.targetDeleted == true;
     }
 
+    // Meet results: one document per meet, written by coaches, read by
+    // everyone on the team so athletes can see their progression.
+    match /meetResults/{meetId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isCoach();
+    }
+
     // Anything not named above is denied by default.
   }
 }
