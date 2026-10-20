@@ -5482,6 +5482,10 @@ class Component extends DCLogic {
         // can write this doc, so briefly preferring the local copy can't
         // lose anyone else's edit — the next snapshot reconciles it.
         const justEdited=Date.now()-((this._trainingLogEditAt||{})[rosterId]||0)<2500;
+        if(!justEdited){
+          if(!this._lastSyncedTrainingLogIds)this._lastSyncedTrainingLogIds={};
+          this._lastSyncedTrainingLogIds[rosterId]=new Set(Object.keys(entries));
+        }
         const trainingLog=justEdited?this.state.trainingLog
           :{...this.state.trainingLog,[rosterId]:entries};
         // soloLifts shares this doc (see toggleSoloLift), so every write
@@ -6332,14 +6336,15 @@ class Component extends DCLogic {
     this._myEventsEditAt[rosterId]=Date.now();
     if(!this.fbReady)return;
     if(!this._myEventsSaveTimers)this._myEventsSaveTimers={};
-    clearTimeout(this._myEventsSaveTimers[rosterId]);
-    this._myEventsSaveTimers[rosterId]=setTimeout(()=>{
-      const prev=this._lastSyncedMyEventIds?.[rosterId]||new Set();
-      const newIds=new Set(Object.keys(entries));
-      const deletedIds=[...prev].filter(id=>!newIds.has(id));
-      if(!this._lastSyncedMyEventIds)this._lastSyncedMyEventIds={};
-      this._lastSyncedMyEventIds[rosterId]=newIds;
-      const ref=this.db.collection('myEvents').doc(rosterId);
+    // Detect deletions before scheduling so we can write them immediately —
+    // a 700ms debounce risks losing a removal if the app closes before it fires.
+    const prev=this._lastSyncedMyEventIds?.[rosterId]||new Set();
+    const newIds=new Set(Object.keys(entries));
+    const deletedIds=[...prev].filter(id=>!newIds.has(id));
+    if(!this._lastSyncedMyEventIds)this._lastSyncedMyEventIds={};
+    this._lastSyncedMyEventIds[rosterId]=newIds;
+    const ref=this.db.collection('myEvents').doc(rosterId);
+    const doWrite=()=>{
       if(deletedIds.length){
         // set({entries},{merge:true}) deep-merges and would keep deleted keys.
         // Use dotted-path update with FieldValue.delete() to truly remove them.
@@ -6353,7 +6358,11 @@ class Component extends DCLogic {
       }else{
         ref.set({entries},{merge:true}).catch(()=>{});
       }
-    },700);
+    };
+    clearTimeout(this._myEventsSaveTimers[rosterId]);
+    // Skip the debounce for deletions so they reach Firestore right away.
+    if(deletedIds.length)doWrite();
+    else this._myEventsSaveTimers[rosterId]=setTimeout(doWrite,700);
   }
   // One-time fetch for viewing someone ELSE's training log, e.g. from the
   // Team tab — same cached-per-session pattern as fetchOthersMyEvents.
@@ -6377,10 +6386,30 @@ class Component extends DCLogic {
     this._trainingLogEditAt[rosterId]=Date.now();
     if(!this.fbReady)return;
     if(!this._trainingLogSaveTimers)this._trainingLogSaveTimers={};
+    // Same deletion-bypass pattern as syncMyEventsToCloud: detect removals
+    // before scheduling so they reach Firestore immediately, not after 700ms.
+    const prev=this._lastSyncedTrainingLogIds?.[rosterId]||new Set();
+    const newIds=new Set(Object.keys(entries));
+    const deletedIds=[...prev].filter(id=>!newIds.has(id));
+    if(!this._lastSyncedTrainingLogIds)this._lastSyncedTrainingLogIds={};
+    this._lastSyncedTrainingLogIds[rosterId]=newIds;
+    const ref=this.db.collection('trainingLog').doc(rosterId);
+    const doWrite=()=>{
+      if(deletedIds.length){
+        const FV=window.firebase.firestore.FieldValue;
+        const upd={};
+        Object.entries(entries).forEach(([k,v])=>{upd['entries.'+k]=v;});
+        deletedIds.forEach(id=>{upd['entries.'+id]=FV.delete();});
+        ref.update(upd).catch(err=>{
+          if(err&&err.code==='not-found')ref.set({entries},{merge:true}).catch(()=>{});
+        });
+      }else{
+        ref.set({entries},{merge:true}).catch(()=>{});
+      }
+    };
     clearTimeout(this._trainingLogSaveTimers[rosterId]);
-    this._trainingLogSaveTimers[rosterId]=setTimeout(()=>{
-      this.db.collection('trainingLog').doc(rosterId).set({entries},{merge:true}).catch(()=>{});
-    },700);
+    if(deletedIds.length)doWrite();
+    else this._trainingLogSaveTimers[rosterId]=setTimeout(doWrite,700);
   }
   // One-time fetch for a coach viewing/editing one athlete's prescribed
   // workouts from the Goals tab — same cached-per-session pattern as

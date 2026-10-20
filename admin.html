@@ -296,11 +296,23 @@ let meets = [...SEED_MEETS];  // pre-populated; Firestore may replace later
 populateMeets();
 
 // ── Auth ─────────────────────────────────────────────────────────────
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
   if (user) {
     document.getElementById('screen-login').classList.remove('show');
     document.getElementById('screen-app').classList.add('show');
-    document.getElementById('user-label').textContent = user.email;
+    const lbl = document.getElementById('user-label');
+    lbl.textContent = user.email;
+    try {
+      const snap = await db.collection('users').doc(user.uid).get();
+      const role = snap.exists ? snap.data().role : null;
+      if (role === 'coach' || role === 'dcoach') {
+        lbl.textContent = user.email + ' (' + role + ')';
+        lbl.style.color = '';
+      } else {
+        lbl.textContent = user.email + ' · role="' + (role || 'none') + '" — not a coach, saves will fail';
+        lbl.style.color = 'var(--red,#c0392b)';
+      }
+    } catch(e) { /* rules not yet deployed or no users doc */ }
     loadData();
   } else {
     document.getElementById('screen-login').classList.add('show');
@@ -651,7 +663,7 @@ async function doConfirm() {
 
   try {
     await db.collection('meetResults').doc(selectedMeetId).set({
-      results: parsedResults.map(({athleteId, eventId, time, date}) => ({athleteId, eventId, time, date})),
+      results: parsedResults.map(({athleteId, eventId, time, date, relay}) => ({athleteId, eventId, time, date, ...(relay ? {relay} : {})})),
       importedAt: Date.now(),
       meetLabel,
     });
