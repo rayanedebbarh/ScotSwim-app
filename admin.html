@@ -456,16 +456,16 @@ async function processPdf(file) {
 }
 
 function parsePdf(items, fileName) {
-  const TIME_RE = /^\d{1,2}:\d{2}\.\d{2}$|^\d{1,3}\.\d{2}$/;
+  const TIME_RE = /^\d{1,3}:\d{2}\.\d{2}$|^\d{1,3}\.\d{2}$/;
 
-  // Group by Y bucket
+  // Group by Y bucket — ASCENDING (top of page first)
   const lineMap = {};
   items.forEach(it => {
     if (!it.str) return;
     const yKey = Math.round(it.y / 3) * 3;
     (lineMap[yKey] = lineMap[yKey] || []).push(it);
   });
-  const lines = Object.keys(lineMap).map(Number).sort((a,b) => b - a)
+  const lines = Object.keys(lineMap).map(Number).sort((a,b) => a - b)
     .map(yKey => {
       const its = lineMap[yKey].slice().sort((a,b) => a.x - b.x);
       return {y: yKey, strs: its.map(it => it.str.trim()).filter(s => s)};
@@ -480,51 +480,45 @@ function parsePdf(items, fileName) {
     if (!strs.length) continue;
     const lineText = strs.join(' ');
 
-    // Event header detection
-    let foundEvHeader = false;
-    for (let si = 0; si < strs.length; si++) {
-      const s = strs[si];
-      const evHdr = s.match(/^Event\s+(\d+)\s*(?:[-–]\s*(.+))?$/i);
-      if (evHdr) {
-        foundEvHeader = true;
-        let evName = (evHdr[2] || '').trim();
-        if (!evName) {
-          evName = strs.slice(si+1).join(' ').trim();
-          if (!evName && li+1 < lines.length) evName = lines[li+1].strs.join(' ').trim();
-        }
+    // Event header: "Event #3 - 1000 Free Women"
+    const evHdrMatch = lineText.match(/Event\s*#?\s*\d+\s*[-–]\s*(.+)/i);
+    if (evHdrMatch) {
+      let evName = evHdrMatch[1].trim().replace(/\s+(Women|Men)$/i, '').trim();
+      if (/relay/i.test(evName)) {
+        curEvId = null;
+      } else {
         curEvId = null;
         for (const [key, id] of Object.entries(EV_NAME_MAP)) {
           if (evName.toLowerCase().includes(key.toLowerCase())) { curEvId = id; break; }
         }
-        break;
       }
-      for (const [key, id] of Object.entries(EV_NAME_MAP)) {
-        if (s === key || (si === 0 && lineText === key)) { foundEvHeader = true; curEvId = id; break; }
-      }
-      if (foundEvHeader) break;
+      continue;
     }
-    if (foundEvHeader) continue;
+
     if (!curEvId) continue;
 
-    // Match athlete
-    let matchedAthlete = null, matchedName = '';
+    // Skip column header rows (Name / Team / Score / Time / Place)
+    if (strs.length <= 6 && strs.filter(s => /^(Name|Team|Score|Time|Place|Pts)$/i.test(s)).length >= 2) continue;
+
+    // Match athlete by name
+    let matchedAthlete = null;
     for (let si = 0; si < strs.length; si++) {
       const s = strs[si];
       let a = roster[s.toLowerCase().trim()];
-      if (!a && si+1 < strs.length) a = roster[(s+' '+strs[si+1]).toLowerCase().trim()];
+      if (!a && si + 1 < strs.length) a = roster[(s + ' ' + strs[si + 1]).toLowerCase().trim()];
       if (!a) {
         const parts = s.trim().split(/\s+/);
-        if (parts.length >= 2) a = roster['_last_'+(parts[parts.length-1]||'').toLowerCase()];
+        if (parts.length >= 2) a = roster['_last_' + (parts[parts.length - 1] || '').toLowerCase()];
       }
-      if (a) { matchedAthlete = a; matchedName = s; break; }
+      if (a) { matchedAthlete = a; break; }
     }
     if (!matchedAthlete) continue;
 
-    // Find time on this line or next 2
+    // Find LAST clean time/score on this line (overwrites splits, keeps final value)
     let timeStr = '';
-    const cands = [...strs];
-    for (let nl = li+1; nl <= li+2 && nl < lines.length; nl++) cands.push(...lines[nl].strs);
-    for (const t of cands) { if (TIME_RE.test(t)) { timeStr = t; break; } }
+    for (const t of strs) {
+      if (TIME_RE.test(t)) timeStr = t;
+    }
 
     if (timeStr) {
       results.push({
@@ -536,7 +530,7 @@ function parsePdf(items, fileName) {
         date: selectedMeetDate,
       });
     } else {
-      skipped.add(matchedName);
+      skipped.add(matchedAthlete.name);
     }
   }
 
