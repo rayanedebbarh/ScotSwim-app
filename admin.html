@@ -295,27 +295,56 @@ document.getElementById('password').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
+// ── Seed roster (mirrors app's MEN/WOMEN arrays; id = name) ──────────
+const SEED_MEN = [
+  'Andrew Barrett','Cody Benkovsky','Karl Bray','Ruairidh Davis',
+  'Rayane Debbarh','Ryan Fowler','Brett Gaff','Anthony Kulka',
+  'Colin Moran','Noah Newman','Max Nielsen','Colton Ralko',
+  'Morrison Wood','Nate Yearkey',
+];
+const SEED_WOMEN = [
+  'Zoe Barringer','Anya Drewnicki','Abby Dumond','Kellie Fahey',
+  'Rowan Frost','Marie Halligan','Aubrey Hawks','Emma Hoy',
+  'Katelyn Lamphere','Isabel Lyshol','Maddie McGuire','Sarah Rabbideau',
+  'Heidi Ragainis','Sierra Scott','Abi Spitzley','Hannah Sullivan',
+  'Valerie Vinci','Delilah Zingelewicz',
+];
+
+function addToRoster(name) {
+  const a = {id: name, name};
+  const nm = name.toLowerCase().trim();
+  roster[nm] = a;
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    const rev = (parts[parts.length-1]+', '+parts.slice(0,-1).join(' ')).toLowerCase();
+    roster[rev] = a;
+    const lk = '_last_'+parts[parts.length-1].toLowerCase();
+    if (!roster[lk]) roster[lk] = a;
+  }
+}
+
 // ── Load roster + meets ───────────────────────────────────────────────
 async function loadData() {
-  // roster
+  // Build roster from seed + Firestore edits (same logic as app's buildRoster)
+  [...SEED_MEN, ...SEED_WOMEN].forEach(addToRoster);
   try {
-    const snap = await db.collection('roster').get();
-    snap.forEach(doc => {
+    const doc = await db.collection('roster').doc('main').get();
+    if (doc.exists) {
       const d = doc.data();
-      (d.athletes || []).forEach(a => {
-        if (!a.id || !a.name) return;
-        const nm = a.name.toLowerCase().trim();
-        roster[nm] = a;
-        const parts = a.name.trim().split(/\s+/);
+      // Remove athletes coaches removed
+      (d.removed || []).forEach(name => {
+        const nm = name.toLowerCase().trim();
+        delete roster[nm];
+        const parts = name.trim().split(/\s+/);
         if (parts.length >= 2) {
-          const rev = (parts[parts.length-1]+', '+parts.slice(0,-1).join(' ')).toLowerCase();
-          roster[rev] = a;
-          const lk = '_last_'+parts[parts.length-1].toLowerCase();
-          if (!roster[lk]) roster[lk] = a;
+          delete roster[(parts[parts.length-1]+', '+parts.slice(0,-1).join(' ')).toLowerCase()];
+          delete roster['_last_'+parts[parts.length-1].toLowerCase()];
         }
       });
-    });
-  } catch(e) { console.warn('roster load failed', e); }
+      // Add athletes coaches added
+      (d.added || []).forEach(a => { if (a.name) addToRoster(a.name); });
+    }
+  } catch(e) { console.warn('roster edits load failed', e); }
 
   // schedule — single doc: schedule/meets → {items:[...]}
   const SEED_MEETS = [
@@ -417,6 +446,8 @@ async function processPdf(file) {
     setProgress(95);
     parsePdf(allItems, file.name);
     setProgress(100);
+    // expose raw lines for debugging if 0 matches
+    window._lastPdfItems = allItems;
   } catch(err) {
     document.getElementById('parse-msg').textContent = 'Could not read PDF: ' + err.message;
     setProgress(0);
@@ -527,7 +558,18 @@ function showPreview() {
   list.innerHTML = '';
 
   if (!parsedResults.length) {
-    list.innerHTML = '<div class="msg">No times matched — check the PDF format or roster names.</div>';
+    // Show first 60 PDF lines so we can debug the format
+    const items = window._lastPdfItems || [];
+    const lineMap = {};
+    items.forEach(it => { if (!it.str) return; const k = Math.round(it.y/3)*3; (lineMap[k]=lineMap[k]||[]).push(it); });
+    const lines = Object.keys(lineMap).map(Number).sort((a,b)=>b-a)
+      .slice(0,60).map(k => lineMap[k].slice().sort((a,b)=>a.x-b.x).map(i=>i.str.trim()).filter(s=>s).join(' | '));
+    const rosterNames = Object.keys(roster).filter(k=>!k.startsWith('_last_')).slice(0,10).join(', ');
+    list.innerHTML = '<div class="msg" style="text-align:left;font-size:11px;color:var(--red)">No times matched.<br><br>'
+      + '<b>Roster sample (first 10 keys):</b><br>' + rosterNames + '<br><br>'
+      + '<b>PDF lines (first 60):</b><br>'
+      + lines.map(l=>'<span style="display:block;padding:1px 0;border-bottom:1px solid var(--border)">'+l+'</span>').join('')
+      + '</div>';
   } else {
     parsedResults.forEach(r => {
       const row = document.createElement('div');
