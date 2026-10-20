@@ -159,23 +159,40 @@
       </div>
     </div>
 
-    <!-- Step 2: upload PDF -->
+    <!-- Step 2: upload PDF or paste from Claude -->
     <div class="card" id="step-upload">
-      <div class="card-head"><span class="card-label">UPLOAD RESULTS PDF</span></div>
+      <div class="card-head"><span class="card-label">IMPORT RESULTS</span></div>
       <div class="card-body">
-        <div class="drop-zone" id="drop-zone"
-          ondragover="event.preventDefault();this.classList.add('over')"
-          ondragleave="this.classList.remove('over')"
-          ondrop="onDrop(event)">
-          <input type="file" accept=".pdf" id="pdf-input" onchange="onFileChange(event)">
-          <div class="drop-icon">📄</div>
-          <div class="drop-label" id="drop-label">Drop PDF here or tap to browse</div>
-          <div class="drop-sub">SwimCloud results sheet</div>
+        <!-- Tab switcher -->
+        <div style="display:flex;gap:8px;margin-bottom:4px">
+          <button id="tab-pdf" onclick="switchTab('pdf')" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-fg);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">Upload PDF</button>
+          <button id="tab-paste" onclick="switchTab('paste')" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--fg2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">Paste from Claude</button>
         </div>
-        <div class="progress-bar" id="progress-wrap" hidden>
-          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+
+        <!-- PDF tab -->
+        <div id="panel-pdf">
+          <div class="drop-zone" id="drop-zone"
+            ondragover="event.preventDefault();this.classList.add('over')"
+            ondragleave="this.classList.remove('over')"
+            ondrop="onDrop(event)">
+            <input type="file" accept=".pdf" id="pdf-input" onchange="onFileChange(event)">
+            <div class="drop-icon">📄</div>
+            <div class="drop-label" id="drop-label">Drop PDF here or tap to browse</div>
+            <div class="drop-sub">SwimCloud results sheet</div>
+          </div>
+          <div class="progress-bar" id="progress-wrap" hidden>
+            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+          <div id="parse-msg" class="msg" hidden></div>
         </div>
-        <div id="parse-msg" class="msg" hidden></div>
+
+        <!-- Paste tab -->
+        <div id="panel-paste" hidden>
+          <label>PASTE DATA FROM CLAUDE</label>
+          <textarea id="paste-input" placeholder='Paste the JSON data Claude gave you here…' style="width:100%;min-height:120px;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:11px;color:var(--fg);background:var(--bg);resize:vertical;outline:none;box-sizing:border-box" oninput="this.style.borderColor='var(--border)'"></textarea>
+          <button class="btn" onclick="loadPastedData()" style="margin-top:4px">Load Data</button>
+          <div id="paste-msg" style="font-size:12px;color:var(--red);margin-top:6px;min-height:18px"></div>
+        </div>
       </div>
     </div>
 
@@ -401,6 +418,36 @@ function onMeetChange() {
   selectedMeetDate = m ? fmtDate(m.dateStart) : '';
   document.getElementById('meet-date-display').value = selectedMeetDate || '—';
   resetUpload();
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────
+function switchTab(tab) {
+  const isPdf = tab === 'pdf';
+  document.getElementById('panel-pdf').hidden = !isPdf;
+  document.getElementById('panel-paste').hidden = isPdf;
+  document.getElementById('tab-pdf').style.cssText = isPdf
+    ? 'flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-fg);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer'
+    : 'flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--fg2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer';
+  document.getElementById('tab-paste').style.cssText = isPdf
+    ? 'flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);color:var(--fg2);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer'
+    : 'flex:1;padding:8px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-fg);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer';
+}
+
+function loadPastedData() {
+  const raw = document.getElementById('paste-input').value.trim();
+  const msg = document.getElementById('paste-msg');
+  if (!raw) { msg.textContent = 'Nothing pasted yet.'; return; }
+  try {
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data) || !data.length) throw new Error('Expected a non-empty array.');
+    if (!data[0].athleteId) throw new Error('Missing athleteId field.');
+    parsedResults = data;
+    parsedSkipped = [];
+    msg.textContent = '';
+    showPreview();
+  } catch(e) {
+    msg.textContent = 'Could not read data: ' + e.message;
+  }
 }
 
 // ── PDF handling ──────────────────────────────────────────────────────
