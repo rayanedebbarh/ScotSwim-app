@@ -143,7 +143,10 @@
     <div class="card" id="step-meet">
       <div class="card-head">
         <span class="card-label">SELECT MEET</span>
-        <span id="user-label" style="font-size:11px;color:var(--fg3)"></span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span id="user-label" style="font-size:11px;color:var(--fg3)"></span>
+          <button id="signout-btn" hidden onclick="auth.signOut()" style="font-size:10px;font-weight:700;font-family:inherit;padding:3px 10px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--fg2);cursor:pointer;letter-spacing:.5px">SIGN OUT</button>
+        </span>
       </div>
       <div class="card-body">
         <div>
@@ -300,6 +303,7 @@ auth.onAuthStateChanged(async user => {
   if (user) {
     document.getElementById('screen-login').classList.remove('show');
     document.getElementById('screen-app').classList.add('show');
+    document.getElementById('signout-btn').hidden = false;
     const lbl = document.getElementById('user-label');
     lbl.textContent = user.email;
     try {
@@ -317,6 +321,7 @@ auth.onAuthStateChanged(async user => {
   } else {
     document.getElementById('screen-login').classList.add('show');
     document.getElementById('screen-app').classList.remove('show');
+    document.getElementById('signout-btn').hidden = true;
   }
 });
 
