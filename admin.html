@@ -453,7 +453,11 @@ function loadPastedData() {
     const data = JSON.parse(raw);
     if (!Array.isArray(data) || !data.length) throw new Error('Expected a non-empty array.');
     if (!data[0].athleteId) throw new Error('Missing athleteId field.');
-    parsedResults = data;
+    parsedResults = data.map(r => ({
+      ...r,
+      athleteName: roster[r.athleteId]?.name ?? r.athleteId,
+      evName: EV_NAMES[r.eventId] ?? r.eventId,
+    }));
     parsedSkipped = [];
     msg.textContent = '';
     showPreview();
